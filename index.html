@@ -492,6 +492,7 @@ table.lb .n { text-align: right; font-variant-numeric: tabular-nums; }
 .pin-field { width: 170px; letter-spacing: .2em; }
 .sep { border: 0; border-top: 1px solid var(--line); margin: 6px 0; width: 100%; }
 .sub { font-size: 16px; font-weight: 600; }
+.code-box { width: 100%; min-height: 70px; resize: vertical; font-family: var(--font-code); font-size: 12px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; overflow-wrap: anywhere; }
 
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
@@ -2979,10 +2980,19 @@ function renderProfile(v) {
         <h3 class="sub">PIN lock</h3>
         <p class="muted" style="font-size:13.5px">${hasPin ? "Your save file is locked with a PIN." : "Lock your save file so other people on this computer can't play it."} A PIN is a friendly lock for sharing a computer, not bank-level security.</p>
         <div id="pinArea" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <input type="password" id="newPin" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" class="pin-field" autocomplete="off">
+          <input type="password" id="newPin" inputmode="numeric" maxlength="4" placeholder="4-digit PIN" class="pin-field" autocomplete="off">
           <button class="btn sm" id="setPin">${hasPin ? "Change PIN" : "Set PIN"}</button>
           ${hasPin ? `<button class="btn sm ghost" id="rmPin">Remove PIN</button>` : ""}
         </div>`}
+
+        <hr class="sep">
+        <h3 class="sub">Sync with your other version</h3>
+        <p class="muted" style="font-size:13.5px">The claude.ai game and the desktop game save separately. Copy your save code here, then paste it into Profile on the other version. Progress is combined, so nothing from either side is lost.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn sm" id="copyCode">Copy my save code</button><span class="muted" id="copyMsg" style="font-size:13px"></span></div>
+        <textarea id="codeOut" class="code-box" readonly hidden aria-label="Your save code"></textarea>
+        <label class="sr" for="codeIn">Paste a save code</label>
+        <textarea id="codeIn" class="code-box" placeholder="Paste a save code from your other version here"></textarea>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn sm primary" id="useCode">Combine progress</button><span class="muted" id="useMsg" style="font-size:13px"></span></div>
 
         <hr class="sep">
         <h3 class="sub">Account</h3>
@@ -3047,6 +3057,28 @@ function renderProfile(v) {
     const rm = $("#rmPin");
     if (rm) rm.addEventListener("click", () => { lsSet(pinKey(S.slot), null); toast("PIN removed"); renderProfile(v); });
   }
+  $("#copyCode").addEventListener("click", () => {
+    const code = encodeSave(S.hero);
+    const out = $("#codeOut");
+    const showBox = () => { out.hidden = false; out.value = code; out.focus(); out.select(); $("#copyMsg").textContent = "Select all and copy this code."; };
+    try {
+      navigator.clipboard.writeText(code).then(() => { $("#copyMsg").textContent = "Copied! Paste it into Profile on your other version."; }, showBox);
+    } catch (_) { showBox(); }
+  });
+  $("#useCode").addEventListener("click", () => {
+    const other = decodeSave($("#codeIn").value);
+    const msg = $("#useMsg");
+    if (!other) { msg.textContent = "That doesn't look like a Code Quest save code. Copy the whole thing and try again."; return; }
+    const lvls = () => { const n = LEVELS.filter((L) => levelClear(L.id)).length; return n + (n === 1 ? " level" : " levels"); };
+    const before = { xp: h.xp, done: lvls() };
+    mergeInto(h, other);
+    save();
+    toast(`<span class="x">Synced</span> ${h.xp} XP · ${lvls()} cleared`);
+    renderChip();
+    renderNav();
+    renderProfile(v);
+    $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
+  });
   $("#pOut").addEventListener("click", logOut);
   $("#pReset").addEventListener("click", () => {
     const cloud = S.mode === "cloud";
@@ -3068,6 +3100,55 @@ function renderProfile(v) {
       }
     });
   });
+}
+
+/* ── Save codes: move progress between the claude.ai and desktop versions ── */
+function encodeSave(hero) {
+  const json = JSON.stringify(hero);
+  const bytes = new TextEncoder().encode(json);
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return "CQ1." + btoa(bin);
+}
+function decodeSave(text) {
+  const m = /CQ1\.([A-Za-z0-9+/=\s]+)/.exec(String(text || ""));
+  if (!m) return null;
+  try {
+    const bin = atob(m[1].replace(/\s+/g, ""));
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    return cleanHero(JSON.parse(new TextDecoder().decode(bytes)));
+  } catch (_) { return null; }
+}
+/* Combine another save into this one, keeping the best of both for every level.
+   Name, character and colour stay as they are on this version. */
+function mergeInto(h, o) {
+  h.xp = Math.max(h.xp, o.xp);
+  h.best = Math.max(h.best, o.best);
+  if ((o.last || "") > (h.last || "")) { h.last = o.last; h.streak = o.streak; }
+  else if (o.last === h.last) h.streak = Math.max(h.streak, o.streak);
+  if (o.created && (!h.created || o.created < h.created)) h.created = o.created;
+  for (const [d, x] of Object.entries(o.days || {})) h.days[d] = Math.max(h.days[d] || 0, x);
+  for (const [id, b] of Object.entries(o.lv || {})) {
+    const a = (h.lv[id] = h.lv[id] || {});
+    if (b.l) a.l = 1;
+    if (b.b) a.b = 1;
+    if (b.d) a.d = 1;
+    if (Array.isArray(b.t)) { a.t = a.t || []; b.t.forEach((v, i) => { if (v && (!a.t[i] || v < a.t[i])) a.t[i] = v; }); }
+    if (b.c && b.c.ok) a.c = { ok: 1, s: Math.max((a.c && a.c.ok && a.c.s) || 0, b.c.s || 1) };
+    if (typeof b.e === "string" && b.e.length > (a.e || "").length) a.e = b.e;
+  }
+  for (const [k, c] of Object.entries(o.cards || {})) {
+    const a = h.cards[k];
+    if (!a || c.b > a.b || (c.b === a.b && c.due > a.due)) h.cards[k] = { b: c.b | 0, due: String(c.due) };
+  }
+  for (const [k, arr] of Object.entries(o.home || {})) {
+    if (!Array.isArray(arr)) continue;
+    const a = (h.home[k] = h.home[k] || []);
+    arr.forEach((v, i) => { if (v) a[i] = 1; });
+  }
+  if (!h.motto && o.motto) h.motto = o.motto;
+  if (!h.role && o.role) h.role = o.role;
+  recompute();
 }
 
 </script>

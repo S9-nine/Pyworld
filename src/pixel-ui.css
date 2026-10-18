@@ -97,3 +97,4 @@
 .pin-field { width: 170px; letter-spacing: .2em; }
 .sep { border: 0; border-top: 1px solid var(--line); margin: 6px 0; width: 100%; }
 .sub { font-size: 16px; font-weight: 600; }
+.code-box { width: 100%; min-height: 70px; resize: vertical; font-family: var(--font-code); font-size: 12px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; overflow-wrap: anywhere; }
