@@ -14,8 +14,12 @@ const css = fs.readFileSync(p("pixel-ui.css"), "utf8") + `
 }
 `;
 const shell = fs.readFileSync(p("shell.html"), "utf8").replace("</style>", () => css + "</style>");
-const js = ["content.js", "pixel.js", "runner.js", "app.js", "title.js", "profile.js"].map((f) => fs.readFileSync(p(f), "utf8")).join("\n");
-const html = shell + "\n<script>\n" + js + "\n</script>\n";
+const list = require("./build-list.js");
+const js = list.content.concat(list.app).map((f) => fs.readFileSync(p(f), "utf8")).join("\n");
+// Lessons contain HTML like "<script>" and "<!--"; escape them so the page's own <script> tag isn't cut short.
+// ("<\/" and "<\!" mean the same thing inside JS strings and regexes.)
+const safeJs = js.replace(/<\/script/gi, "<\\/script").replace(/<!--/g, "<\\!--");
+const html = shell + "\n<script>\n" + safeJs + "\n</script>\n";
 
 fs.writeFileSync(p("../code-quest.html"), html);
 fs.writeFileSync(p("../index.html"),

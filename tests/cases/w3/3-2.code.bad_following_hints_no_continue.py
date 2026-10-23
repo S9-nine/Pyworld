@@ -1,0 +1,19 @@
+while True:
+    try:
+        bill = float(input("Bill? "))
+    except ValueError:
+        print("That's not a number.")
+    if bill <= 0:
+        print("The bill must be more than 0.")
+    else:
+        break
+while True:
+    try:
+        people = int(input("People? "))
+    except ValueError:
+        print("That's not a whole number.")
+    if people < 1:
+        print("Need at least 1 person.")
+    else:
+        break
+print(f"Each pays Rs {bill / people:.2f}")

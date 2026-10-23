@@ -132,6 +132,10 @@ function stageDone(id, stage) {
   if (stage === "explain") return !!s.e;
 }
 const levelClear = (id) => STAGES.every((st) => stageDone(id, st.id));
+function worldOpen(wid) {
+  const first = LEVELS.find((L) => L.world === wid);
+  return !!first && levelUnlocked(first.id);
+}
 function levelUnlocked(id) {
   const i = LEVELS.findIndex((l) => l.id === id);
   return i === 0 || stageDone(LEVELS[i - 1].id, "code");
@@ -146,7 +150,7 @@ function recompute() {
   h.stars = LEVELS.reduce((a, L) => a + ((h.lv[L.id] && h.lv[L.id].c && h.lv[L.id].c.s) || 0), 0);
   h.done = LEVELS.filter((L) => levelClear(L.id)).length;
   const firstLocked = LEVELS.find((L) => !stageDone(L.id, "code"));
-  h.cur = firstLocked ? firstLocked.id : "2-0";
+  h.cur = firstLocked ? firstLocked.id : "done";
 }
 function addXP(n, label) {
   const h = S.hero, t = today();
@@ -177,6 +181,16 @@ function dueCards() {
   const t = today();
   return Object.entries(S.hero.cards).filter(([, c]) => c.due <= t).map(([k]) => k);
 }
+/* Skill totals come from the content itself, so the meter reaches 100% when every level and home quest is done. */
+const SKILL_TOTALS = (() => {
+  const t = {};
+  SKILLS.forEach((s) => (t[s.id] = 0));
+  for (const L of LEVELS) {
+    for (const [k, v] of Object.entries(L.skills || {})) t[k] = (t[k] || 0) + v;
+    if (L.homeQuest) L.homeQuest.tasks.forEach((x) => (t[x.skill] = (t[x.skill] || 0) + 2));
+  }
+  return t;
+})();
 function skillScores() {
   const got = {};
   SKILLS.forEach((s) => (got[s.id] = 0));
@@ -188,11 +202,11 @@ function skillScores() {
       L.homeQuest.tasks.forEach((t, i) => { if (done[i]) got[t.skill] = (got[t.skill] || 0) + 2; });
     }
   }
-  return SKILLS.map((s) => ({ ...s, pct: Math.min(100, Math.round((got[s.id] / s.total) * 100)) }));
+  return SKILLS.map((s) => ({ ...s, total: SKILL_TOTALS[s.id] || s.total, pct: Math.min(100, Math.round((got[s.id] / (SKILL_TOTALS[s.id] || s.total)) * 100)) }));
 }
 function readiness() {
   const sc = skillScores();
-  const total = SKILLS.reduce((a, s) => a + s.total, 0);
+  const total = sc.reduce((a, s) => a + s.total, 0);
   return Math.round(sc.reduce((a, s) => a + (s.pct / 100) * s.total, 0) / total * 100);
 }
 
@@ -305,7 +319,7 @@ function players() {
 }
 function placeOf(p) {
   const cur = p.cur || "1-1";
-  if (cur === "2-0") return { world: 2, label: "Arrived at Loop Forest" };
+  if (cur === "done") return { world: WORLDS.length, label: "Quest complete" };
   const L = levelById(cur);
   return { world: L ? L.world : 1, label: L ? `${L.world}-${L.n} ${L.title}` : "Basics Village" };
 }
@@ -321,7 +335,7 @@ function renderHome(v) {
     <div class="home-main">
       <div class="hello">
         <div>
-          <p class="eyebrow">Week 1 · Basics Village</p>
+          <p class="eyebrow">${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].when)} · ${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].name)}</p>
           <h1>${greeting()}, ${esc(h.name)}.</h1>
           <p>${h.xp === 0 ? "Your quest starts on the little island in the bottom-left. Each level takes about 30–45 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
         </div>
@@ -330,7 +344,7 @@ function renderHome(v) {
         <span class="lvl-badge">${nx.world}-${nx.n}</span>
         <span style="flex:1;min-width:0"><span class="eyebrow">${levelClear(nx.id) ? "Replay" : stageDone(nx.id, "learn") ? "Continue" : "Next level"}</span><br><b style="font-size:17px">${esc(nx.title)}</b> <span class="muted">· ${esc(nx.concept)}</span></span>
         <span class="btn primary sm">${ICON.play} ${STAGES.find((s) => s.id === nextStageOf(nx.id)).label}</span>
-      </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>World 1 cleared!</b><br><span class="muted">Loop Forest is next. Ask Claude to forge World 2 into this game.</span></span></div>`}
+      </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>Every world cleared!</b><br><span class="muted">You've finished the whole quest. Replay levels for 3 stars, and keep the Take it home quests going.</span></span></div>`}
       <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div></div>
       <div class="card loop">
         <div class="panel-h"><h2>Today's quest loop</h2><span class="muted" style="font-size:13px">about 3–4 hours</span></div>
@@ -374,7 +388,7 @@ function loopHtml(nx, due) {
   const st = (id) => (nx ? stageDone(nx.id, id) : true);
   const rows = [
     { ico: "cards", t: "Memory Dungeon", d: due ? `${due} card${due > 1 ? "s" : ""} due. Recalling old topics locks them in.` : "Nothing due. Cards come back on a growing schedule.", tm: "15 min", done: !due, act: "review|" },
-    { ico: "book", t: "Learn + Think", d: nx ? `${nx.title}: lesson and logic riddles` : "World 1 complete", tm: "45 min", done: st("learn") && st("think"), act: "stage|" + (st("learn") ? "think" : "learn") },
+    { ico: "book", t: "Learn + Think", d: nx ? `${nx.title}: lesson and logic riddles` : "Quest complete", tm: "45 min", done: st("learn") && st("think"), act: "stage|" + (st("learn") ? "think" : "learn") },
     { ico: "hammer", t: "The Forge", d: "Write the code yourself. The game checks it.", tm: "60–90 min", done: st("code"), act: "stage|code" },
     { ico: "bug", t: "Bug Hunt", d: "Fix broken code. Read errors like a pro.", tm: "15 min", done: st("bug"), act: "stage|bug" },
     { ico: "talk", t: "Tavern Talk", d: "Explain your solution in your own words.", tm: "10 min", done: st("explain"), act: "stage|explain" }
@@ -385,7 +399,7 @@ function loopHtml(nx, due) {
       <button class="trail-card" style="padding:0;background:none;border:0" data-loop="${r.act}" ${!nx && r.act.startsWith("stage") ? "disabled" : ""}><span><span class="t">${r.t}</span><br><span class="d">${r.d}</span></span></button>
       <span class="tm">${r.tm}</span></li>`).join("")}
     <li class="${extDone ? "done" : ""}"><span class="ico">${extDone ? ICON.check : ICON.globe}</span>
-      <label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="extBox" ${extDone ? "checked" : ""} style="width:18px;height:18px;accent-color:var(--grass)"><span><span class="t">Outside practice</span><br><span class="d">One Exercism exercise or 30 min of CS50P</span></span></label>
+      <label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="extBox" ${extDone ? "checked" : ""} style="width:18px;height:18px;accent-color:var(--grass)"><span><span class="t">Outside practice</span><br><span class="d">30 minutes from your world's Study alongside list</span></span></label>
       <span class="tm">30 min</span></li></ol>`;
 }
 function boardRow(p, i) {
@@ -428,9 +442,8 @@ function mapSvg() {
     const x = (i * 157) % 960 + 20, y = (i * 89) % 470 + 20;
     return `<path d="M${x},${y} q8,-6 16,0 t16,0" fill="none" stroke="var(--water-line)" stroke-width="2.5" stroke-linecap="round"/>`;
   }).join("");
-  const w1done = LEVELS.every((L) => stageDone(L.id, "code"));
   const nodes = WORLDS.map((w, i) => {
-    const open = w.open || (w.id === 2 && w1done);
+    const open = worldOpen(w.id);
     const here = byWorld[w.id] || [];
     const tokens = here.slice(0, 6).map((p, j) => {
       const ang = -Math.PI / 2 - 0.9 + j * 0.62;
@@ -460,7 +473,7 @@ function bindMap(root) {
   $$(".world-node", root).forEach((g) => {
     const open = () => {
       const id = +g.dataset.world;
-      if (id === 1) go({ name: "world", id: 1 }); else openWorldInfo(id);
+      if (worldOpen(id)) go({ name: "world", id }); else openWorldInfo(id);
     };
     g.addEventListener("click", open);
     g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
@@ -470,7 +483,7 @@ function openWorldInfo(id) {
   const w = WORLDS.find((x) => x.id === id);
   openModal(`<p class="eyebrow">World ${w.id} · ${esc(w.when)}</p><h2>${esc(w.name)}</h2>
     <div class="prose"><p><b>You'll learn:</b> ${esc(w.topics)}.</p><p><b>Boss project:</b> ${esc(w.boss)}.</p><p><b>Job skills:</b> ${esc(w.job)}.</p>
-    <p class="muted">This world opens after the one before it. When you clear World ${w.id - 1}, ask Claude to forge World ${w.id} into the game. It'll be built around how you did.</p></div>
+    <p class="muted">${LEVELS.some((L) => L.world === w.id) ? `This world opens when you clear the Forge of every level in World ${w.id - 1}, ${esc(WORLDS[w.id - 2].name)}.` : "This world is still being built."}</p></div>
     <div class="row"><button class="btn primary" data-close>Got it</button></div>`);
 }
 
@@ -480,14 +493,14 @@ function renderWorld(v, wid) {
   const levels = LEVELS.filter((L) => L.world === wid);
   const ps = players();
   const boss = levels.find((L) => L.homeQuest);
-  const doneHome = (S.hero.home[boss.id] || []);
+  const doneHome = boss ? (S.hero.home[boss.id] || []) : [];
   v.innerHTML = `
   <div class="wrap">
     <div class="world-head">
       <button class="crumb" data-back>${ICON.back} World map</button>
       <p class="eyebrow">World ${w.id} · ${esc(w.when)}</p>
       <h1>${esc(w.name)}</h1>
-      <p class="muted" style="max-width:62ch">The basics every program is built from: ${esc(w.topics)}. Clear each level's five stages to earn stars. The Gatekeeper waits at the end.</p>
+      <p class="muted" style="max-width:62ch">${w.intro ? w.intro + " " : ""}You'll learn ${esc(w.topics)}. Clear each level's five stages to earn stars. ${esc(w.bossName || "The boss")} waits at the end.</p>
     </div>
     <div class="world-grid">
       <div class="trail">${levels.map((L) => {
@@ -505,11 +518,11 @@ function renderWorld(v, wid) {
           </button></div>`;
       }).join("")}</div>
       <aside style="display:grid;gap:20px;align-content:start">
-        <div class="card side-card">
+        ${boss ? `<div class="card side-card">
           <div class="panel-h"><h2>${esc(boss.homeQuest.title)}</h2><span class="muted num" style="font-size:13px">${doneHome.filter(Boolean).length}/${boss.homeQuest.tasks.length}</span></div>
           <p class="muted" style="font-size:13.5px;margin-bottom:12px">${boss.homeQuest.intro}</p>
           <div class="quest-list">${boss.homeQuest.tasks.map((t, i) => `<label class="quest-item"><input type="checkbox" data-home="${i}" ${doneHome[i] ? "checked" : ""}><span><b>${esc(t.t)}</b><span>${t.d}</span></span></label>`).join("")}</div>
-        </div>
+        </div>` : ""}
         <div class="card side-card">
           <div class="panel-h"><h2>Study alongside</h2></div>
           <div class="res">${(RESOURCES[wid] || []).map((r) => `<a href="${r.url}" target="_blank" rel="noopener"><b>${esc(r.name)}</b><span>${esc(r.what)}</span></a>`).join("")}</div>
@@ -535,7 +548,9 @@ function renderWorld(v, wid) {
 
 /* ───────── Editor ───────── */
 const KW = new Set("False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield".split(" "));
-const BI = new Set("print input int float str bool len range type round abs min max sum sorted list dict set tuple enumerate zip isinstance".split(" "));
+const BI = new Set("print input int float str bool len range type round abs min max sum sorted list dict set tuple enumerate zip isinstance open reversed any all map filter".split(" "));
+const SQLKW = new Set("select from where and or not in is null like order by group having limit offset as join inner left right outer on insert into values update set delete create table primary key integer text real autoincrement unique default distinct case when then else end if exists drop alter add foreign references between asc desc union all check".split(" "));
+const SQLFN = new Set("count sum avg min max round lower upper length coalesce substr date strftime total abs".split(" "));
 function highlight(src) {
   const re = /(#[^\n]*)|([fFrRbB]?(?:"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?))|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)/g;
   let out = "", last = 0, m;
@@ -549,12 +564,53 @@ function highlight(src) {
   }
   return out + esc(src.slice(last));
 }
-function createEditor(host, code, { onChange, id } = {}) {
-  host.innerHTML = `<div class="editor"><div class="gutter" aria-hidden="true"></div><div class="code-scroll"><div class="code-inner"><pre aria-hidden="true"><code></code></pre><textarea id="${id || ""}" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Python code editor. Press Escape then Tab to leave."></textarea></div></div></div>`;
+function highlightSql(src) {
+  const re = /(--[^\n]*)|('(?:[^']|'')*'?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    if (m[1]) out += `<span class="tk-com">${esc(m[1])}</span>`;
+    else if (m[2]) out += `<span class="tk-str">${esc(m[2])}</span>`;
+    else if (m[3]) out += `<span class="tk-num">${esc(m[3])}</span>`;
+    else { const w = m[4].toLowerCase(); out += SQLKW.has(w) ? `<span class="tk-kw">${m[4]}</span>` : SQLFN.has(w) ? `<span class="tk-fn">${m[4]}</span>` : m[4]; }
+    last = re.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+function highlightHtml(src) {
+  let out = "", i = 0;
+  while (i < src.length) {
+    if (src.startsWith("<!--", i)) {
+      const j = src.indexOf("-->", i), e = j < 0 ? src.length : j + 3;
+      out += `<span class="tk-com">${esc(src.slice(i, e))}</span>`; i = e; continue;
+    }
+    if (src[i] === "<" && /[a-zA-Z\/!]/.test(src[i + 1] || "")) {
+      const j = src.indexOf(">", i), e = j < 0 ? src.length : j + 1, tag = src.slice(i, e);
+      const re = /^(<\/?!?)([\w-]*)|("[^"]*"?|'[^']*'?)|([\w:-]+)(?=\s*=)/g;
+      let last = 0, m;
+      while ((m = re.exec(tag))) {
+        out += esc(tag.slice(last, m.index));
+        if (m[1] != null) out += esc(m[1]) + `<span class="tk-kw">${esc(m[2])}</span>`;
+        else if (m[3]) out += `<span class="tk-str">${esc(m[3])}</span>`;
+        else if (m[4]) out += `<span class="tk-fn">${esc(m[4])}</span>`;
+        last = re.lastIndex;
+        if (m[0] === "") re.lastIndex++;
+      }
+      out += esc(tag.slice(last)); i = e; continue;
+    }
+    const j = src.indexOf("<", i + 1), e = j < 0 ? src.length : j;
+    out += esc(src.slice(i, e)); i = e;
+  }
+  return out;
+}
+const highlightFor = (lang) => lang === "sql" ? highlightSql : lang === "html" ? highlightHtml : lang === "text" ? esc : highlight;
+function createEditor(host, code, { onChange, id, lang = "python", readOnly = false } = {}) {
+  const paintCode = highlightFor(lang);
+  host.innerHTML = `<div class="editor"><div class="gutter" aria-hidden="true"></div><div class="code-scroll"><div class="code-inner"><pre aria-hidden="true"><code></code></pre><textarea id="${id || ""}" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" ${readOnly ? "readonly" : ""} aria-label="${lang === "python" ? "Python" : lang.toUpperCase()} code editor. Press Escape then Tab to leave."></textarea></div></div></div>`;
   const ta = $("textarea", host), pre = $("code", host), gut = $(".gutter", host);
   let errLine = null, escaped = false;
   const paint = () => {
-    pre.innerHTML = highlight(ta.value) + "\n";
+    pre.innerHTML = paintCode(ta.value) + "\n";
     const n = ta.value.split("\n").length;
     let g = "";
     for (let i = 1; i <= n; i++) g += `<div class="${i === errLine ? "err" : ""}">${i}</div>`;
@@ -570,6 +626,7 @@ function createEditor(host, code, { onChange, id } = {}) {
   ta.value = code;
   ta.addEventListener("input", () => { errLine = null; paint(); if (onChange) onChange(ta.value); });
   ta.addEventListener("keydown", (e) => {
+    if (readOnly) return;
     if (e.key === "Escape") { escaped = true; return; }
     if (e.key === "Tab" && !escaped) {
       e.preventDefault();
@@ -587,7 +644,7 @@ function createEditor(host, code, { onChange, id } = {}) {
       const v = ta.value, s = ta.selectionStart;
       const line = v.slice(v.lastIndexOf("\n", s - 1) + 1, s);
       let ind = /^\s*/.exec(line)[0];
-      if (/:\s*(#.*)?$/.test(line)) ind += "    ";
+      if (lang === "python" && /:\s*(#.*)?$/.test(line)) ind += "    ";
       insert("\n" + ind);
       return;
     }
@@ -642,26 +699,56 @@ function createConsole(el) {
     cancel() { if (pendingAsk) { pendingAsk(); pendingAsk = null; } }
   };
 }
-/* Run button wiring shared by examples, forge and bug hunt. */
-async function runInBench(ed, con, runBtn) {
+/* Run button wiring shared by examples, forge and bug hunt.
+   ctx: practice files, databases, web routes and modules for this level; keep = remember them between runs. */
+async function runInBench(ed, con, runBtn, ctx = {}) {
   if (pyBusy) {
     stopPython(); con.cancel(); return;
   }
   con.clear();
   runBtn.innerHTML = ICON.stop + " Stop";
-  const r = await runPython(ed.get(), { ask: () => con.ask(), onOut: (t) => con.write(t), limit: 6000 });
+  const r = await runPython(ed.get(), { ask: () => con.ask(), onOut: (t) => con.write(t), limit: 6000,
+    files: ctx.files, env: ctx.env, api: ctx.api, db: ctx.db, modules: ctx.modules, keep: !!ctx.keep });
   runBtn.innerHTML = ICON.play + " Run";
   if (r.error) { con.error(r.error); if (r.error.line) ed.mark(r.error.line); }
-  else if (!r.out) con.hint("(Your program ran but printed nothing.)");
+  else if (!r.out) con.hint(ctx.quiet || "(Your program ran but printed nothing.)");
+  if (ctx.after) ctx.after(r);
   return r;
+}
+async function runSqlBench(ed, con, db) {
+  con.clear();
+  const r = await runSql(ed.get(), db);
+  for (const s of r.sets) con.write(sqlTable(s.cols, s.rows) + "\n");
+  if (r.error) {
+    const err = { name: "SQL error", msg: r.error.msg, line: null };
+    const lines = ed.get().split("\n"), first = r.error.stmt.split("\n")[0].trim();
+    const at = lines.findIndex((l) => l.includes(first));
+    if (at >= 0) ed.mark(at + 1);
+    con.error(err);
+  } else if (!r.sets.length) con.hint("Done. Nothing to show: end with a SELECT to see rows.");
+  r.db.close();
+}
+function previewHtml(el, code) {
+  el.innerHTML = "";
+  const f = document.createElement("iframe");
+  f.setAttribute("sandbox", "");
+  f.setAttribute("title", "Page preview");
+  f.className = "preview";
+  f.srcdoc = code;
+  el.appendChild(f);
+}
+const exampleName = (lang, i) => lang === "sql" ? `query_${i + 1}.sql` : lang === "html" ? `page_${i + 1}.html` : lang === "text" ? "notes.txt" : `example_${i + 1}.py`;
+function benchCtx(task) {
+  return { files: task.files, env: task.env, api: task.api, db: task.db, modules: task.modules };
 }
 
 /* ───────── Level view ───────── */
 function renderLevel(v, id, stage) {
   const L = levelById(id);
-  if (!L || !levelUnlocked(id)) return go({ name: "world", id: 1 });
+  if (!L || !levelUnlocked(id)) return go(L ? { name: "world", id: L.world } : { name: "map" });
   stage = stage || nextStageOf(id);
   S.route.stage = stage;
+  resetPractice();
   const s = lv(id), c = s.c;
   v.innerHTML = `
   <div class="wrap">
@@ -698,14 +785,15 @@ function afterStage(L) {
 function celebrate(L) {
   const c = lv(L.id).c || { s: 1 };
   const idx = LEVELS.indexOf(L), nx = LEVELS[idx + 1];
+  const newWorld = nx && nx.world !== L.world ? WORLDS[nx.world - 1] : null;
   confetti();
   openModal(`<div class="celebrate" style="display:grid;gap:14px">
     <p class="eyebrow">${L.boss ? "Boss defeated" : "Level cleared"}</p>
     <h2>${esc(L.title)}</h2>
     <div class="big-stars">${starsHtml(c.s)}</div>
     <p class="muted">${c.s === 3 ? "Three stars, no hints. That's real understanding." : "Replay the Forge without hints any time to raise your stars."} Its memory cards will show up in the Memory Dungeon tomorrow.</p>
-    ${L.boss ? `<p><b>World 1 complete.</b> Now do the <i>Take it home</i> quests on the World page. That's where your portfolio starts.</p>` : ""}
-    <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">Next: ${esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
+    ${L.boss ? `<p><b>World ${L.world} complete.</b> Do the <i>Take it home</i> quests on the World page too. That's where your portfolio grows.${newWorld ? ` <b>${esc(newWorld.name)}</b> is now open.` : ""}</p>` : ""}
+    <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">${newWorld ? "Enter " + esc(newWorld.name) : "Next: " + esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
     { onOpen: (bg) => {
       const n = $("#cNext", bg); if (n) n.addEventListener("click", () => { closeModal(); go({ name: "level", id: nx.id, stage: "learn" }); });
       const w = $("#cWorld", bg); if (w) w.addEventListener("click", () => { closeModal(); go({ name: "world", id: L.world }); });
@@ -713,20 +801,31 @@ function celebrate(L) {
 }
 
 function stageLearn(host, L) {
+  const task = L.code || {};
   host.innerHTML = `
     <div class="stage-intro"><h2>Scroll of Knowledge</h2><span class="muted">Read, run, then change the code and run it again.</span></div>
-    <div class="learn-grid">${L.learn.map((c, i) => `
+    <div class="learn-grid">${L.learn.map((c, i) => {
+      const lang = c.lang || task.kind || "python";
+      return `
       <article class="card lcard"><h3>${esc(c.h)}</h3><p>${c.p}</p>
-        <div class="bench mini"><div class="bench-bar"><span class="file"><i></i>example_${i + 1}.py</span><button class="btn sm ghost" data-reset="${i}" style="color:var(--code-muted)">${ICON.reset} Reset</button><button class="btn sm go" data-run="${i}">${ICON.play} Run</button></div>
-        <div data-ed="${i}"></div><div class="console" data-con="${i}"></div></div>
-      </article>`).join("")}
+        ${c.code != null ? `<div class="bench mini"><div class="bench-bar"><span class="file"><i></i>${esc(c.file || exampleName(lang, i))}</span>${lang !== "text" ? `<button class="btn sm ghost" data-reset="${i}" style="color:var(--code-muted)">${ICON.reset} Reset</button><button class="btn sm go" data-run="${i}">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>` : ""}</div>
+        <div data-ed="${i}"></div>${lang !== "text" ? `<div class="console" data-con="${i}"></div>` : ""}</div>` : ""}
+      </article>`;
+    }).join("")}
     </div>
     <div class="next-row">${nextStageBtn(L, "learn")}</div>`;
   L.learn.forEach((c, i) => {
-    const ed = createEditor($(`[data-ed="${i}"]`, host), c.code);
-    const con = createConsole($(`[data-con="${i}"]`, host));
-    $(`[data-run="${i}"]`, host).addEventListener("click", (e) => runInBench(ed, con, e.currentTarget));
-    $(`[data-reset="${i}"]`, host).addEventListener("click", () => { ed.set(c.code); con.clear(); });
+    if (c.code == null) return;
+    const lang = c.lang || task.kind || "python";
+    const ed = createEditor($(`[data-ed="${i}"]`, host), c.code, { lang, readOnly: lang === "text" });
+    if (lang === "text") return;
+    const conEl = $(`[data-con="${i}"]`, host), con = createConsole(conEl);
+    $(`[data-run="${i}"]`, host).addEventListener("click", (e) => {
+      if (lang === "sql") runSqlBench(ed, con, c.db || task.db);
+      else if (lang === "html") previewHtml(conEl, ed.get());
+      else runInBench(ed, con, e.currentTarget, Object.assign(benchCtx(task), c.files ? { files: c.files } : {}, { keep: true }));
+    });
+    $(`[data-reset="${i}"]`, host).addEventListener("click", () => { ed.set(c.code); con.clear(); resetPractice(); });
   });
   $("[data-next]", host).addEventListener("click", () => {
     if (!lv(L.id).l) { lv(L.id).l = 1; addXP(XP.learn, "Lesson read"); }
@@ -734,11 +833,193 @@ function stageLearn(host, L) {
   });
 }
 
+/* ───────── Think: question types ─────────
+   mcq · multi (pick all true) · predict (type the output) · spot (tap the buggy line)
+   fill (fill blanks; any answer that produces the output counts) · match (pair terms)
+   refute (find an input that breaks plausible code) · trace (fill a variable table lap by lap)
+   order (Parsons: arrange lines, optionally with indentation and distractor lines) */
+/* Predictions are compared loosely on style: spaces after , and :, and ' vs " quotes don't matter. */
+const normLines = (t) => String(t).split("\n").map((l) => l.trim().replace(/\s+/g, " ").replace(/\s*([,:])\s*/g, "$1 ").replace(/"/g, "'").trim()).filter(Boolean).join("\n");
+const indentOf = (l) => Math.floor(/^ */.exec(l)[0].length / 4);
+function shuffled(n, avoidIdentity = true) {
+  const a = Array.from({ length: n }, (_, i) => i);
+  if (n < 2) return a;
+  do { for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } } while (avoidIdentity && a.every((v, i) => v === i));
+  return a;
+}
+const THINK = {
+  mcq(q, body, k) {
+    body.innerHTML = `<div class="opts">${q.options.map((o, i) => `<button class="opt" data-o="${i}"><span class="l">${"ABCD"[i]}</span><span class="tx">${o.includes("<") ? o : esc(o)}</span></button>`).join("")}</div>`;
+    const lock = (pick) => $$("[data-o]", body).forEach((x) => { x.disabled = true; if (+x.dataset.o === q.answer) x.classList.add("right"); else if (+x.dataset.o === pick) x.classList.add("wrong"); });
+    if (k.done) { lock(null); return k.answered(k.was === 1); }
+    $$("[data-o]", body).forEach((b) => b.addEventListener("click", () => { const pick = +b.dataset.o; lock(pick); k.answered(pick === q.answer); }));
+  },
+  multi(q, body, k) {
+    const picked = new Set();
+    body.innerHTML = `<p class="muted qnote">Pick every answer that's true. There may be more than one.</p><div class="opts">${q.options.map((o, i) => `<button class="opt" data-o="${i}" aria-pressed="false"><span class="l">${"ABCDEF"[i]}</span><span class="tx">${o.includes("<") ? o : esc(o)}</span></button>`).join("")}</div>`;
+    const lock = () => $$("[data-o]", body).forEach((x) => { const i = +x.dataset.o; x.disabled = true; if (q.answer.includes(i)) x.classList.add("right"); else if (picked.has(i)) x.classList.add("wrong"); });
+    if (k.done) { lock(); return k.answered(k.was === 1); }
+    $$("[data-o]", body).forEach((b) => b.addEventListener("click", () => {
+      const i = +b.dataset.o;
+      if (picked.has(i)) picked.delete(i); else picked.add(i);
+      b.classList.toggle("picked", picked.has(i)); b.setAttribute("aria-pressed", picked.has(i));
+    }));
+    k.checkBtn("Check", () => {
+      if (!picked.size) return toast("Pick at least one answer first.");
+      lock();
+      k.answered(picked.size === q.answer.length && q.answer.every((i) => picked.has(i)));
+    });
+  },
+  predict(q, body, k) {
+    const rows = Math.max(2, String(q.answer).split("\n").length + 1);
+    body.innerHTML = `<label class="sample-label" for="pIn">Type exactly what it prints${q.inputs ? ` when the user types ${q.inputs.map((x) => `<code>${esc(x)}</code>`).join(" then ")}` : ""}. One line per printed line.</label>
+      <textarea id="pIn" class="predict" rows="${rows}" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>`;
+    const ta = $("#pIn", body);
+    const reveal = () => body.insertAdjacentHTML("beforeend", `<div class="sample-label">It prints</div><pre class="sample">${esc(String(q.answer))}</pre>`);
+    if (k.done) { ta.value = String(q.answer); ta.disabled = true; reveal(); return k.answered(k.was === 1); }
+    ta.focus();
+    k.checkBtn("Check", () => {
+      if (!ta.value.trim()) { ta.focus(); return toast("Type your prediction first."); }
+      const ok = [q.answer].concat(q.accept || []).some((a) => normLines(a) === normLines(ta.value));
+      ta.disabled = true; reveal(); k.answered(ok);
+    });
+  },
+  spot(q, body, k) {
+    const lines = q.code.split("\n");
+    body.innerHTML = `<p class="muted qnote">Tap the line that causes the problem.</p><div class="spot" role="list">${lines.map((l, i) => `<button class="spot-line" data-l="${i + 1}"><span class="n">${i + 1}</span><code>${highlightFor(q.lang)(l) || " "}</code></button>`).join("")}</div>`;
+    const lock = (pick) => $$("[data-l]", body).forEach((x) => { x.disabled = true; if (+x.dataset.l === q.answer) x.classList.add("right"); else if (+x.dataset.l === pick) x.classList.add("wrong"); });
+    if (k.done) { lock(null); return k.answered(k.was === 1); }
+    $$("[data-l]", body).forEach((b) => b.addEventListener("click", () => { const pick = +b.dataset.l; lock(pick); k.answered(pick === q.answer); }));
+  },
+  fill(q, body, k) {
+    const parts = q.code.split("___"), hl = highlightFor(q.lang);
+    body.innerHTML = `<p class="muted qnote">${q.noRun ? "Fill in the blanks." : "Fill in the blanks so the program prints what's shown. Any answer that works counts."}</p>
+      <pre class="sample fill">${parts.map((p, i) => hl(p) + (i < parts.length - 1 ? `<input class="blank" data-b="${i}" size="${Math.max(3, (q.answers[i] || "").length + 1)}" aria-label="Blank ${i + 1}" spellcheck="false" autocomplete="off" autocapitalize="off">` : "")).join("")}</pre>
+      ${q.noRun ? "" : `<div class="sample-label">It should print${q.inputs ? ` (when the user types ${q.inputs.map((x) => `<code>${esc(x)}</code>`).join(" then ")})` : ""}</div><pre class="sample">${esc(q.expect.join("\n"))}</pre>`}<div id="fillOut"></div>`;
+    const blanks = $$("[data-b]", body);
+    const showModel = () => $("#fillOut", body).insertAdjacentHTML("beforeend", `<div class="sample-label">One answer that works</div><pre class="sample">${hl(parts.map((p, i) => p + (q.answers[i] != null ? q.answers[i] : "")).join(""))}</pre>`);
+    if (k.done) { blanks.forEach((b, i) => { b.value = q.answers[i]; b.disabled = true; }); showModel(); return k.answered(k.was === 1); }
+    blanks[0].focus();
+    blanks.forEach((b, i) => b.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); (blanks[i + 1] || $("#qCheck")).focus(); } }));
+    k.checkBtn("Run and check", async () => {
+      if (blanks.some((b) => !b.value.trim())) { const e = blanks.find((b) => !b.value.trim()); e.focus(); return toast("Fill every blank first."); }
+      if (q.noRun) {
+        const same = (a, b) => a.trim().toLowerCase().replace(/\s+/g, " ") === String(b).trim().toLowerCase();
+        const ok = blanks.every((b, i) => [q.answers[i]].concat((q.accept || [])[i] || []).some((a) => same(b.value, a)));
+        blanks.forEach((b) => (b.disabled = true));
+        if (!ok) showModel();
+        return k.answered(ok);
+      }
+      if (pyBusy) return;
+      const src = parts.map((p, i) => p + (i < blanks.length ? blanks[i].value : "")).join("");
+      const r = await runPython(src, { inputs: q.inputs || [], limit: 2500 });
+      const got = r.error ? null : outputLines(r.out, r.prompts, r.echo, r.soft);
+      const ok = !!got && got.join("\n") === q.expect.map(norm).join("\n");
+      blanks.forEach((b) => (b.disabled = true));
+      $("#fillOut", body).innerHTML = `<div class="sample-label">Your version ${r.error ? "crashed" : "printed"}</div><pre class="sample">${r.error ? esc(r.error.name + ": " + r.error.msg) : esc(got.join("\n")) || "(nothing)"}</pre>`;
+      if (!ok) showModel();
+      k.answered(ok);
+    });
+  },
+  match(q, body, k) {
+    const order = shuffled(q.pairs.length);
+    body.innerHTML = `<p class="muted qnote">Match each item on the left with its partner.</p><div class="match">${q.pairs.map(([l], i) => `<div class="match-row"><span class="ml">${l}</span><select data-m="${i}" aria-label="Match for item ${i + 1}"><option value="">Choose…</option>${order.map((j) => `<option value="${j}">${esc(stripTags(q.pairs[j][1]))}</option>`).join("")}</select></div>`).join("")}</div>`;
+    const sels = $$("[data-m]", body);
+    const lock = () => sels.forEach((s) => {
+      const i = +s.dataset.m, ok = s.value === String(i);
+      s.disabled = true; s.parentElement.classList.add(ok ? "right" : "wrong");
+      if (!ok) s.insertAdjacentHTML("afterend", `<span class="match-fix">${q.pairs[i][1]}</span>`);
+    });
+    if (k.done) { sels.forEach((s) => (s.value = s.dataset.m)); lock(); return k.answered(k.was === 1); }
+    k.checkBtn("Check", () => {
+      if (sels.some((s) => !s.value)) return toast("Match every item first.");
+      const ok = sels.every((s) => s.value === s.dataset.m);
+      lock(); k.answered(ok);
+    });
+  },
+  /* Refute: find an input that makes the plausible-looking code give a wrong answer.
+     q.fn names the function; the learner types the arguments; q.ref is a correct version. */
+  async refute(q, body, k) {
+    body.innerHTML = `<p class="muted qnote">This code looks right but has a bug. Find an input that makes it give the wrong answer. Type the argument${q.args > 1 ? "s, separated by commas" : ""}, like <code>${esc(q.example)}</code>.</p>
+      <pre class="sample">${highlight(q.code)}</pre>
+      <label class="refute"><code>${esc(q.fn)}(</code><input id="rfIn" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Arguments"><code>)</code></label><div id="rfOut"></div>`;
+    const inp = $("#rfIn", body), outEl = $("#rfOut", body);
+    const showModel = () => outEl.insertAdjacentHTML("beforeend", `<div class="sample-label">One input that breaks it</div><pre class="sample">${esc(q.fn + "(" + q.answer + ")")}</pre>`);
+    if (k.done) { inp.value = q.answer; inp.disabled = true; showModel(); return k.answered(k.was === 1); }
+    inp.focus();
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("#qCheck").click(); } });
+    k.checkBtn("Try this input", async () => {
+      const args = inp.value.trim();
+      if (!args) { inp.focus(); return toast("Type an input first."); }
+      if (pyBusy) return;
+      const call = q.fn + "(" + args + ")";
+      const [bad, good] = [await runPython(q.code, { calls: [{ call }], limit: 2000 }), await runPython(q.ref, { calls: [{ call }], limit: 2000 })];
+      const g = good.error || good.calls[0].error, b = bad.error || bad.calls[0].error;
+      if (g) { outEl.innerHTML = `<div class="notice">That input isn't valid for this task (${esc(g.name)}). Try another one.</div>`; return; }
+      const broke = !!b || bad.calls[0].value !== good.calls[0].value;
+      inp.disabled = true;
+      outEl.innerHTML = `<div class="sample-label">The buggy code gives</div><pre class="sample">${esc(b ? b.name + ": " + b.msg : bad.calls[0].value)}</pre><div class="sample-label">The right answer is</div><pre class="sample">${esc(good.calls[0].value)}</pre>`;
+      if (!broke) showModel();
+      k.answered(broke);
+    });
+  },
+  /* Trace table: fill in each variable's value after every lap. q.rows[i][j] is var j after lap i. */
+  trace(q, body, k) {
+    body.innerHTML = `<p class="muted qnote">Trace it like the computer would. Fill in each value <b>after</b> every lap of the loop.</p>
+      <div class="table-scroll"><table class="trace"><thead><tr><th>${esc(q.stepName || "After lap")}</th>${q.vars.map((v) => `<th><code>${esc(v)}</code></th>`).join("")}</tr></thead>
+      <tbody>${q.rows.map((r, i) => `<tr><th>${q.labels ? esc(q.labels[i]) : i + 1}</th>${r.map((_, j) => `<td><input data-tr="${i}-${j}" size="5" spellcheck="false" autocomplete="off" aria-label="${esc(q.vars[j])} after lap ${i + 1}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    const cells = $$("[data-tr]", body);
+    const want = (el) => { const [i, j] = el.dataset.tr.split("-").map(Number); return String(q.rows[i][j]); };
+    const same = (a, b) => a.trim().replace(/^['"]|['"]$/g, "").replace(/\s+/g, "") === b.replace(/^['"]|['"]$/g, "").replace(/\s+/g, "");
+    const lock = () => cells.forEach((c) => { const ok = same(c.value, want(c)); c.disabled = true; c.classList.add(ok ? "right" : "wrong"); if (!ok) c.value = want(c); });
+    if (k.done) { lock(); return k.answered(k.was === 1); }
+    cells[0].focus();
+    k.checkBtn("Check my trace", () => {
+      if (cells.some((c) => !c.value.trim())) return toast("Fill every box first.");
+      const ok = cells.every((c) => same(c.value, want(c)));
+      lock(); k.answered(ok);
+    });
+  },
+  order(q, body, k) {
+    const all = q.lines.concat(q.distractors || []), strip = (l) => l.replace(/^\s+/, "");
+    const pool = shuffled(all.length);
+    let picked = [];
+    const model = () => `<div class="sample-label">${q.distractors ? "A working order (some lines weren't needed)" : "The right order"}</div><pre class="sample">${highlightFor(q.lang)(q.lines.join("\n"))}</pre>`;
+    if (k.done) { body.innerHTML = model(); return k.answered(k.was === 1); }
+    const draw = () => {
+      body.innerHTML = `<p class="muted qnote">Tap lines to build the program in order. Tap a placed line to take it back.${q.indent ? " Use ◀ ▶ to set each line's indentation." : ""}${q.distractors ? " Careful: some lines don't belong." : ""}</p>
+        <div class="order-answer" aria-label="Your program">${picked.map((p, n) => `<div class="ochip" style="margin-left:${p.ind * 26}px"><button class="chip" data-un="${n}"><i>${n + 1}</i><code>${highlightFor(q.lang)(strip(all[p.i]))}</code></button>${q.indent ? `<span class="ind"><button class="btn sm ghost" data-l="${n}" aria-label="Indent less">◀</button><button class="btn sm ghost" data-r="${n}" aria-label="Indent more">▶</button></span>` : ""}</div>`).join("") || '<span class="muted" style="font-size:13px">Your program builds here</span>'}</div>
+        <div class="order-pool" style="margin-top:10px">${pool.filter((i) => !picked.some((p) => p.i === i)).map((i) => `<button class="chip" data-pk="${i}"><code>${highlightFor(q.lang)(strip(all[i]))}</code></button>`).join("")}</div>`;
+      $$("[data-pk]", body).forEach((b) => b.addEventListener("click", () => { const prev = picked[picked.length - 1]; picked.push({ i: +b.dataset.pk, ind: q.indent && prev ? prev.ind + (/:\s*$/.test(all[prev.i]) ? 1 : 0) : 0 }); draw(); }));
+      $$("[data-un]", body).forEach((b) => b.addEventListener("click", () => { picked.splice(+b.dataset.un, 1); draw(); }));
+      $$("[data-l]", body).forEach((b) => b.addEventListener("click", () => { const p = picked[+b.dataset.l]; p.ind = Math.max(0, p.ind - 1); draw(); }));
+      $$("[data-r]", body).forEach((b) => b.addEventListener("click", () => { const p = picked[+b.dataset.r]; p.ind = Math.min(4, p.ind + 1); draw(); }));
+      const ready = q.distractors ? picked.length > 0 : picked.length === q.lines.length;
+      if (ready) k.checkBtn(q.expect ? "Run and check" : "Check order", check); else k.nav.innerHTML = "";
+    };
+    const check = async () => {
+      if (pyBusy) return;
+      const src = picked.map((p) => "    ".repeat(q.indent ? p.ind : indentOf(all[p.i])) + strip(all[p.i])).join("\n");
+      let ok;
+      if (q.expect) {
+        const r = await runPython(src, { inputs: q.inputs || [], limit: 2500 });
+        ok = !r.error && outputLines(r.out, r.prompts, r.echo, r.soft).join("\n") === q.expect.map(norm).join("\n");
+        body.insertAdjacentHTML("beforeend", `<div class="sample-label">Your program ${r.error ? "crashed" : "printed"}</div><pre class="sample">${r.error ? esc(r.error.name + ": " + r.error.msg) : esc(outputLines(r.out, r.prompts, r.echo, r.soft).join("\n")) || "(nothing)"}</pre>`);
+      } else {
+        ok = picked.length === q.lines.length && picked.every((p, n) => p.i === n && (!q.indent || p.ind === indentOf(q.lines[n])));
+      }
+      $$(".chip, .ind button", body).forEach((x) => (x.disabled = true));
+      if (!ok) body.insertAdjacentHTML("beforeend", model());
+      k.answered(ok);
+    };
+    draw();
+  }
+};
+
 function stageThink(host, L) {
   const s = lv(L.id);
   s.t = s.t || [];
   let qi = Math.max(0, L.think.findIndex((_, i) => !s.t[i]));
-  if (qi === -1 || s.t.length >= L.think.length && L.think.every((_, i) => s.t[i])) qi = 0;
   const show = () => {
     const q = L.think[qi];
     const prog = L.think.map((_, i) => `<i class="${s.t[i] === 1 ? "ok" : s.t[i] ? "on" : i === qi ? "on" : ""}"></i>`).join("");
@@ -747,99 +1028,111 @@ function stageThink(host, L) {
       <div class="card q">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="eyebrow">Riddle ${qi + 1} of ${L.think.length}</span><span class="qprog">${prog}</span></div>
         <h3>${q.q}</h3>
-        ${q.code ? `<pre class="sample">${highlight(q.code)}</pre>` : ""}
+        ${q.code && !["spot", "fill"].includes(q.type) ? `<pre class="sample">${highlightFor(q.lang)(q.code)}</pre>` : ""}
         <div id="qBody"></div>
         <div id="qWhy"></div>
         <div class="row" style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap" id="qNav"></div>
       </div>`;
     const body = $("#qBody"), why = $("#qWhy"), nav = $("#qNav");
-    const answered = (correct) => {
-      const first = !s.t[qi];
-      if (first) { s.t[qi] = correct ? 1 : 2; addXP(correct ? XP.think : XP.thinkRetry, correct ? "Riddle solved" : "Learned from a miss"); }
-      why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? "Correct!" : "Not quite."}</b>${q.why}</div>`;
-      const last = qi === L.think.length - 1;
-      nav.innerHTML = last ? nextStageBtn(L, "think") : `<button class="btn primary" id="qNext">Next riddle</button>`;
-      if (last) { bindNext(host, L); afterStage(L); }
-      else $("#qNext").addEventListener("click", () => { qi++; show(); });
-    };
-    if (q.type === "mcq") {
-      body.innerHTML = `<div class="opts">${q.options.map((o, i) => `<button class="opt" data-o="${i}"><span class="l">${"ABCD"[i]}</span><span class="tx">${q.options[i].includes("<") ? o : esc(o)}</span></button>`).join("")}</div>`;
-      $$("[data-o]", body).forEach((b) => b.addEventListener("click", () => {
-        const pick = +b.dataset.o, ok = pick === q.answer;
-        $$("[data-o]", body).forEach((x) => { x.disabled = true; if (+x.dataset.o === q.answer) x.classList.add("right"); });
-        if (!ok) b.classList.add("wrong");
-        answered(ok);
-      }));
-    } else if (q.type === "order") {
-      const order = q.lines.map((_, i) => i);
-      do { order.sort(() => Math.random() - .5); } while (order.every((v, i) => v === i));
-      let picked = [];
-      const draw = () => {
-        body.innerHTML = `<p class="muted" style="font-size:13px;margin-bottom:8px">Tap lines in the order they should run. Tap a placed line to remove it.</p>
-          <div class="order-answer" aria-label="Your order">${picked.map((i, k) => `<button class="chip" data-un="${k}"><i>${k + 1}</i><span>${esc(q.lines[i])}</span></button>`).join("") || '<span class="muted" style="font-size:13px">Your program builds here</span>'}</div>
-          <div class="order-pool" style="margin-top:10px">${order.filter((i) => !picked.includes(i)).map((i) => `<button class="chip" data-pk="${i}">${esc(q.lines[i])}</button>`).join("")}</div>`;
-        $$("[data-pk]", body).forEach((b) => b.addEventListener("click", () => { picked.push(+b.dataset.pk); draw(); }));
-        $$("[data-un]", body).forEach((b) => b.addEventListener("click", () => { picked.splice(+b.dataset.un, 1); draw(); }));
-        nav.innerHTML = picked.length === q.lines.length ? `<button class="btn primary" id="qCheck">Check order</button>` : "";
-        const ck = $("#qCheck");
-        if (ck) ck.addEventListener("click", () => {
-          const ok = picked.every((v, i) => v === i);
-          $$(".chip", body).forEach((x) => (x.disabled = true));
-          if (!ok) body.insertAdjacentHTML("beforeend", `<div class="sample" style="margin-top:10px">${q.lines.map((l, i) => `${i + 1}  ${esc(l)}`).join("\n")}</div>`);
-          answered(ok);
-        });
-      };
-      draw();
-    }
-    if (s.t[qi]) {
-      // Already answered before: show review mode
-      if (q.type === "mcq") {
-        $$("[data-o]", body).forEach((x) => { x.disabled = true; if (+x.dataset.o === q.answer) x.classList.add("right"); });
-        answered(s.t[qi] === 1);
+    const k = {
+      done: !!s.t[qi], was: s.t[qi], nav,
+      checkBtn: (label, fn) => { nav.innerHTML = `<button class="btn primary" id="qCheck">${label}</button>`; $("#qCheck").addEventListener("click", fn); },
+      answered: (correct) => {
+        if (!s.t[qi]) { s.t[qi] = correct ? 1 : 2; addXP(correct ? XP.think : XP.thinkRetry, correct ? "Riddle solved" : "Learned from a miss"); }
+        why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? "Correct!" : "Not quite."}</b>${q.why}</div>`;
+        const last = qi === L.think.length - 1;
+        nav.innerHTML = last ? nextStageBtn(L, "think") : `<button class="btn primary" id="qNext">Next riddle</button>`;
+        if (last) { bindNext(host, L); afterStage(L); }
+        else $("#qNext").addEventListener("click", () => { qi++; show(); });
       }
-    }
+    };
+    (THINK[q.type] || THINK.mcq)(q, body, k);
   };
   show();
+}
+
+/* ───────── Forge & Bug Hunt ───────── */
+function testRowsHtml(task) {
+  if (task.pytest) {
+    const P = task.pytest;
+    return [`You wrote at least ${P.min || 1} test${(P.min || 1) > 1 ? "s" : ""}`, "All your tests pass on the real code"].concat(P.mutants.map((m) => "Catch the bug: " + m.label))
+      .map((t, i) => `<div class="test"><span class="s">${i + 1}</span><span class="msg">${t}</span></div>`).join("");
+  }
+  return task.tests.map((t, i) => `<div class="test"><span class="s">${i + 1}</span><span class="msg">${testLabel(t)}</span></div>`).join("") +
+    (task.fuzz ? `<div class="test"><span class="s">+</span><span class="msg">${task.fuzz.n} hidden tests with ${task.fuzz.what || "random inputs"}</span></div>` : "") +
+    (task.tests.some((t) => t.only) ? `<p class="muted" style="font-size:12.5px;margin:2px 0 0">Print only the lines the task asks for. Questions for the user belong inside <code>input("...")</code>.</p>` : "");
+}
+function resultRowsHtml(res) {
+  const vis = res.results.filter((r) => !r.hidden);
+  const hid = res.results.filter((r) => r.hidden);
+  const row = (r, i) => `<div class="test ${r.pass ? "pass" : "fail"}"><span class="s">${r.pass ? ICON.check : ICON.cross}</span><span class="msg">${r.label ? r.label + ": " : ""}${r.pass ? "passed" : r.msg}</span></div>`;
+  let html = vis.map(row).join("");
+  if (hid.length) {
+    const bad = hid.find((r) => !r.pass);
+    html += bad ? `<div class="test fail"><span class="s">${ICON.cross}</span><span class="msg">${bad.msg}</span></div>`
+      : `<div class="test pass"><span class="s">${ICON.check}</span><span class="msg">${res.hiddenCount || hid.length} hidden tests passed</span></div>`;
+  }
+  return html;
+}
+function practiceHtml(task) {
+  const items = [];
+  for (const [n, src] of Object.entries(task.modules || {})) items.push(`<details class="pf"><summary><b>${esc(n)}.py</b> <span class="muted">· module you can import (read only)</span></summary><pre class="sample">${highlight(src)}</pre></details>`);
+  const files = cqKeep ? cqKeep.fs : task.files || {};
+  for (const [n, txt] of Object.entries(files)) items.push(`<details class="pf"><summary><b>${esc(n)}</b> <span class="muted">· ${txt.split("\n").filter(Boolean).length} line${txt.split("\n").filter(Boolean).length === 1 ? "" : "s"}</span></summary><pre class="sample">${esc(txt) || "<span class=\"muted\">(empty file)</span>"}</pre></details>`);
+  const dbs = cqKeep ? cqKeep.dbs : {};
+  for (const [n, db] of Object.entries(dbs)) {
+    if (n.startsWith(":memory:")) continue;
+    let tables = [];
+    try { const x = db.exec("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"); tables = x.length ? x[0].values.map((r) => r[0]) : []; } catch (_) {}
+    const body = tables.map((t) => { try { const x = db.exec(`SELECT * FROM "${t}" LIMIT 10`); return `<div class="sample-label">${esc(t)}</div><pre class="sample">${esc(x.length ? sqlTable(x[0].columns, x[0].values) : "(no rows)")}</pre>`; } catch (_) { return ""; } }).join("");
+    items.push(`<details class="pf"><summary><b>${esc(n)}</b> <span class="muted">· database, ${tables.length} table${tables.length === 1 ? "" : "s"}</span></summary>${body || '<p class="muted">No tables yet.</p>'}</details>`);
+  }
+  if (!items.length && task.db && task.kind !== "sql") for (const n of Object.keys(task.db)) items.push(`<details class="pf"><summary><b>${esc(n)}</b> <span class="muted">· database (press Run to open it)</span></summary></details>`);
+  return items.length ? `<div class="sample-label" style="margin-top:4px">Practice files</div>` + items.join("") : "";
 }
 
 function challengeStage(host, L, kind) {
   const isBug = kind === "bug";
   const task = isBug ? L.bug : L.code;
+  const lang = task.kind || "python";
   const s = lv(L.id);
   const draftKey = draftNS() + L.id + "." + kind;
   const startCode = lsGet(draftKey) || (isBug ? task.code : task.starter);
   const meta = isBug ? (s.bm = s.bm || { h: 0 }) : (s.cm = s.cm || { h: 0, sage: 0, fails: 0, rev: 0 });
-  const hints = isBug ? [task.hint] : task.hints;
+  const hints = isBug ? [].concat(task.hints || task.hint) : task.hints;
+  const ext = lang === "sql" ? "sql" : lang === "html" ? "html" : "py";
   host.innerHTML = `
-    <div class="stage-intro"><h2>${isBug ? "Bug Hunt" : "The Forge"}</h2><span class="muted">${isBug ? "Run it, read the error, fix it, check it." : "Plan in comments, write the code, run it, then check it."}</span></div>
+    <div class="stage-intro"><h2>${isBug ? "Bug Hunt" : "The Forge"}</h2><span class="muted">${isBug ? "Run it, read the error, fix it, check it." : task.pytest ? "Write tests that pass on good code and catch broken code." : "Plan in comments, write the code, run it, then check it."}</span></div>
     <div class="forge">
       <div class="card brief">
         <div class="eyebrow">${isBug ? "The bug report" : "Your quest"}</div>
         <div class="task">${task.brief}</div>
         ${task.sample ? `<div><div class="sample-label">Example run</div><pre class="sample">${esc(task.sample)}</pre></div>` : ""}
-        <div><div class="sample-label">The checker will try</div><div class="tests" id="tests">${task.tests.map((t, i) => `<div class="test"><span class="s">${i + 1}</span><span class="msg">${t.in.length ? "Typing: " + t.in.map((x) => `<code>${esc(x)}</code>`).join(" then ") : "Running your program"}</span></div>`).join("")}</div></div>
+        <div><div class="sample-label">The checker will try</div><div class="tests" id="tests">${testRowsHtml(task)}</div></div>
         <div id="codeMsg"></div>
         <div class="hints" id="hints"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap" id="helpRow"></div>
         <div id="sageBox"></div>
       </div>
       <div class="bench">
-        <div class="bench-bar"><span class="file"><i></i>${isBug ? "bug_hunt" : "quest"}_${L.id.replace("-", "_")}.py</span>
+        <div class="bench-bar"><span class="file"><i></i>${task.file || (isBug ? "bug_hunt" : "quest") + "_" + L.id.replace("-", "_") + "." + ext}</span>
           <button class="btn sm" id="resetBtn">${ICON.reset} Reset</button>
-          <button class="btn sm go" id="runBtn">${ICON.play} Run</button>
+          <button class="btn sm go" id="runBtn">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>
           <button class="btn sm primary" id="checkBtn">${ICON.check} Check</button></div>
         <div id="ed"></div>
         <div class="console" id="con"></div>
+        <div class="practice" id="practice">${practiceHtml(task)}</div>
       </div>
     </div>
     <div class="next-row" id="stageNext" style="max-width:none">${(isBug ? s.b : s.c && s.c.ok) ? nextStageBtn(L, kind) : ""}</div>`;
-  const ed = createEditor($("#ed", host), startCode, { onChange: (c) => lsSet(draftKey, c), id: "code-" + kind });
-  const con = createConsole($("#con", host));
-  con.hint(isBug ? "Press Run to see what goes wrong." : "Press Run to try your code. Press Check when you think it's right.");
+  const ed = createEditor($("#ed", host), startCode, { onChange: (c) => lsSet(draftKey, c), id: "code-" + kind, lang });
+  const conEl = $("#con", host), con = createConsole(conEl);
+  const refreshPractice = () => { const p = $("#practice", host); if (p) { const open = $$("details[open] summary b", p).map((b) => b.textContent); p.innerHTML = practiceHtml(task); $$("details", p).forEach((d) => { if (open.includes($("summary b", d).textContent)) d.open = true; }); } };
+  con.hint(isBug ? "Press Run to see what goes wrong." : lang === "html" ? "Press Show to preview your page. Press Check when you think it's right." : "Press Run to try your code. Press Check when you think it's right.");
   bindNext(host, L);
 
   const drawHints = () => {
-    const shown = isBug ? meta.h : meta.h;
+    const shown = meta.h;
     $("#hints", host).innerHTML = hints.slice(0, shown).map((h, i) => `<div class="hint"><b>Hint ${i + 1}</b>${h}</div>`).join("");
     const row = $("#helpRow", host);
     let html = "";
@@ -851,7 +1144,7 @@ function challengeStage(host, L, kind) {
     const sb = $("#sageBtn", host); if (sb) sb.addEventListener("click", () => askSage(sb));
     const rb = $("#revealBtn", host); if (rb) rb.addEventListener("click", () => {
       meta.rev = 1; save();
-      $("#hints", host).insertAdjacentHTML("beforeend", `<div class="hint"><b>One solution</b>Read it, then close it and type it yourself from memory. Typing it beats pasting it.<pre class="sample" style="margin-top:8px">${highlight(task.solution)}</pre></div>`);
+      $("#hints", host).insertAdjacentHTML("beforeend", `<div class="hint"><b>One solution</b>Read it, then close it and type it yourself from memory. Typing it beats pasting it.<pre class="sample" style="margin-top:8px">${highlightFor(lang)(task.solution)}</pre></div>`);
       rb.remove();
     });
   };
@@ -861,14 +1154,26 @@ function challengeStage(host, L, kind) {
     btn.disabled = true;
     const box = $("#sageBox", host);
     box.innerHTML = `<div class="sage"><b>${ICON.sage} The Sage</b><span>Thinking…</span></div>`;
-    const r = await runPython(ed.get(), { inputs: (task.tests[0] || { in: [] }).in, limit: 2000 });
-    const prompt = `You are the Sage, a warm coding mentor inside a beginner Python learning game. The learner is stuck.
+    let happened = "";
+    if (lang === "python" && !task.pytest) {
+      const t0 = task.tests[0] || {};
+      const r = await runPython(ed.get(), runOpts(task, t0, { limit: 2000 }));
+      const err = r.error || (r.calls[0] && r.calls[0].error);
+      happened = (t0.in && t0.in.length ? "With inputs " + JSON.stringify(t0.in) : t0.call ? "When the checker called " + t0.call : "When run") + ": " +
+        (err ? err.name + ": " + err.msg + (err.line ? " on line " + err.line : "") : "Output was:\n" + r.out + (r.calls[0] ? "\nReturned: " + r.calls[0].value : ""));
+    } else if (lang === "sql") {
+      const r = await runSql(ed.get(), task.db);
+      happened = r.error ? "SQL error: " + r.error.msg : r.sets.length ? "Result:\n" + sqlTable(r.sets[r.sets.length - 1].cols, r.sets[r.sets.length - 1].rows.slice(0, 8)) : "No rows returned.";
+      r.db.close();
+    }
+    const prompt = `You are the Sage, a warm coding mentor inside a beginner coding game. The learner is stuck.
+Language: ${lang === "python" ? "Python" : lang.toUpperCase()}
 Task: ${stripTags(task.brief)}
 ${task.sample ? "Expected example run:\n" + task.sample + "\n" : ""}Their code:
-\`\`\`python
+\`\`\`
 ${ed.get()}
 \`\`\`
-What happened when it ran${(task.tests[0] || { in: [] }).in.length ? " with inputs " + JSON.stringify(task.tests[0].in) : ""}: ${r.error ? r.error.name + ": " + r.error.msg + (r.error.line ? " on line " + r.error.line : "") : "Output was:\n" + r.out}
+${happened}
 Give ONE short Socratic hint (at most 60 words) that points them toward the problem. Do NOT write the corrected code or the full solution. You may name a line number or a concept. Plain text, no markdown headings.`;
     try {
       const res = await S.sample(prompt, { modelTier: "quick", cache: false, onText: ({ text }) => { const sp = $(".sage span", box); if (sp) sp.textContent = text; } });
@@ -882,28 +1187,37 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
   };
 
   const runBtn = $("#runBtn", host), checkBtn = $("#checkBtn", host);
-  runBtn.addEventListener("click", () => runInBench(ed, con, runBtn));
+  runBtn.addEventListener("click", () => {
+    if (lang === "sql") return runSqlBench(ed, con, task.db);
+    if (lang === "html") return previewHtml(conEl, ed.get());
+    runInBench(ed, con, runBtn, Object.assign(benchCtx(task), { keep: true, after: refreshPractice }));
+  });
   $("#resetBtn", host).addEventListener("click", () => {
     ed.set(isBug ? task.code : task.starter);
     lsSet(draftKey, null);
-    con.hint("Code reset.");
+    resetPractice();
+    refreshPractice();
+    con.hint("Code reset." + (task.files || task.db ? " Practice files are back to how they started." : ""));
   });
   checkBtn.addEventListener("click", async () => {
     if (pyBusy) return;
     checkBtn.disabled = true; runBtn.disabled = true;
     con.hint("Checking…");
-    const res = await runTests(task, ed.get());
+    let res;
+    try { res = await runTests(task, ed.get()); }
+    catch (e) { res = { pass: false, results: [], codeMsg: "The checker hit a problem: " + esc(String(e && e.message || e)) + ". Try again." }; }
     checkBtn.disabled = false; runBtn.disabled = false;
     const box = $("#tests", host);
     $("#codeMsg", host).innerHTML = res.codeMsg ? `<div class="notice">${res.codeMsg}</div>` : "";
     if (res.results.length) {
-      box.innerHTML = res.results.map((r, i) => `<div class="test ${r.pass ? "pass" : "fail"}"><span class="s">${r.pass ? ICON.check : ICON.cross}</span><span class="msg">${r.input.length ? "Typing " + r.input.map((x) => `<code>${esc(x)}</code>`).join(" then ") + ": " : ""}${r.pass ? "passed" : r.msg}</span></div>`).join("");
+      box.innerHTML = resultRowsHtml(res);
       const firstFail = res.results.find((r) => !r.pass);
       con.clear();
-      if (firstFail) {
+      if (lang === "html") previewHtml(conEl, ed.get());
+      else if (firstFail) {
         con.write(firstFail.out || "");
         if (firstFail.error) { con.error(firstFail.error); if (firstFail.error.line) ed.mark(firstFail.error.line); }
-      } else con.write(res.results[res.results.length - 1].out);
+      } else con.write(res.results[res.results.length - 1].out || "");
     } else con.hint("Fix the note on the left, then check again.");
     if (!res.pass) {
       if (!isBug) { meta.fails = (meta.fails || 0) + 1; save(); drawHints(); }
@@ -911,7 +1225,7 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
     }
     if (isBug) {
       if (!s.b) { s.b = 1; addXP(XP.bug, "Bug squashed"); }
-      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>Bug squashed.</b> Reading the error message first is the habit that makes debugging fast.</div>`;
+      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>Bug squashed.</b> ${task.lesson || "Reading the error message first is the habit that makes debugging fast."}</div>`;
     } else {
       const used = (meta.h || 0) + (meta.sage || 0);
       const stars = meta.rev ? 1 : Math.max(1, 3 - used);
@@ -921,7 +1235,7 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
       if (!prev) addXP(XP.codeBase + XP.codeStar * stars, `Forge cleared · ${stars} star${stars > 1 ? "s" : ""}`);
       else if (stars > prev) addXP(XP.codeStar * (stars - prev), "More stars");
       else save();
-      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>All tests passed!</b> ${starsHtml(stars)}${stars < 3 ? "<br>Replay later without hints for three stars." : ""}</div>`;
+      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>All tests passed!</b> ${starsHtml(stars)}${stars < 3 ? "<br>Replay later without hints for three stars." : ""}${task.after ? "<br>" + task.after : ""}</div>`;
       meta.h = 0; meta.sage = 0; meta.fails = 0; meta.rev = 0;
       save();
     }

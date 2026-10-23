@@ -1,0 +1,5 @@
+rain = list(map(int, input("Rain? ").split()))
+print("Days:", len(rain))
+print("Total:", sum(rain), "mm")
+print(f"Wettest: day {rain.index(max(rain)) + 1} ({max(rain)} mm)")
+print("Dry days:", rain.count(0))

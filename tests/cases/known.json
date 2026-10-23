@@ -1,0 +1,13 @@
+{
+  "2-1.code.ok5_header_line.py": { "expect": "fail", "why": "Brief says print only these lines" },
+  "2-1.code.ok7_while_loop.py": { "expect": "fail", "why": "Brief requires a for loop (the level teaches for)" },
+  "2-3.code.ok2_plus_list.py": { "expect": "fail", "why": "Brief requires .append()" },
+  "2-3.code.ok3_pluseq.py": { "expect": "fail", "why": "Brief requires .append()" },
+  "2-3.code.ok6_count_method.py": { "expect": "fail", "why": "Brief requires checking repeats with in" },
+  "2-4.code.ok4_map_nofor.py": { "expect": "fail", "why": "Brief requires a for loop" },
+  "2-5.bug.ok4_keep_print.py": { "expect": "fail", "why": "Brief says return, not print" },
+  "3-2.bug.cheat_except_nameerror.py": { "expect": "pass", "why": "Inherent: blocking it would spoil the hunt" },
+  "3-5.bug.cheat.py": { "expect": "pass", "why": "Inherent: fixed-output bug hunt" },
+  "3-7.code.cheat_oracle_copy.py": { "expect": "pass", "why": "Reasonable approach" },
+  "3-8.bug.bad_create_file.py": { "expect": "pass", "why": "Acceptable alternative" }
+}
