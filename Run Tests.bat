@@ -1,8 +1,8 @@
 @echo off
 cd /d "%~dp0"
 echo Checking every level (free, no AI)...
-node srcerify.js
+node src\verify.js
 echo.
 echo Replaying saved player attempts...
-node src	est-cases.js
+node src\test-cases.js
 pause
