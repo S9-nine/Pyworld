@@ -541,6 +541,16 @@ table.trace input { font-family: var(--font-code); font-size: 14px; width: 6ch; 
 table.trace input.right { border-color: var(--grass); background: var(--grass-soft); }
 table.trace input.wrong { border-color: var(--danger); background: var(--danger-soft); }
 
+/* Tavern Talk results */
+.xhint { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--sun); background: var(--sun-soft); color: var(--ink); font-size: 14px; }
+.xcheck { margin-top: 12px; font-size: 14px; }
+.xcheck ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 4px; }
+.xcheck li { opacity: .7; }
+.xcheck li.hit { opacity: 1; color: var(--grass); font-weight: 600; }
+.xmodel { margin-top: 10px; font-size: 14px; }
+.xmodel summary { cursor: pointer; font-weight: 600; }
+.xmodel p { margin: 6px 0 0; }
+
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
   .creator-grid { grid-template-columns: minmax(0, 1fr); }
@@ -598,8 +608,8 @@ const WORLDS = [
     topics: "tests, README, deployment, AI-assisted review, first open-source PR",
     boss: "Flagship shipped + one merged pull request", job: "Shipping, Git, collaboration" },
   { id: 8, name: "Interview Arena", when: "Week 8", x: 890, y: 95,
-    topics: "coding puzzles (arrays, hashmaps), mock interviews, resume, LinkedIn",
-    boss: "Applications sent", job: "Interviews, communication" }
+    topics: "the interview method, hash maps, two pointers, Big-O, stacks, binary search, resume and applications",
+    boss: "The Final Interview + 10 applications sent", job: "Interviews, communication" }
 ];
 
 const RESOURCES = {
@@ -8857,6 +8867,2083 @@ print(ignores_env(".envrc\\n__pycache__/"))`,
 }
 );
 
+/* World 8 — Interview Arena: the interview method, hash maps, two pointers, counting, Big-O,
+   stacks, binary search and recursion. Boss: The Final Interview, a three-question coding round.
+   Speed tests ("limit" in ms) use inputs big enough that a loop-inside-a-loop takes 10x longer
+   than the limit, while the intended answer takes well under a tenth of it. */
+
+RESOURCES[8] = [
+  { name: "Tech Interview Handbook", what: "Free, honest guide to coding interviews, plus the Grind 75 problem list. Start with the \"Coding interview\" pages.", url: "https://www.techinterviewhandbook.org/grind75/" },
+  { name: "NeetCode roadmap", what: "Problems grouped by pattern (arrays and hashing, two pointers, stack, binary search) with free video explanations.", url: "https://neetcode.io/roadmap" },
+  { name: "LeetCode 75", what: "A 75-problem study plan. Do the easy ones in each topic first.", url: "https://leetcode.com/studyplan/leetcode-75/" },
+  { name: "CodePath: the UMPIRE method", what: "The step-by-step interview routine used in this world, with worked examples.", url: "https://guides.codepath.org/compsci/UMPIRE-Interview-Strategy" },
+  { name: "Python time complexity table", what: "The official list of how fast each list, set and dict operation is.", url: "https://wiki.python.org/moin/TimeComplexity" },
+  { name: "Exponent peer mock interviews", what: "Free practice interviews with other learners (it used to be called Pramp).", url: "https://www.tryexponent.com/practice" },
+  { name: "Tech Interview Handbook: resume", what: "How to write a one-page software engineer resume that gets past screening.", url: "https://www.techinterviewhandbook.org/resume/" }
+];
+
+LEVELS.push(
+/* ───────────────────────────── 8-1 ───────────────────────────── */
+{
+  id: "8-1", world: 8, n: 1, title: "Think Out Loud", concept: "the interview method (UMPIRE)",
+  learn: [
+    { h: "What interviewers really score",
+      p: "A coding interview isn't a quiz with one right answer. Interviewers usually score four things: how you <b>communicate</b>, how you <b>solve problems</b>, the <b>code</b> you write, and how you <b>test</b> it. A candidate who talks clearly and finds a good-but-not-perfect answer often beats one who types a perfect answer in silence. So the first skill of this world is a routine you can follow even when you're nervous.",
+      lang: "text", file: "what gets written on the scorecard",
+      code: `Communication   Did they explain their thinking? Did they ask good questions?
+Problem solving Did they start simple, then improve?
+Code            Is it correct, clear and well named?
+Testing         Did they check it with examples and edge cases?` },
+    { h: "UMPIRE: six steps for any problem",
+      p: "CodePath teaches this routine, and it works. <b>U</b>nderstand the problem, <b>M</b>atch it to a pattern you know, <b>P</b>lan in plain words, <b>I</b>mplement, <b>R</b>eview by tracing an example, and <b>E</b>valuate: how fast is it, and which edge cases matter? Say each step out loud.",
+      lang: "text", file: "UMPIRE",
+      code: `Understand  Repeat the problem in your own words. Ask questions. Try 2 examples by hand.
+Match       "This looks like counting / two pointers / a stack..."
+Plan        Describe the steps in plain words before typing.
+Implement   Write the code. Keep talking while you type.
+Review      Walk through your code with an example, line by line.
+Evaluate    How fast is it (Big-O)? Which edge cases did you handle?` },
+    { h: "Ask before you code",
+      p: "Problems are left a little vague on purpose, to see if you ask. For \"find the second largest number in a list\", good questions are: what if the list is empty or has one number? Can numbers repeat, like <code>[5, 5, 3]</code>? Can they be negative? Should I return it or print it? Each answer changes the code.",
+      lang: "text", file: "clarifying questions",
+      code: `You:  "So I get a list of numbers and return the second biggest?"
+You:  "If the list is [5, 5, 3], is the answer 5 or 3?"
+Them: "3. We mean the second biggest different value."
+You:  "And if there isn't one, like [7]?"
+Them: "Return None."` },
+    { h: "Simple first, then better",
+      p: "If you see a slow but correct answer, say it: \"A simple way is to check every pair, but that's slow for big lists. Let me improve it.\" That shows you can solve it, and it gives you something to fall back on. Then improve one step at a time. The rest of this world teaches the patterns that make answers fast." }
+  ],
+  think: [
+    { type: "order", q: "Put the UMPIRE steps in order.", lines: ["Understand: repeat the problem and ask questions", "Match: which pattern does this look like?", "Plan: describe the steps in plain words", "Implement: write the code", "Review: trace the code with an example", "Evaluate: Big-O and edge cases"],
+      why: "Understand and plan before you type. Review and evaluate after. Most nervous candidates skip straight to typing." },
+    { type: "multi", q: "You're asked to \"find the second largest number in a list\". Which are good clarifying questions?", options: ["What if the list has fewer than two numbers?", "Can numbers repeat, like <code>[5, 5, 3]</code>?", "Is it okay if my code is messy?", "Can the numbers be negative?"], answer: [0, 1, 3],
+      why: "Each good question changes what your code must do. Asking whether messy code is okay doesn't help: it should always be clear." },
+    { type: "refute", q: "A candidate wrote this to find the second largest <i>different</i> value. Find a list it gets wrong.", fn: "second_largest", args: 1, example: "[3, 9, 4]",
+      code: `def second_largest(nums):
+    return sorted(nums)[-2]`,
+      ref: `def second_largest(nums):
+    values = sorted(set(nums))
+    if len(values) < 2:
+        return None
+    return values[-2]`,
+      answer: "[5, 5, 3]", safe: ["[3, 9, 4]", "[1, 2]"],
+      why: "With repeats like <code>[5, 5, 3]</code>, the second-last item after sorting is 5 again. This is why you ask about duplicates before coding." },
+    { type: "mcq", q: "You're stuck in the middle of an interview. What's the best move?", options: ["Stay quiet until you have the whole answer", "Say what you're thinking, and try a small example by hand", "Start typing something, anything", "Ask to skip the question"], answer: 1,
+      why: "Interviewers can only help if they hear your thinking. Working a small example by hand often shows you the pattern." }
+  ],
+  code: {
+    brief: "Silver medal! Write <code>second_largest(nums)</code> that returns the second largest <b>different</b> value in the list, or <code>None</code> if there isn't one.<br>• <code>[3, 9, 4]</code> gives <code>4</code><br>• <code>[5, 5, 3]</code> gives <code>3</code> (the two 5s are both gold)<br>• <code>[7]</code>, <code>[]</code> and <code>[2, 2, 2]</code> give <code>None</code><br>Negative numbers are allowed. Don't change the list you're given.",
+    sample: ">>> second_largest([3, 9, 4])\n4\n>>> second_largest([5, 5, 3])\n3\n>>> second_largest([7])\nNone",
+    starter: `def second_largest(nums):
+    # Understand: second biggest DIFFERENT value, or None.
+    # Plan: write your steps here as comments first.
+    pass
+`,
+    tests: [
+      { call: "second_largest([3, 9, 4])", expect: "4", label: "A normal list" },
+      { call: "second_largest([5, 5, 3])", expect: "3", label: "Repeated largest value" },
+      { call: "second_largest([10, 10, 9, 9])", expect: "9", label: "Repeats everywhere" },
+      { call: "second_largest([-1, -5, -3])", expect: "-3", label: "All negative" },
+      { call: "second_largest([7])", expect: "None", label: "Only one number" },
+      { call: "second_largest([])", expect: "None", label: "Empty list" },
+      { call: "second_largest([2, 2, 2])", expect: "None", label: "Every value the same" },
+      { setup: "nums = [4, 1, 8]\nsecond_largest(nums)", call: "nums", expect: "[4, 1, 8]", label: "The list isn't changed" }
+    ],
+    fuzz: { n: 12, what: "random lists", gen: (r) => ({ call: "second_largest([" + Array.from({ length: r.int(0, 7) }, () => r.int(-5, 9)).join(", ") + "])" }) },
+    hints: [
+      "Understand first: <code>[5, 5, 3]</code> should give 3, so repeats count once. Which Python type keeps each value only once?",
+      "<code>set(nums)</code> removes repeats. <code>sorted(...)</code> turns it into a sorted list. If that list has fewer than 2 values, return None.",
+      "Want to impress? Do it in one pass with two variables, <code>best</code> and <code>second</code>, both starting at None. Careful with equal values."
+    ],
+    solution: `def second_largest(nums):
+    values = sorted(set(nums))
+    if len(values) < 2:
+        return None
+    return values[-2]`,
+    alts: [`def second_largest(nums):
+    best = None
+    second = None
+    for n in nums:
+        if best is None or n > best:
+            if best is not None:
+                second = best
+            best = n
+        elif n != best and (second is None or n > second):
+            second = n
+    return second`],
+    wrong: [
+      { code: `def second_largest(nums):
+    if len(nums) < 2:
+        return None
+    return sorted(nums)[-2]`, why: "ignores repeated values" },
+      { code: `def second_largest(nums):
+    nums.sort()
+    values = []
+    for n in nums:
+        if n not in values:
+            values.append(n)
+    if len(values) < 2:
+        return None
+    return values[-2]`, why: "changes the caller's list" },
+      { code: `def second_largest(nums):
+    best = 0
+    second = 0
+    for n in nums:
+        if n > best:
+            second = best
+            best = n
+        elif best > n > second:
+            second = n
+    return second`, why: "starts at 0, so fails for negatives and returns 0 instead of None" }
+    ]
+  },
+  bug: {
+    brief: "Classic interview question: <code>max_profit(prices)</code> gets a list of daily share prices and returns the most money you could make by buying on one day and selling on a <b>later</b> day (0 if you can't make a profit). For <code>[7, 1, 5, 3, 6, 4]</code> it should be 5 (buy at 1, sell at 6), but it says 7. Review it like an interviewer would.",
+    code: `def max_profit(prices):
+    min_price = 0
+    best = 0
+    for p in prices:
+        if p < min_price:
+            min_price = p
+        if p - min_price > best:
+            best = p - min_price
+    return best
+
+print(max_profit([7, 1, 5, 3, 6, 4]))`,
+    tests: [
+      { call: "max_profit([7, 1, 5, 3, 6, 4])", expect: "5", label: "Buy at 1, sell at 6" },
+      { call: "max_profit([7, 6, 4, 3, 1])", expect: "0", label: "Prices only fall" },
+      { call: "max_profit([2, 4, 1])", expect: "2", label: "The lowest price comes too late to use" },
+      { call: "max_profit([3])", expect: "0", label: "Only one day" },
+      { call: "max_profit([])", expect: "0", label: "No prices" }
+    ],
+    hints: [
+      "Trace it with <code>[7, 1, 5]</code>. Can <code>p &lt; min_price</code> ever be True when min_price starts at 0?",
+      "It's the \"best so far\" trap from Loop Forest: the starting value must be a real price. Start with the first price, and return 0 for an empty list."
+    ],
+    fix: `def max_profit(prices):
+    if not prices:
+        return 0
+    min_price = prices[0]
+    best = 0
+    for p in prices:
+        if p < min_price:
+            min_price = p
+        if p - min_price > best:
+            best = p - min_price
+    return best
+
+print(max_profit([7, 1, 5, 3, 6, 4]))`,
+    lesson: "A \"lowest so far\" variable must start at a real value from the data, never at 0."
+  },
+  explain: "Interview practice: talk through how you'd solve \"find the second largest number in a list\" using UMPIRE. Which questions would you ask first, and which edge cases would you test?",
+  cards: [
+    { q: "What does the U in UMPIRE stand for?", options: ["Upload", "Understand", "Use loops", "Undo"], answer: 1 },
+    { q: "Why ask clarifying questions before coding?", options: ["To waste time", "Each answer can change what the code must do", "Interviewers require 5 questions", "To avoid writing tests"], answer: 1 },
+    { q: "You see a slow but correct answer. What should you do?", options: ["Hide it", "Say it, then improve it", "Refuse to answer", "Only write the fast one silently"], answer: 1 }
+  ],
+  skills: { interview: 3, talk: 3, logic: 2, python: 1 }
+},
+/* ───────────────────────────── 8-2 ───────────────────────────── */
+{
+  id: "8-2", world: 8, n: 2, title: "The Instant Index", concept: "hash maps: dicts and sets for fast lookups",
+  learn: [
+    { h: "Searching a list is slow. A set or dict is instant.",
+      p: "<code>x in my_list</code> checks the items one by one, so a list of a million names can take a million checks. A <b>set</b> or <b>dict</b> works like the index at the back of a book: Python turns the value into a number (a <b>hash</b>) that says exactly where to look. That takes about one step, however big it gets. This one idea solves a huge number of interview questions.",
+      code: `names = ["asha", "ravi", "meera", "john"]
+print("meera" in names)   # checks asha, ravi, then meera: 3 steps
+
+fast = set(names)
+print("meera" in fast)    # jumps straight to it: about 1 step` },
+    { h: "The pattern: remember what you've seen",
+      p: "Loop through the data <b>once</b>. Keep a set or dict of what you've seen so far. At each item, ask: \"have I already seen the thing I need?\" Here's a duplicate finder that never looks back through the list.",
+      code: `def first_duplicate(items):
+    seen = set()
+    for x in items:
+        if x in seen:
+            return x
+        seen.add(x)
+    return None
+
+print(first_duplicate(["tea", "coffee", "milk", "coffee"]))` },
+    { h: "Two Sum: the most famous interview question",
+      p: "Given a list of numbers and a target, find two <b>positions</b> whose numbers add up to the target. The simple way tries every pair: a loop inside a loop. For 10,000 numbers that's about 50 million checks. Say it out loud as your first idea, then improve it.",
+      code: `def two_sum_slow(nums, target):
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):
+            if nums[i] + nums[j] == target:
+                return [i, j]
+    return None
+
+print(two_sum_slow([2, 7, 11, 15], 9))` },
+    { h: "The faster idea",
+      p: "When you're at a number <code>n</code>, the partner you need is <code>target - n</code>. If you keep a dict of <i>number → position</i> for everything you've already passed, you can check for the partner in one step. One loop instead of two. You'll write it in the Forge." }
+  ],
+  think: [
+    { type: "predict", q: "What does this print?", code: `seen = set()
+for x in [4, 7, 4, 1, 7]:
+    if x in seen:
+        print("again", x)
+    seen.add(x)`, answer: "again 4\nagain 7",
+      why: "The second 4 and the second 7 find themselves already in the set." },
+    { type: "mcq", q: "You need to check, thousands of times, whether a username is already taken among 1 million users. What should hold the usernames?", options: ["A list", "A set", "A long string joined with commas", "A list you sort before every check"], answer: 1,
+      why: "Checking a set takes about one step. A list or a string is searched one item at a time." },
+    { type: "fill", q: "Fill the blanks so <code>has_pair</code> says whether any two numbers add up to the target.", code: `def has_pair(nums, target):
+    seen = set()
+    for n in nums:
+        if target - n ___ seen:
+            return True
+        seen.___(n)
+    return False
+
+print(has_pair([2, 7, 11], 9), has_pair([3], 6))`, answers: ["in", "add"], expect: ["True False"], wrong: [["not in", "add"]],
+      why: "For each number, look for the partner it needs among the numbers already seen, then add this one. Checking <i>before</i> adding stops a number pairing with itself." },
+    { type: "match", q: "Match each operation with roughly how much work it is for a big collection.", pairs: [["<code>x in a_list</code>", "checks items one by one"], ["<code>x in a_set</code>", "about one step"], ["<code>sorted(a_list)</code>", "a bit more than one pass (n log n)"], ["a loop inside a loop", "every pair: n × n"]],
+      why: "Knowing these costs is half of every \"can you make it faster?\" question." }
+  ],
+  code: {
+    brief: "Write <code>two_sum(nums, target)</code> that returns a list <code>[i, j]</code> of two different positions, with <code>i &lt; j</code>, whose numbers add up to <code>target</code>. Return <code>None</code> if no pair works. Each test has at most one answer.<br>It must be <b>fast</b>: one test uses 20,000 numbers, and a loop inside a loop is too slow for it. Use a dict.",
+    sample: ">>> two_sum([2, 7, 11, 15], 9)\n[0, 1]\n>>> two_sum([3, 3], 6)\n[0, 1]\n>>> two_sum([1, 5], 10)\nNone",
+    starter: `def two_sum(nums, target):
+    seen = {}   # number -> its position
+`,
+    tests: [
+      { call: "two_sum([2, 7, 11, 15], 9)", expect: "[0, 1]", label: "The classic example" },
+      { call: "two_sum([3, 2, 4], 6)", expect: "[1, 2]", label: "The first number isn't in the answer" },
+      { call: "two_sum([3, 3], 6)", expect: "[0, 1]", label: "Two equal numbers" },
+      { call: "two_sum([3, 4], 6)", expect: "None", label: "Can't use one number twice" },
+      { call: "two_sum([-4, 10, 0, 7], 3)", expect: "[0, 3]", label: "Negative numbers" },
+      { call: "two_sum([1, 5], 10)", expect: "None", label: "No pair works" },
+      { call: "two_sum([], 4)", expect: "None", label: "Empty list" },
+      { setup: "nums = list(range(1, 20001))", call: "two_sum(nums, 39999)", expect: "[19998, 19999]", limit: 3000, label: "20,000 numbers, fast",
+        slowMsg: "Correct but too slow for 20,000 numbers. A loop inside a loop checks about 200 million pairs. Use a dict so each number needs only one look-up." }
+    ],
+    fuzz: { n: 12, what: "random lists", gen: (r) => {
+      const pool = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024], nums = [];
+      for (let k = r.int(1, 7); k > 0; k--) nums.push(pool.splice(r.int(0, pool.length - 1), 1)[0]);
+      const target = nums.length > 1 && r.next() < 0.75 ? nums[0] + nums[nums.length - 1] : r.int(0, 2100);
+      return { call: "two_sum([" + nums.join(", ") + "], " + target + ")" };
+    } },
+    hints: [
+      "Loop once with <code>for i, n in enumerate(nums):</code>. The partner you need is <code>target - n</code>.",
+      "If the partner is already in <code>seen</code>, return <code>[seen[target - n], i]</code>. Otherwise store this one: <code>seen[n] = i</code>.",
+      "Check <i>before</i> you store, or a number can pair with itself (<code>[3, 4]</code> with target 6 would wrongly match 3 with 3)."
+    ],
+    solution: `def two_sum(nums, target):
+    seen = {}
+    for i, n in enumerate(nums):
+        if target - n in seen:
+            return [seen[target - n], i]
+        seen[n] = i
+    return None`,
+    wrong: [
+      { code: `def two_sum(nums, target):
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):
+            if nums[i] + nums[j] == target:
+                return [i, j]
+    return None`, why: "correct but too slow" },
+      { code: `def two_sum(nums, target):
+    seen = {}
+    for i, n in enumerate(nums):
+        seen[n] = i
+        if target - n in seen:
+            return [seen[target - n], i]
+    return None`, why: "lets a number pair with itself" },
+      { code: `def two_sum(nums, target):
+    for i, n in enumerate(nums):
+        if target - n in nums:
+            j = nums.index(target - n)
+            if j != i:
+                return sorted([i, j])
+    return None`, why: "searches the list inside the loop, so it's slow" }
+    ]
+  },
+  bug: {
+    brief: "Another candidate's Two Sum. For <code>[3, 4, 2]</code> with target 6 it returns <code>[0, 0]</code>: it paired the 3 with itself. One line is in the wrong place.",
+    code: `def two_sum(nums, target):
+    seen = {}
+    for i, n in enumerate(nums):
+        seen[n] = i
+        if target - n in seen:
+            return [seen[target - n], i]
+    return None
+
+print(two_sum([3, 4, 2], 6))`,
+    tests: [
+      { call: "two_sum([3, 4, 2], 6)", expect: "[1, 2]", label: "Don't pair 3 with itself" },
+      { call: "two_sum([3, 3], 6)", expect: "[0, 1]", label: "Two real 3s are fine" },
+      { call: "two_sum([5], 10)", expect: "None", label: "One number can't make a pair" }
+    ],
+    hints: ["Trace the first lap: n is 3, it's stored, then <code>6 - 3</code> is looked up... and found. The number must be looked for <i>before</i> it's stored."],
+    fix: `def two_sum(nums, target):
+    seen = {}
+    for i, n in enumerate(nums):
+        if target - n in seen:
+            return [seen[target - n], i]
+        seen[n] = i
+    return None
+
+print(two_sum([3, 4, 2], 6))`,
+    lesson: "In the \"remember what you've seen\" pattern, check first, then remember."
+  },
+  explain: "Explain how your Two Sum works and why it's faster than checking every pair. What does the dict store, and what's the cost?",
+  cards: [
+    { q: "About how many steps does <code>x in my_set</code> take for a huge set?", options: ["One per item", "About one", "Half the items", "It depends on the alphabet"], answer: 1 },
+    { q: "In Two Sum, what does the dict map?", options: ["position → number", "number → its position", "number → True", "target → answer"], answer: 1 },
+    { q: "Why check for the partner before storing the current number?", options: ["It's faster", "So a number can't pair with itself", "Dicts require it", "To sort the list"], answer: 1 }
+  ],
+  skills: { interview: 3, logic: 3, python: 2 }
+},
+/* ───────────────────────────── 8-3 ───────────────────────────── */
+{
+  id: "8-3", world: 8, n: 3, title: "Two Fingers", concept: "two pointers on sorted lists",
+  learn: [
+    { h: "Two pointers walking toward each other",
+      p: "Put one finger at the start of a list and one at the end, and move them toward each other. That's the <b>two pointers</b> pattern: each step moves at least one finger, so the whole list is covered in a single pass. Checking a palindrome (a word that reads the same backwards) is the simplest example.",
+      code: `def is_palindrome(word):
+    left = 0
+    right = len(word) - 1
+    while left < right:
+        if word[left] != word[right]:
+            return False
+        left += 1
+        right -= 1
+    return True
+
+print(is_palindrome("racecar"), is_palindrome("rocket"))` },
+    { h: "Sorted lists give you a superpower",
+      p: "In a <b>sorted</b> list, the left finger points at the smallest number and the right at the biggest. Looking for two numbers that add up to a target? If their sum is too small, move the left finger right (to a bigger number). If it's too big, move the right finger left. You never need to go back, so it's one pass.",
+      lang: "text", file: "find two numbers adding to 13 in a sorted list",
+      code: `[1, 3, 4, 6, 9]
+ L           R    1 + 9 = 10   too small → move L right
+    L        R    3 + 9 = 12   too small → move L right
+       L     R    4 + 9 = 13   found it!` },
+    { h: "Why it never misses a pair",
+      p: "When <code>1 + 9</code> is too small, 1 can't be part of any answer: 9 is the biggest partner it could ever have. So it's safe to drop 1 and move on. The same logic drops the biggest number when the sum is too big. That's the kind of reasoning interviewers love to hear." },
+    { h: "Merging two sorted lists",
+      p: "Two pointers also work on <b>two</b> lists: one finger in each. Compare the two front items, take the smaller one, and move that finger. When one list runs out, the rest of the other is already sorted, so add it all.",
+      code: `def merge(a, b):
+    i = j = 0
+    out = []
+    while i < len(a) and j < len(b):
+        if a[i] <= b[j]:
+            out.append(a[i])
+            i += 1
+        else:
+            out.append(b[j])
+            j += 1
+    return out + a[i:] + b[j:]
+
+print(merge([1, 4, 9], [2, 3, 10, 12]))` }
+  ],
+  think: [
+    { type: "trace", q: "Trace the pointers looking for two numbers that add up to 13. Write <code>left</code>, <code>right</code> and <code>total</code> on each lap.", code: `nums = [1, 3, 4, 6, 9]
+left, right = 0, len(nums) - 1
+while left < right:
+    total = nums[left] + nums[right]
+    if total == 13:
+        break
+    if total < 13:
+        left += 1
+    else:
+        right -= 1`, vars: ["left", "right", "total"], rows: [[0, 4, 10], [1, 4, 12], [2, 4, 13]],
+      check: `nums = [1, 3, 4, 6, 9]
+left, right = 0, len(nums) - 1
+while left < right:
+    total = nums[left] + nums[right]
+    print(left, right, total)
+    if total == 13:
+        break
+    if total < 13:
+        left += 1
+    else:
+        right -= 1`,
+      why: "Too small twice, so the left pointer moves right twice. 4 + 9 = 13 on the third lap." },
+    { type: "mcq", q: "The sum is too small. Why does moving the <b>left</b> pointer right help?", options: ["Because the list is sorted, so the next number is bigger or equal", "Because the right pointer is tired", "It doesn't, it makes the sum smaller", "Because Python moves both"], answer: 0,
+      why: "The pattern only works on sorted lists. If the list weren't sorted, moving a pointer wouldn't tell you anything." },
+    { type: "refute", q: "This should check whether a word is a palindrome. Find a word it gets wrong.", fn: "is_palindrome", args: 1, example: "\"racecar\"",
+      code: `def is_palindrome(word):
+    return word[0] == word[-1]`,
+      ref: `def is_palindrome(word):
+    return word == word[::-1]`,
+      answer: "\"abca\"", safe: ["\"racecar\"", "\"rocket\""],
+      why: "It only compares the outer letters. \"abca\" starts and ends with a, but isn't a palindrome. (An empty word \"\" also crashes it.) Testing only the easy examples would never find this." },
+    { type: "order", indent: true, q: "Build the palindrome checker. One line doesn't belong.", lines: ["def is_palindrome(word):", "    left, right = 0, len(word) - 1", "    while left < right:", "        if word[left] != word[right]:", "            return False", "        left += 1", "        right -= 1", "    return True", "print(is_palindrome(\"level\"), is_palindrome(\"lever\"))"],
+      distractors: ["        left -= 1"], expect: ["True False"],
+      why: "The pointers start at both ends and step toward each other. Moving left the wrong way would never meet the right pointer." }
+  ],
+  code: {
+    brief: "Write <code>pair_with_sum(nums, target)</code>. <code>nums</code> is sorted from smallest to biggest. Return a tuple <code>(a, b)</code> of two numbers from <b>different positions</b> that add up to <code>target</code>, with <code>a &lt;= b</code>. If several pairs work, return the one with the <b>smallest</b> <code>a</code>. Return <code>None</code> if none work.<br>One test uses 20,000 numbers, so a loop inside a loop is too slow. Use two pointers.",
+    sample: ">>> pair_with_sum([1, 3, 4, 6, 9], 13)\n(4, 9)\n>>> pair_with_sum([1, 2, 3, 4, 5, 6], 7)\n(1, 6)\n>>> pair_with_sum([2, 4], 8)\nNone",
+    starter: `def pair_with_sum(nums, target):
+    left = 0
+    right = len(nums) - 1
+`,
+    tests: [
+      { call: "pair_with_sum([1, 3, 4, 6, 9], 13)", expect: "(4, 9)", label: "The example" },
+      { call: "pair_with_sum([1, 2, 3, 4, 5, 6], 7)", expect: "(1, 6)", label: "Several pairs: smallest first number" },
+      { call: "pair_with_sum([-3, 0, 2, 7], 4)", expect: "(-3, 7)", label: "Negative numbers" },
+      { call: "pair_with_sum([5, 5], 10)", expect: "(5, 5)", label: "Two equal numbers" },
+      { call: "pair_with_sum([5], 10)", expect: "None", label: "One number can't pair with itself" },
+      { call: "pair_with_sum([2, 4], 8)", expect: "None", label: "No pair works" },
+      { call: "pair_with_sum([], 5)", expect: "None", label: "Empty list" },
+      { setup: "nums = list(range(0, 40000, 2))", call: "pair_with_sum(nums, 79994)", expect: "(39996, 39998)", limit: 3000, label: "20,000 numbers, fast",
+        slowMsg: "Correct but too slow for 20,000 numbers. Use one pointer at each end and move them toward each other." }
+    ],
+    fuzz: { n: 14, what: "random sorted lists", gen: (r) => ({ call: "pair_with_sum([" + Array.from({ length: r.int(0, 9) }, () => r.int(-5, 15)).sort((a, b) => a - b).join(", ") + "], " + r.int(-4, 24) + ")" }) },
+    hints: [
+      "Loop <code>while left &lt; right:</code>. Work out <code>total = nums[left] + nums[right]</code>.",
+      "If total equals the target, return <code>(nums[left], nums[right])</code>. If it's too small, <code>left += 1</code>. Too big, <code>right -= 1</code>.",
+      "After the loop, return None. <code>left &lt; right</code> also makes sure you never use one position twice."
+    ],
+    solution: `def pair_with_sum(nums, target):
+    left = 0
+    right = len(nums) - 1
+    while left < right:
+        total = nums[left] + nums[right]
+        if total == target:
+            return (nums[left], nums[right])
+        if total < target:
+            left += 1
+        else:
+            right -= 1
+    return None`,
+    alts: [`def pair_with_sum(nums, target):
+    counts = {}
+    for n in nums:
+        counts[n] = counts.get(n, 0) + 1
+    for n in nums:
+        m = target - n
+        if m in counts and n <= m and (m != n or counts[n] > 1):
+            return (n, m)
+    return None`],
+    wrong: [
+      { code: `def pair_with_sum(nums, target):
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):
+            if nums[i] + nums[j] == target:
+                return (nums[i], nums[j])
+    return None`, why: "correct but too slow" },
+      { code: `def pair_with_sum(nums, target):
+    left = 0
+    right = len(nums) - 1
+    while left <= right:
+        total = nums[left] + nums[right]
+        if total == target:
+            return (nums[left], nums[right])
+        if total < target:
+            left += 1
+        else:
+            right -= 1
+    return None`, why: "<= lets one number pair with itself" },
+      { code: `def pair_with_sum(nums, target):
+    seen = set(nums)
+    for n in nums:
+        if target - n in seen:
+            return (n, target - n)
+    return None`, why: "pairs a number with itself" }
+    ]
+  },
+  bug: {
+    brief: "<code>common(a, b)</code> should return the numbers that are in <b>both</b> sorted lists, using two pointers. For <code>[1, 3, 5, 7]</code> and <code>[3, 4, 5, 8]</code> it should give <code>[3, 5]</code>, but it gives <code>[]</code>. One pointer moves the wrong way.",
+    code: `def common(a, b):
+    i = j = 0
+    out = []
+    while i < len(a) and j < len(b):
+        if a[i] == b[j]:
+            out.append(a[i])
+            i += 1
+            j += 1
+        elif a[i] < b[j]:
+            j += 1
+        else:
+            i += 1
+    return out
+
+print(common([1, 3, 5, 7], [3, 4, 5, 8]))`,
+    tests: [
+      { call: "common([1, 3, 5, 7], [3, 4, 5, 8])", expect: "[3, 5]", label: "The example" },
+      { call: "common([2, 4, 6], [1, 2, 3, 4, 5, 6])", expect: "[2, 4, 6]", label: "All of one list" },
+      { call: "common([1, 2], [3, 4])", expect: "[]", label: "Nothing in common" },
+      { call: "common([], [1])", expect: "[]", label: "Empty list" }
+    ],
+    hints: ["When <code>a[i]</code> is the smaller one, can it still match anything later in b? b only gets bigger. So which pointer should move past it?"],
+    fix: `def common(a, b):
+    i = j = 0
+    out = []
+    while i < len(a) and j < len(b):
+        if a[i] == b[j]:
+            out.append(a[i])
+            i += 1
+            j += 1
+        elif a[i] < b[j]:
+            i += 1
+        else:
+            j += 1
+    return out
+
+print(common([1, 3, 5, 7], [3, 4, 5, 8]))`,
+    lesson: "With two pointers on sorted lists, always move past the smaller value: it can't match anything that comes later."
+  },
+  explain: "Explain the two-pointer idea for finding a pair that adds up to a target in a sorted list. Why is it safe to move a pointer, and why does the list need to be sorted?",
+  cards: [
+    { q: "The two-pointer pair search needs the list to be…", options: ["Short", "Sorted", "All positive", "Made of strings"], answer: 1 },
+    { q: "The sum is too big. Which pointer moves?", options: ["Left moves right", "Right moves left", "Both reset", "Neither"], answer: 1 },
+    { q: "Why <code>while left &lt; right</code> instead of <code>&lt;=</code>?", options: ["It's faster to type", "So a position is never paired with itself", "Python requires it", "It sorts the list"], answer: 1 }
+  ],
+  skills: { interview: 3, logic: 3, python: 2 }
+},
+/* ───────────────────────────── 8-4 ───────────────────────────── */
+{
+  id: "8-4", world: 8, n: 4, title: "Counting Spells", concept: "counting with dicts and Counter",
+  learn: [
+    { h: "Count anything with a dict",
+      p: "A huge number of interview questions are really \"count things, then look at the counts\". The pattern: a dict from item to count. <code>counts.get(x, 0)</code> gives the count so far, or 0 if <code>x</code> is new, so you never get a KeyError.",
+      code: `counts = {}
+for ch in "banana":
+    counts[ch] = counts.get(ch, 0) + 1
+print(counts)` },
+    { h: "Counter does the counting for you",
+      p: "Python's <code>collections.Counter</code> is a dict made for counting. Give it any list or string. <code>.most_common(n)</code> gives the n biggest counts. A missing key counts as 0 instead of crashing. In an interview, say you know about it, but be ready to write the dict version too.",
+      code: `from collections import Counter
+
+votes = Counter(["dosa", "idli", "dosa", "vada", "dosa", "idli"])
+print(votes["dosa"], votes["poha"])
+print(votes.most_common(2))` },
+    { h: "Two passes are still fast",
+      p: "To find the first letter that appears only once, first count every letter (one pass), then walk the string again and stop at the first letter whose count is 1 (another pass). Two passes is still about 2n steps, which grows like n. What makes code slow is a loop <i>inside</i> a loop, like calling <code>s.count(ch)</code> for every letter: <code>.count</code> secretly loops over the whole string each time." },
+    { h: "Anagrams have the same counts",
+      p: "Two words are anagrams if they use exactly the same letters, the same number of times: <i>listen</i> and <i>silent</i>. Comparing their Counters (or their sorted letters) checks exactly that. Comparing <b>sets</b> does not: a set forgets how many times each letter appears.",
+      code: `from collections import Counter
+print(Counter("listen") == Counter("silent"))
+print(sorted("listen") == sorted("silent"))
+print(set("aab") == set("abb"))    # True, but they're not anagrams!` }
+  ],
+  think: [
+    { type: "predict", q: "What does this print?", code: `from collections import Counter
+c = Counter("banana")
+print(c["a"], c["z"], c.most_common(1))`, answer: "3 0 [('a', 3)]",
+      why: "There are three a's. A missing key counts as 0 in a Counter. <code>most_common(1)</code> is a list with the single biggest pair." },
+    { type: "spot", q: "This crashes with <code>KeyError: 'red'</code>. Which line is wrong?", code: `def tally(colours):
+    counts = {}
+    for c in colours:
+        counts[c] += 1
+    return counts
+
+print(tally(["red", "blue", "red"]))`, answer: 4,
+      why: "The first time a colour appears it isn't in the dict yet, so <code>counts[c] += 1</code> can't read it. Use <code>counts[c] = counts.get(c, 0) + 1</code>." },
+    { type: "mcq", q: "Which check is <b>wrong</b> for anagrams?", options: ["<code>sorted(a) == sorted(b)</code>", "<code>Counter(a) == Counter(b)</code>", "<code>set(a) == set(b)</code>", "Comparing two count dicts built by hand"], answer: 2,
+      why: "Sets forget how many of each letter there are: \"aab\" and \"abb\" have the same set but aren't anagrams." },
+    { type: "multi", q: "Which of these hide a loop over the whole string or list, so they're slow inside another loop?", options: ["<code>s.count(ch)</code>", "<code>counts.get(ch, 0)</code>", "<code>ch in my_list</code>", "<code>len(s)</code>"], answer: [0, 2],
+      why: "<code>.count</code> and <code>in</code> on a list check every item. A dict look-up and <code>len</code> take about one step." }
+  ],
+  code: {
+    brief: "Two classic counting questions.<br>• <code>first_unique(s)</code> returns the <b>position</b> of the first character that appears exactly once in <code>s</code>, or <code>-1</code> if there isn't one. It must be fast: one test uses a string of 80,000 characters.<br>• <code>most_common_word(text)</code> returns the word that appears most often, in lowercase. Split on spaces, and strip <code>.,!?</code> from the ends of each word. If two words tie, return the one that appears <b>first</b> in the text. Return <code>None</code> if there are no words.",
+    sample: ">>> first_unique(\"swiss\")\n1\n>>> first_unique(\"aabb\")\n-1\n>>> most_common_word(\"Chai, then more chai! Then sleep.\")\n'chai'",
+    starter: `def first_unique(s):
+    pass
+
+
+def most_common_word(text):
+    pass
+`,
+    tests: [
+      { call: "first_unique(\"swiss\")", expect: "1", label: "first_unique: 'w' is at position 1" },
+      { call: "first_unique(\"leetcode\")", expect: "0", label: "first_unique: the first letter" },
+      { call: "first_unique(\"aabb\")", expect: "-1", label: "first_unique: nothing unique" },
+      { call: "first_unique(\"\")", expect: "-1", label: "first_unique: empty string" },
+      { setup: "s = \"ab\" * 40000 + \"z\"", call: "first_unique(s)", expect: "80000", limit: 3000, label: "first_unique: 80,000 characters, fast",
+        slowMsg: "Correct but too slow. <code>s.count(ch)</code> inside a loop reads the whole string again for every letter. Count everything once first." },
+      { call: "most_common_word(\"Chai, then more chai! Then sleep.\")", expect: "'chai'", label: "most_common_word: a tie goes to the first word" },
+      { call: "most_common_word(\"to be or not to be\")", expect: "'to'", label: "most_common_word: another tie" },
+      { call: "most_common_word(\"Go go GO! stop.\")", expect: "'go'", label: "most_common_word: any capitals" },
+      { call: "most_common_word(\"\")", expect: "None", label: "most_common_word: no words" }
+    ],
+    fuzz: { n: 14, what: "random strings and sentences", gen: (r, i) => i % 2
+      ? { call: "most_common_word(" + JSON.stringify(Array.from({ length: r.int(0, 8) }, () => r.pick(["chai", "Chai", "rain", "rain!", "Rain,", "code", "code.", "?"])).join(" ")) + ")" }
+      : { call: "first_unique(" + JSON.stringify(Array.from({ length: r.int(0, 9) }, () => r.pick("aabbcz".split(""))).join("")) + ")" } },
+    hints: [
+      "<code>first_unique</code>: first loop builds <code>counts</code>. Second loop: <code>for i, ch in enumerate(s):</code> and return <code>i</code> when <code>counts[ch] == 1</code>.",
+      "<code>most_common_word</code>: <code>words = [w.strip(\".,!?\").lower() for w in text.split()]</code>, then drop empty strings. Count them in a dict.",
+      "For ties: dicts remember the order keys were added, so loop over the dict and keep the first word with the biggest count. Use <code>&gt;</code>, not <code>&gt;=</code>."
+    ],
+    solution: `def first_unique(s):
+    counts = {}
+    for ch in s:
+        counts[ch] = counts.get(ch, 0) + 1
+    for i, ch in enumerate(s):
+        if counts[ch] == 1:
+            return i
+    return -1
+
+
+def most_common_word(text):
+    counts = {}
+    for w in text.split():
+        w = w.strip(".,!?").lower()
+        if w:
+            counts[w] = counts.get(w, 0) + 1
+    best = None
+    for w in counts:
+        if best is None or counts[w] > counts[best]:
+            best = w
+    return best`,
+    alts: [`from collections import Counter
+
+
+def first_unique(s):
+    c = Counter(s)
+    for i, ch in enumerate(s):
+        if c[ch] == 1:
+            return i
+    return -1
+
+
+def most_common_word(text):
+    words = [w.strip(".,!?").lower() for w in text.split()]
+    words = [w for w in words if w]
+    if not words:
+        return None
+    return Counter(words).most_common(1)[0][0]`],
+    wrong: [
+      { code: `def first_unique(s):
+    for i, ch in enumerate(s):
+        if s.count(ch) == 1:
+            return i
+    return -1
+
+
+def most_common_word(text):
+    counts = {}
+    for w in text.split():
+        w = w.strip(".,!?").lower()
+        if w:
+            counts[w] = counts.get(w, 0) + 1
+    best = None
+    for w in counts:
+        if best is None or counts[w] > counts[best]:
+            best = w
+    return best`, why: "first_unique is too slow" },
+      { code: `def first_unique(s):
+    counts = {}
+    for ch in s:
+        counts[ch] = counts.get(ch, 0) + 1
+    for i, ch in enumerate(s):
+        if counts[ch] == 1:
+            return i
+    return -1
+
+
+def most_common_word(text):
+    counts = {}
+    for w in text.split():
+        w = w.strip(".,!?").lower()
+        if w:
+            counts[w] = counts.get(w, 0) + 1
+    best = None
+    for w in counts:
+        if best is None or counts[w] >= counts[best]:
+            best = w
+    return best`, why: ">= gives ties to the last word" }
+    ]
+  },
+  bug: {
+    brief: "<code>is_anagram(a, b)</code> should ignore spaces and capitals, so \"Dormitory\" and \"dirty room\" are anagrams. But it also says \"aab\" and \"abb\" are anagrams, and they're not.",
+    code: `def is_anagram(a, b):
+    a = a.replace(" ", "").lower()
+    b = b.replace(" ", "").lower()
+    return set(a) == set(b)
+
+print(is_anagram("aab", "abb"))`,
+    tests: [
+      { call: "is_anagram(\"listen\", \"silent\")", expect: "True", label: "listen / silent" },
+      { call: "is_anagram(\"Dormitory\", \"dirty room\")", expect: "True", label: "Spaces and capitals are ignored" },
+      { call: "is_anagram(\"aab\", \"abb\")", expect: "False", label: "Same letters, different counts" },
+      { call: "is_anagram(\"abc\", \"abcd\")", expect: "False", label: "Different lengths" }
+    ],
+    hints: ["A set keeps each letter only once, so it can't tell \"aab\" from \"abb\". Compare something that keeps the counts: <code>sorted(a) == sorted(b)</code>, or two Counters."],
+    fix: `def is_anagram(a, b):
+    a = a.replace(" ", "").lower()
+    b = b.replace(" ", "").lower()
+    return sorted(a) == sorted(b)
+
+print(is_anagram("aab", "abb"))`,
+    lesson: "A set answers \"which?\", not \"how many?\". When counts matter, use a Counter, a count dict or sorting."
+  },
+  explain: "Explain how you found the first unique character quickly. Why is calling <code>s.count(ch)</code> inside a loop slow, and what does your version do instead?",
+  cards: [
+    { q: "<code>counts.get(\"x\", 0)</code> when \"x\" isn't in the dict gives…", options: ["KeyError", "0", "None", "\"x\""], answer: 1 },
+    { q: "Why is <code>set(a) == set(b)</code> a bad anagram check?", options: ["Sets are slow", "Sets forget how many times each letter appears", "Sets can't hold letters", "It's fine"], answer: 1 },
+    { q: "Two passes over a string of n letters take about…", options: ["n × n steps", "2n steps, which still grows like n", "1 step", "n! steps"], answer: 1 }
+  ],
+  skills: { interview: 3, logic: 2, python: 3 }
+}
+);
+
+LEVELS.push(
+/* ───────────────────────────── 8-5 ───────────────────────────── */
+{
+  id: "8-5", world: 8, n: 5, title: "The Speed Detective", concept: "Big-O: how work grows with the input",
+  learn: [
+    { h: "Big-O counts steps, not seconds",
+      p: "Seconds depend on the computer. Interviewers ask a better question: <b>if the input gets 10 times bigger, how much more work is there?</b> That's what Big-O describes. One loop over n items is <b>O(n)</b>: 10 times the data, 10 times the work. A loop inside a loop is <b>O(n²)</b>: 10 times the data, 100 times the work. That's why the 20,000-number tests in this world time out for nested loops.",
+      lang: "text", file: "how the work grows",
+      code: `items      O(1)    O(log n)   O(n)       O(n log n)   O(n²)
+10         1       about 3    10         about 33     100
+1,000      1       about 10   1,000      about 10k    1,000,000
+1,000,000  1       about 20   1,000,000  about 20M    1,000,000,000,000` },
+    { h: "The five you'll meet most",
+      p: "<b>O(1)</b>: the same work whatever the size, like a dict look-up. <b>O(log n)</b>: halve the problem each step, like binary search. <b>O(n)</b>: look at each item once. <b>O(n log n)</b>: sorting. <b>O(n²)</b>: compare every item with every other. In an interview, after you write code, say its Big-O without being asked.",
+      lang: "text", file: "spot the shape",
+      code: `d[key]                       O(1)     one look-up
+while lo <= hi: (halving)    O(log n)
+for x in items:              O(n)     one pass
+sorted(items)                O(n log n)
+for a in items:
+    for b in items:          O(n²)    every pair` },
+    { h: "Hidden loops",
+      p: "Some single lines secretly loop over a whole list: <code>x in a_list</code>, <code>a_list.count(x)</code>, <code>a_list.index(x)</code>, <code>a_list.remove(x)</code>, <code>sum(a_list)</code>, <code>max(a_list)</code>, and slicing like <code>a_list[:i]</code>. One of them inside a loop makes the whole thing O(n²), even though you only typed one <code>for</code>." },
+    { h: "Trading memory for speed",
+      p: "The fix for slow code is often to <b>remember</b> something: a set of what you've seen, a dict of counts, a running total. That uses extra memory (O(n) space) to save lots of time. Saying \"I'm trading memory for speed\" in an interview shows you understand the choice.",
+      code: `def has_duplicate(items):
+    seen = set()            # extra memory...
+    for x in items:
+        if x in seen:       # ...so this check is O(1)
+            return True
+        seen.add(x)
+    return False
+
+print(has_duplicate([4, 8, 15, 16, 23, 42, 8]))` }
+  ],
+  think: [
+    { type: "match", q: "Match each piece of code with its Big-O.", pairs: [["<code>prices[\"dosa\"]</code>", "O(1)"], ["<code>for x in items: total += x</code>", "O(n)"], ["<code>sorted(items)</code>", "O(n log n)"], ["a loop inside a loop over the same list", "O(n²)"], ["halving the search range every step", "O(log n)"]],
+      why: "These five cover almost every interview question you'll meet." },
+    { type: "mcq", q: "An O(n²) function takes 1 second for 1,000 items. About how long for 10,000 items?", options: ["2 seconds", "10 seconds", "100 seconds", "1,000 seconds"], answer: 2,
+      why: "10 times the items means 10 × 10 = 100 times the work for O(n²). An O(n) version would take about 10 seconds." },
+    { type: "multi", q: "Which of these secretly loop over the whole list?", options: ["<code>x in my_list</code>", "<code>x in my_set</code>", "<code>my_list.count(x)</code>", "<code>len(my_list)</code>", "<code>sum(my_list)</code>"], answer: [0, 2, 4],
+      why: "<code>in</code> on a list, <code>.count</code> and <code>sum</code> visit every item. A set look-up and <code>len</code> take about one step." },
+    { type: "predict", q: "What does this print?", code: `steps = 0
+n = 64
+while n > 1:
+    n = n // 2
+    steps += 1
+print(steps)`, answer: "6",
+      why: "64 → 32 → 16 → 8 → 4 → 2 → 1: six halvings. Halving is O(log n): doubling the input adds just one more step." }
+  ],
+  code: {
+    brief: "The festival gate scans every ticket. <code>first_repeat(tickets)</code> must return the first ticket that is scanned a <b>second</b> time (the repeat that happens earliest), or <code>None</code> if no ticket repeats.<br>The starter code is correct, but the gate freezes on a busy day with 50,000 tickets. Make it fast. Then say its Big-O in the Tavern.",
+    sample: ">>> first_repeat([5, 3, 8, 3, 5])\n3\n>>> first_repeat([1, 2, 3])\nNone",
+    starter: `def first_repeat(tickets):
+    for i in range(len(tickets)):
+        if tickets[i] in tickets[:i]:
+            return tickets[i]
+    return None
+`,
+    tests: [
+      { call: "first_repeat([5, 3, 8, 3, 5])", expect: "3", label: "3 repeats before 5 does" },
+      { call: "first_repeat([1, 2, 3])", expect: "None", label: "No repeats" },
+      { call: "first_repeat([])", expect: "None", label: "No tickets" },
+      { call: "first_repeat([\"A1\", \"B2\", \"A1\"])", expect: "'A1'", label: "Ticket codes as text" },
+      { call: "first_repeat([7, 7])", expect: "7", label: "Back-to-back repeat" },
+      { setup: "tickets = list(range(50000)) + [49999]", call: "first_repeat(tickets)", expect: "49999", limit: 3000, label: "50,000 tickets, fast",
+        slowMsg: "Correct but too slow for 50,000 tickets. <code>x in tickets[:i]</code> copies and searches a slice on every lap: a hidden loop. Remember the tickets you've seen in a set." }
+    ],
+    fuzz: { n: 10, what: "random ticket lists", gen: (r) => ({ call: "first_repeat([" + Array.from({ length: r.int(0, 9) }, () => r.int(1, 8)).join(", ") + "])" }) },
+    hints: [
+      "Where's the hidden loop? <code>tickets[:i]</code> builds a new list, and <code>in</code> searches it. Both are O(n), inside an O(n) loop.",
+      "Keep a <code>seen = set()</code>. For each ticket: if it's in <code>seen</code>, return it. Otherwise add it.",
+      "That's one pass with O(1) checks: O(n) time, using O(n) extra memory for the set."
+    ],
+    solution: `def first_repeat(tickets):
+    seen = set()
+    for t in tickets:
+        if t in seen:
+            return t
+        seen.add(t)
+    return None`,
+    wrong: [
+      { code: `def first_repeat(tickets):
+    seen = []
+    for t in tickets:
+        if t in seen:
+            return t
+        seen.append(t)
+    return None`, why: "searching a list is still a hidden loop" },
+      { code: `def first_repeat(tickets):
+    for t in tickets:
+        if tickets.count(t) > 1:
+            return t
+    return None`, why: "returns the first ticket that ever repeats, not the first repeat, and it's slow" }
+    ]
+  },
+  bug: {
+    brief: "A step-counter app shows a running total after every walk. The answers are right, but for a long history of 30,000 walks the app freezes. Find the hidden loop and make it fast.",
+    code: `def running_totals(steps):
+    out = []
+    for i in range(len(steps)):
+        out.append(sum(steps[:i + 1]))
+    return out
+
+print(running_totals([3000, 4500, 1200]))`,
+    tests: [
+      { call: "running_totals([3000, 4500, 1200])", expect: "[3000, 7500, 8700]", label: "Three walks" },
+      { call: "running_totals([])", expect: "[]", label: "No walks" },
+      { setup: "steps = list(range(30000))", call: "running_totals(steps)[-1]", expect: "449985000", limit: 3000, label: "30,000 walks, fast",
+        slowMsg: "Still too slow. Each lap adds up the whole list again from the start. Keep a running total instead." }
+    ],
+    hints: ["<code>sum(steps[:i + 1])</code> adds everything again on every lap, so it's O(n²). Keep a variable <code>total</code>, add one walk each lap, and append it."],
+    fix: `def running_totals(steps):
+    out = []
+    total = 0
+    for s in steps:
+        total += s
+        out.append(total)
+    return out
+
+print(running_totals([3000, 4500, 1200]))`,
+    lesson: "Code can be correct and still be a bug. Look for work that is repeated on every lap and remember it instead."
+  },
+  explain: "What is the Big-O of the starter code for the ticket gate, and of your version? Explain where the hidden loop was and what you traded to remove it.",
+  cards: [
+    { q: "One loop over n items is…", options: ["O(1)", "O(n)", "O(n²)", "O(log n)"], answer: 1 },
+    { q: "Which line hides a loop?", options: ["<code>d[key]</code>", "<code>x in a_list</code>", "<code>len(a_list)</code>", "<code>a_list.append(x)</code>"], answer: 1 },
+    { q: "Double the input for an O(n²) function. The work becomes…", options: ["Twice as much", "Four times as much", "The same", "Half"], answer: 1 }
+  ],
+  skills: { interview: 3, logic: 3, python: 1, debug: 1 }
+},
+/* ───────────────────────────── 8-6 ───────────────────────────── */
+{
+  id: "8-6", world: 8, n: 6, title: "Stack Tower", concept: "stacks: last in, first out",
+  learn: [
+    { h: "A stack is a pile of plates",
+      p: "You put plates on top, and you take plates off the top. The last one in is the first one out (<b>LIFO</b>). In Python, a list is a perfect stack: <code>append</code> puts on top, <code>pop()</code> takes from the top. Both take about one step. Stacks are behind your browser's back button, every Undo button, and the way Python keeps track of function calls.",
+      code: `plates = []
+plates.append("red")
+plates.append("blue")
+plates.append("green")
+print(plates.pop())    # the last one in comes out first
+print(plates)` },
+    { h: "Matching brackets: the classic stack question",
+      p: "Is <code>{[()]}</code> balanced? Read it left to right. Push every <b>opening</b> bracket. For every <b>closing</b> bracket, the top of the stack must be its partner: pop it. At the end, the stack must be empty. A dict from closing to opening bracket keeps it short.",
+      lang: "text", file: "checking ( [ ] )",
+      code: `char  action                        stack
+(     opening: push                 (
+[     opening: push                 ( [
+]     closing: top is [ → match, pop  (
+)     closing: top is ( → match, pop  (empty)
+end   stack is empty → balanced` },
+    { h: "Three ways it can go wrong",
+      p: "A closing bracket with the <b>wrong</b> partner on top: <code>(]</code>. A closing bracket when the stack is <b>empty</b>: <code>())</code>, where you must check before popping, or <code>pop()</code> crashes. Opening brackets <b>left over</b> at the end: <code>(()</code>. Good tests cover all three." },
+    { h: "pop(0) is not a stack",
+      p: "<code>pop(0)</code> takes from the <b>bottom</b>: that's a queue (first in, first out), like people in a line. It's also slow, because every other item has to shift down one place. For a real queue, Python has <code>collections.deque</code>." }
+  ],
+  think: [
+    { type: "predict", q: "What does this print?", code: `stack = []
+for ch in "abc":
+    stack.append(ch)
+print(stack.pop(), stack.pop())
+stack.append("d")
+print(stack)`, answer: "c b\n['a', 'd']",
+      why: "c went in last, so it comes out first, then b. Only a is left, and d goes on top of it." },
+    { type: "multi", q: "Which strings are balanced?", options: ["<code>([]{})</code>", "<code>(]</code>", "<code>(()</code>", "<code>{[()]}</code>", "<code>)(</code>"], answer: [0, 3],
+      why: "<code>(]</code> closes with the wrong partner, <code>(()</code> leaves one open, and <code>)(</code> closes before anything is open." },
+    { type: "order", indent: true, q: "Reverse a word using a stack. One line doesn't belong.", lines: ["word = \"stack\"", "letters = []", "for ch in word:", "    letters.append(ch)", "result = \"\"", "while letters:", "    result += letters.pop()", "print(result)"],
+      distractors: ["    result += letters.pop(0)"], expect: ["kcats"],
+      why: "Push every letter, then pop them all: the last letter comes out first, so the word comes out backwards. <code>pop(0)</code> would give the word back unchanged." },
+    { type: "spot", q: "This bracket checker crashes on <code>\"())\"</code> with <i>IndexError: pop from empty list</i>. Which line needs a check before it?", code: `def balanced(s):
+    stack = []
+    for ch in s:
+        if ch == "(":
+            stack.append(ch)
+        elif ch == ")":
+            stack.pop()
+    return not stack`, answer: 7,
+      why: "When a <code>)</code> arrives with nothing open, there's nothing to pop. Check <code>if not stack: return False</code> first." }
+  ],
+  code: {
+    brief: "Write <code>is_balanced(s)</code> that returns True if every bracket in <code>s</code> is closed by the right partner, in the right order. Brackets are <code>()</code>, <code>[]</code> and <code>{}</code>. Any other characters (letters, spaces, maths) are ignored.<br>• <code>\"{[()]}\"</code> and <code>\"print(nums[0])\"</code> are balanced<br>• <code>\"(]\"</code>, <code>\"(()\"</code> and <code>\"())\"</code> are not<br>• An empty string is balanced",
+    sample: ">>> is_balanced(\"{[()]}\")\nTrue\n>>> is_balanced(\"(]\")\nFalse\n>>> is_balanced(\"print(nums[0])\")\nTrue",
+    starter: `def is_balanced(s):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = []
+`,
+    tests: [
+      { call: "is_balanced(\"{[()]}\")", expect: "True", label: "Nested brackets" },
+      { call: "is_balanced(\"()[]{}\")", expect: "True", label: "Side by side" },
+      { call: "is_balanced(\"print(nums[0])\")", expect: "True", label: "Other characters are ignored" },
+      { call: "is_balanced(\"\")", expect: "True", label: "Empty string" },
+      { call: "is_balanced(\"(]\")", expect: "False", label: "Wrong partner" },
+      { call: "is_balanced(\"([)]\")", expect: "False", label: "Closed in the wrong order" },
+      { call: "is_balanced(\"(()\")", expect: "False", label: "One left open" },
+      { call: "is_balanced(\"())\")", expect: "False", label: "Closing with nothing open" },
+      { call: "is_balanced(\"]\")", expect: "False", label: "Starts with a closing bracket" }
+    ],
+    fuzz: { n: 16, what: "random bracket strings", gen: (r, i) => {
+      // Half are built balanced (random nesting, a few letters); the other half have one character swapped.
+      const build = (d) => { let t = ""; for (let k = r.int(d ? 0 : 1, 2); k > 0; k--) { const j = r.int(0, 2); t += (r.next() < 0.3 ? "a" : "") + "([{"[j] + (d < 2 ? build(d + 1) : "") + ")]}"[j]; } return t; };
+      let t = build(0);
+      if (i % 2) { const p = r.int(0, t.length - 1); t = t.slice(0, p) + r.pick(")]}([{".split("")) + t.slice(p + 1); }
+      return { call: "is_balanced(" + JSON.stringify(t) + ")" };
+    } },
+    hints: [
+      "Loop over each character. If it's an opening bracket (one of the dict's values), push it.",
+      "If it's a closing bracket (a key in <code>pairs</code>): if the stack is empty, or <code>stack.pop() != pairs[ch]</code>, return False.",
+      "After the loop, it's balanced only if nothing is left open: <code>return not stack</code>."
+    ],
+    solution: `def is_balanced(s):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = []
+    for ch in s:
+        if ch in "([{":
+            stack.append(ch)
+        elif ch in pairs:
+            if not stack or stack.pop() != pairs[ch]:
+                return False
+    return not stack`,
+    wrong: [
+      { code: `def is_balanced(s):
+    return s.count("(") == s.count(")") and s.count("[") == s.count("]") and s.count("{") == s.count("}")`, why: "counting ignores the order" },
+      { code: `def is_balanced(s):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = []
+    for ch in s:
+        if ch in "([{":
+            stack.append(ch)
+        elif ch in pairs:
+            if not stack or stack.pop() != pairs[ch]:
+                return False
+    return True`, why: "forgets brackets left open" },
+      { code: `def is_balanced(s):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = []
+    for ch in s:
+        if ch in "([{":
+            stack.append(ch)
+        elif ch in pairs:
+            if stack and stack.pop() != pairs[ch]:
+                return False
+    return not stack`, why: "accepts a closing bracket with nothing open" }
+    ]
+  },
+  bug: {
+    brief: "The notes app has Undo. After typing \"Hello\", \" world\" and \"!\", one Undo should leave \"Hello world\". Instead the whole note disappears. The history is used like a queue instead of a stack.",
+    code: `class Editor:
+    def __init__(self):
+        self.text = ""
+        self.history = []
+
+    def write(self, words):
+        self.history.append(self.text)
+        self.text += words
+
+    def undo(self):
+        if self.history:
+            self.text = self.history.pop(0)
+
+e = Editor()
+e.write("Hello")
+e.write(" world")
+e.write("!")
+e.undo()
+print(e.text)`,
+    tests: [
+      { setup: "e = Editor()\ne.write('Hello')\ne.write(' world')\ne.write('!')\ne.undo()", call: "e.text", expect: "'Hello world'", label: "One undo" },
+      { setup: "e = Editor()\ne.write('Hello')\ne.write(' world')\ne.write('!')\ne.undo()\ne.undo()", call: "e.text", expect: "'Hello'", label: "Two undos" },
+      { setup: "e = Editor()\ne.write('Hi')\ne.undo()\ne.undo()", call: "e.text", expect: "''", label: "Undo with nothing left does nothing" }
+    ],
+    hints: ["Undo should restore the <b>most recent</b> saved text, which is at the end of the list. <code>pop(0)</code> takes the oldest one."],
+    fix: `class Editor:
+    def __init__(self):
+        self.text = ""
+        self.history = []
+
+    def write(self, words):
+        self.history.append(self.text)
+        self.text += words
+
+    def undo(self):
+        if self.history:
+            self.text = self.history.pop()
+
+e = Editor()
+e.write("Hello")
+e.write(" world")
+e.write("!")
+e.undo()
+print(e.text)`,
+    lesson: "Undo is a stack: the newest change comes off first. <code>pop()</code> takes from the top, <code>pop(0)</code> from the bottom."
+  },
+  explain: "Explain how your bracket checker uses a stack. Walk through <code>\"([)]\"</code> and say exactly where and why it returns False.",
+  cards: [
+    { q: "A stack is…", options: ["First in, first out", "Last in, first out", "Sorted", "Random"], answer: 1 },
+    { q: "Which pair of list methods makes a stack?", options: ["<code>append</code> and <code>pop()</code>", "<code>insert(0)</code> and <code>sort</code>", "<code>append</code> and <code>pop(0)</code>", "<code>count</code> and <code>index</code>"], answer: 0 },
+    { q: "When is a bracket string balanced at the end?", options: ["When the stack is empty", "When the stack is full", "When it has an even length", "Always"], answer: 0 }
+  ],
+  skills: { interview: 3, logic: 3, python: 2 }
+},
+/* ───────────────────────────── 8-7 ───────────────────────────── */
+{
+  id: "8-7", world: 8, n: 7, title: "Halving the Maze", concept: "binary search and recursion",
+  learn: [
+    { h: "Guess a number from 1 to 1,000,000 in 20 tries",
+      p: "Always guess the <b>middle</b>. \"Higher\" or \"lower\" throws away half of what's left. A million becomes 500,000, then 250,000... After 20 halvings, one number is left. That's <b>binary search</b>, and it's O(log n): doubling the range adds just one more guess. It only works when the data is <b>sorted</b> (numbers in order, words in a dictionary).",
+      code: `low, high = 1, 1000000
+guesses = 0
+while low < high:
+    low = (low + high) // 2 + 1     # pretend the answer was always "higher"
+    guesses += 1
+print(guesses, "guesses at most")` },
+    { h: "Binary search on a sorted list",
+      p: "Keep two edges, <code>low</code> and <code>high</code>. Look at the middle. Too small? The answer must be to the right, so <code>low = mid + 1</code>. Too big? <code>high = mid - 1</code>. Stop when you find it, or when the edges cross: then it isn't there.",
+      code: `def search(nums, target):
+    low, high = 0, len(nums) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+
+print(search([2, 5, 8, 12, 16, 23, 38], 23), search([2, 5, 8], 7))` },
+    { h: "The off-by-one traps",
+      p: "Three details catch everyone: use <code>//</code> so mid is a whole number; loop <code>while low &lt;= high</code> (with <code>&lt;</code> you'd skip the last candidate); and move to <code>mid + 1</code> or <code>mid - 1</code>, never just <code>mid</code>, or the loop can get stuck forever. In real code, Python's <code>bisect</code> module does this for you." },
+    { h: "Recursion: a function that calls itself",
+      p: "Some problems contain smaller copies of themselves. A <b>recursive</b> function solves a small piece, then calls itself on the rest. It needs a <b>base case</b> that stops without calling itself again, or it never ends (Python stops it with a <i>RecursionError</i>). And it must <b>use</b> what the inner call returns.",
+      code: `def total(nums):
+    if not nums:                    # base case: an empty list adds up to 0
+        return 0
+    return nums[0] + total(nums[1:])   # first item + the total of the rest
+
+print(total([4, 2, 7]))` }
+  ],
+  think: [
+    { type: "trace", q: "Trace a binary search for 23 in <code>[2, 5, 8, 12, 16, 23, 38]</code>. Write <code>low</code>, <code>high</code> and <code>mid</code> on each lap.", code: `nums = [2, 5, 8, 12, 16, 23, 38]
+low, high = 0, len(nums) - 1
+while low <= high:
+    mid = (low + high) // 2
+    if nums[mid] == 23:
+        break
+    if nums[mid] < 23:
+        low = mid + 1
+    else:
+        high = mid - 1`, vars: ["low", "high", "mid"], rows: [[0, 6, 3], [4, 6, 5]],
+      check: `nums = [2, 5, 8, 12, 16, 23, 38]
+low, high = 0, len(nums) - 1
+while low <= high:
+    mid = (low + high) // 2
+    print(low, high, mid)
+    if nums[mid] == 23:
+        break
+    if nums[mid] < 23:
+        low = mid + 1
+    else:
+        high = mid - 1`,
+      why: "The middle is 12, too small, so low jumps to 4. The new middle is position 5: 23. Two looks instead of six." },
+    { type: "mcq", q: "With binary search, what's the most guesses you need for a number from 1 to 1,000?", options: ["10", "100", "500", "1,000"], answer: 0,
+      why: "2 to the power 10 is 1,024, so 10 halvings get from 1,000 down to one number." },
+    { type: "predict", q: "What does this print?", code: `def count(n):
+    if n == 0:
+        return "go!"
+    return str(n) + " " + count(n - 1)
+
+print(count(3))`, answer: "3 2 1 go!",
+      why: "count(3) is \"3 \" + count(2), which is \"2 \" + count(1), and so on down to the base case, which returns \"go!\"." },
+    { type: "mcq", q: "A recursive function has no base case. What happens?", options: ["It returns None", "It calls itself until Python stops it with a RecursionError", "Python adds a base case for you", "It runs once"], answer: 1,
+      why: "Without a case that stops, every call makes another call. Python allows about a thousand nested calls, then raises RecursionError." }
+  ],
+  code: {
+    brief: "The Oracle has picked a secret number between <code>low</code> and <code>high</code> (both included). Write <code>find_secret(guess, low, high)</code> that finds it and returns it.<br>You can't see the number. Call <code>guess(x)</code> and it returns <code>\"higher\"</code> (the secret is bigger than x), <code>\"lower\"</code> (it's smaller) or <code>\"correct\"</code>.<br>The Oracle is impatient: for 1 to 1,000,000 you get at most <b>20</b> guesses, and after 40 it throws you out.",
+    sample: ">>> find_secret(guess, 1, 100)    # the secret was 73\n73\n# guesses: 50 → higher, 75 → lower, 62 → higher, 68 → higher,\n#          71 → higher, 73 → correct",
+    starter: `def find_secret(guess, low, high):
+    # Guess the middle of low..high each time.
+    # guess(x) answers "higher", "lower" or "correct".
+    pass
+`,
+    tests: [
+      { setup: "SECRET = 73\n_calls = [0]\ndef guess(x):\n    _calls[0] += 1\n    if _calls[0] > 40:\n        raise RuntimeError('More than 40 guesses! Guess the middle of what is left each time.')\n    if x == SECRET:\n        return 'correct'\n    return 'higher' if SECRET > x else 'lower'", call: "find_secret(guess, 1, 100)", expect: "73", label: "Secret 73, range 1 to 100" },
+      { setup: "SECRET = 777777\n_calls = [0]\ndef guess(x):\n    _calls[0] += 1\n    if _calls[0] > 40:\n        raise RuntimeError('More than 40 guesses! Guess the middle of what is left each time.')\n    if x == SECRET:\n        return 'correct'\n    return 'higher' if SECRET > x else 'lower'", call: "(find_secret(guess, 1, 1000000), _calls[0] <= 20)", expect: "(777777, True)", label: "1 to 1,000,000 in at most 20 guesses" },
+      { setup: "SECRET = 1\n_calls = [0]\ndef guess(x):\n    _calls[0] += 1\n    if _calls[0] > 40:\n        raise RuntimeError('More than 40 guesses! Guess the middle of what is left each time.')\n    if x == SECRET:\n        return 'correct'\n    return 'higher' if SECRET > x else 'lower'", call: "(find_secret(guess, 1, 1000000), _calls[0] <= 20)", expect: "(1, True)", label: "The lowest possible number" },
+      { setup: "SECRET = 1000000\n_calls = [0]\ndef guess(x):\n    _calls[0] += 1\n    if _calls[0] > 40:\n        raise RuntimeError('More than 40 guesses! Guess the middle of what is left each time.')\n    if x == SECRET:\n        return 'correct'\n    return 'higher' if SECRET > x else 'lower'", call: "(find_secret(guess, 1, 1000000), _calls[0] <= 20)", expect: "(1000000, True)", label: "The highest possible number" },
+      { setup: "SECRET = 5\n_calls = [0]\ndef guess(x):\n    _calls[0] += 1\n    if _calls[0] > 40:\n        raise RuntimeError('More than 40 guesses! Guess the middle of what is left each time.')\n    if x == SECRET:\n        return 'correct'\n    return 'higher' if SECRET > x else 'lower'", call: "find_secret(guess, 5, 5)", expect: "5", label: "A range with one number" },
+      { setup: "SECRET = -7\n_calls = [0]\ndef guess(x):\n    _calls[0] += 1\n    if _calls[0] > 40:\n        raise RuntimeError('More than 40 guesses! Guess the middle of what is left each time.')\n    if x == SECRET:\n        return 'correct'\n    return 'higher' if SECRET > x else 'lower'", call: "find_secret(guess, -50, 50)", expect: "-7", label: "Negative numbers" }
+    ],
+    fuzz: { n: 12, what: "random secrets and ranges", gen: (r) => {
+      const lo = r.int(-1000, 1000), hi = lo + r.int(0, 5000), secret = r.int(lo, hi), most = Math.ceil(Math.log2(hi - lo + 1)) + 1;
+      return { setup: "SECRET = " + secret + "\n_calls = [0]\ndef guess(x):\n    _calls[0] += 1\n    if _calls[0] > 40:\n        raise RuntimeError('More than 40 guesses! Guess the middle of what is left each time.')\n    if x == SECRET:\n        return 'correct'\n    return 'higher' if SECRET > x else 'lower'",
+        call: "(find_secret(guess, " + lo + ", " + hi + "), _calls[0] <= " + most + ")" };
+    } },
+    hints: [
+      "Ask <code>answer = guess(mid)</code> once per lap, and store it, so you don't waste guesses.",
+      "If it's <code>\"correct\"</code>, return mid. If <code>\"higher\"</code>, the secret is above mid: <code>low = mid + 1</code>. If <code>\"lower\"</code>: <code>high = mid - 1</code>.",
+      "Use <code>//</code> so mid is a whole number. <code>(low + high) / 2</code> gives a float like 36.5."
+    ],
+    solution: `def find_secret(guess, low, high):
+    while low <= high:
+        mid = (low + high) // 2
+        answer = guess(mid)
+        if answer == "correct":
+            return mid
+        if answer == "higher":
+            low = mid + 1
+        else:
+            high = mid - 1
+    return None`,
+    alts: [`def find_secret(guess, low, high):
+    mid = (low + high) // 2
+    answer = guess(mid)
+    if answer == "correct":
+        return mid
+    if answer == "higher":
+        return find_secret(guess, mid + 1, high)
+    return find_secret(guess, low, mid - 1)`],
+    wrong: [
+      { code: `def find_secret(guess, low, high):
+    for x in range(low, high + 1):
+        if guess(x) == "correct":
+            return x`, why: "guesses one by one" },
+      { code: `def find_secret(guess, low, high):
+    while low <= high:
+        mid = (low + high) // 2
+        if guess(mid) == "correct":
+            return mid
+        if guess(mid) == "higher":
+            low = mid + 1
+        else:
+            high = mid - 1`, why: "asks twice per lap, so it uses up to 40 guesses" },
+      { code: `def find_secret(guess, low, high):
+    while low < high:
+        mid = (low + high) // 2
+        answer = guess(mid)
+        if answer == "correct":
+            return mid
+        if answer == "higher":
+            low = mid + 1
+        else:
+            high = mid - 1
+    return None`, why: "< skips the last candidate" }
+    ]
+  },
+  bug: {
+    brief: "<code>nested_sum(items)</code> should add up every number in a list, even numbers inside lists inside lists. For <code>[1, [2, 3], [4, [5]]]</code> it should give 15, but it gives 1. The recursive call happens, but its answer is thrown away.",
+    code: `def nested_sum(items):
+    total = 0
+    for x in items:
+        if isinstance(x, list):
+            nested_sum(x)
+        else:
+            total += x
+    return total
+
+print(nested_sum([1, [2, 3], [4, [5]]]))`,
+    tests: [
+      { call: "nested_sum([1, [2, 3], [4, [5]]])", expect: "15", label: "Lists inside lists" },
+      { call: "nested_sum([1, 2, 3])", expect: "6", label: "A flat list" },
+      { call: "nested_sum([[], [[]]])", expect: "0", label: "Only empty lists" },
+      { call: "nested_sum([[[[10]]]])", expect: "10", label: "Deeply nested" }
+    ],
+    hints: ["<code>nested_sum(x)</code> works out the inner total, but nothing uses it. Add it: <code>total += nested_sum(x)</code>."],
+    fix: `def nested_sum(items):
+    total = 0
+    for x in items:
+        if isinstance(x, list):
+            total += nested_sum(x)
+        else:
+            total += x
+    return total
+
+print(nested_sum([1, [2, 3], [4, [5]]]))`,
+    lesson: "A recursive call is just a function call: if you don't use what it returns, the work is lost."
+  },
+  explain: "Explain why your <code>find_secret</code> never needs more than 20 guesses for 1 to 1,000,000. What would go wrong if you used <code>while low &lt; high</code> or <code>high = mid</code>?",
+  cards: [
+    { q: "Binary search only works if the data is…", options: ["Short", "Sorted", "Unique", "Numbers"], answer: 1 },
+    { q: "Binary search is…", options: ["O(n)", "O(log n)", "O(n²)", "O(1)"], answer: 1 },
+    { q: "What must every recursive function have?", options: ["A loop", "A base case that stops it", "A global variable", "Two parameters"], answer: 1 }
+  ],
+  skills: { interview: 3, logic: 3, python: 2 }
+},
+/* ───────────────────────────── 8-8 ───────────────────────────── */
+{
+  id: "8-8", world: 8, n: 8, boss: true, title: "The Final Interview", concept: "Boss: a three-question coding round",
+  learn: [
+    { h: "Boss rules",
+      p: "This is a real coding round: three questions like the ones companies ask in a first technical interview. Each needs a pattern from this world, and each has a speed test. Follow UMPIRE for each one: say the problem back, try an example by hand, plan, code, trace it, then say its Big-O. Do them in any order.",
+      lang: "text", file: "the round",
+      code: `group_anagrams(words)  -> list of groups of words that are anagrams of each other
+longest_streak(days)   -> length of the longest run of consecutive numbers
+top_k(nums, k)         -> the k most frequent numbers
+
+Each one: about 15 minutes in a real interview. Talk while you work.` },
+    { h: "Group anagrams: find a shared key",
+      p: "Anagrams become the same when you sort their letters: <i>eat</i>, <i>tea</i> and <i>ate</i> all become <code>\"aet\"</code>. Use that as a dict key and collect the words that share it. Dicts remember the order keys arrive, so the groups come out in the order they first appeared.",
+      code: `key = "".join(sorted("tea"))
+print(key)
+
+groups = {}
+groups.setdefault(key, []).append("tea")    # make the list if it's new, then add
+groups.setdefault(key, []).append("eat")
+print(groups)` },
+    { h: "Longest streak: only start counting at the start",
+      p: "Put the numbers in a set. A number <code>n</code> starts a streak only if <code>n - 1</code> isn't in the set. From each start, count up while <code>n + 1</code> is there. Every number is visited about twice in total, so it's O(n). Counting up from <i>every</i> number would be O(n²) on a long streak. Sorting first also works, in O(n log n)." },
+    { h: "Top k: count, then sort by the count",
+      p: "Count with a dict or Counter, then sort the distinct numbers by count, biggest first. To break ties by the smaller number, sort by a tuple: <code>key=lambda n: (-counts[n], n)</code>. The minus sign flips the count so the biggest comes first.",
+      code: `counts = {5: 2, 1: 3, 9: 2}
+print(sorted(counts, key=lambda n: (-counts[n], n)))` }
+  ],
+  think: [
+    { type: "order", q: "The interviewer says: \"Find the longest run of consecutive numbers.\" Put your first moves in order.", lines: ["Say it back: \"So for [100, 4, 200, 1, 3, 2] the answer is 4, from 1 to 4?\"", "Ask: \"Can there be duplicates? What should an empty list give?\"", "Say the simple idea: sort, then walk through counting runs", "Improve: use a set and only count up from the start of each run", "Code it, then trace it with the example", "Say the Big-O: O(n) time, O(n) extra memory"],
+      why: "Understand, ask, a simple idea, a better idea, code and check, then evaluate. That's UMPIRE in a real round." },
+    { type: "predict", q: "What does this print?", code: `words = ["tan", "ate", "nat"]
+print(["".join(sorted(w)) for w in words])`, answer: "['ant', 'aet', 'ant']",
+      why: "Sorting the letters gives anagrams the same key: tan and nat both become ant." },
+    { type: "multi", q: "For <code>longest_streak</code>, which inputs should your own tests include?", options: ["An empty list", "Duplicates, like <code>[1, 2, 2, 3]</code>", "Numbers out of order", "Negative numbers", "Only the example from the question"], answer: [0, 1, 2, 3],
+      why: "Empty input, repeats, order and negatives are where bugs hide. The example alone proves little." },
+    { type: "mcq", q: "You finish early. What's the best use of the last five minutes?", options: ["Sit quietly", "Trace your code with an edge case and say its Big-O", "Rewrite it in another language", "Ask if you passed"], answer: 1,
+      why: "Finding your own bug before the interviewer does is one of the strongest signals you can give." }
+  ],
+  code: {
+    brief: "Three questions, three functions:<br>• <code>group_anagrams(words)</code> returns a list of groups (lists). Words that are anagrams go in the same group. Groups are in the order their first word appears, and words in each group keep their order.<br>• <code>longest_streak(days)</code> returns the length of the longest run of consecutive whole numbers in the list, in any order: <code>[100, 4, 200, 1, 3, 2]</code> gives 4 (1, 2, 3, 4). Duplicates don't break a run. An empty list gives 0.<br>• <code>top_k(nums, k)</code> returns the <code>k</code> most frequent numbers, most frequent first. Ties go to the <b>smaller</b> number. If there are fewer than <code>k</code> different numbers, return them all.<br>Each has a speed test, so no loops inside loops over the whole input.",
+    sample: ">>> group_anagrams([\"eat\", \"tea\", \"tan\", \"ate\", \"nat\", \"bat\"])\n[['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]\n>>> longest_streak([100, 4, 200, 1, 3, 2])\n4\n>>> top_k([1, 1, 1, 2, 2, 3], 2)\n[1, 2]",
+    starter: `def group_anagrams(words):
+    pass
+
+
+def longest_streak(days):
+    pass
+
+
+def top_k(nums, k):
+    pass
+`,
+    tests: [
+      { call: "group_anagrams([\"eat\", \"tea\", \"tan\", \"ate\", \"nat\", \"bat\"])", expect: "[['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]", label: "group_anagrams: the example" },
+      { call: "group_anagrams([])", expect: "[]", label: "group_anagrams: no words" },
+      { call: "group_anagrams([\"a\", \"b\", \"a\"])", expect: "[['a', 'a'], ['b']]", label: "group_anagrams: repeated words" },
+      { setup: "words = ['w' + str(i) for i in range(30000)]", call: "len(group_anagrams(words))", expect: "2207", limit: 3000, label: "group_anagrams: 30,000 words (2,207 groups), fast",
+        slowMsg: "group_anagrams is too slow. Use a dict from sorted letters to the group, instead of searching through the groups for every word." },
+      { call: "longest_streak([100, 4, 200, 1, 3, 2])", expect: "4", label: "longest_streak: the example" },
+      { call: "longest_streak([])", expect: "0", label: "longest_streak: empty list" },
+      { call: "longest_streak([1, 2, 2, 3])", expect: "3", label: "longest_streak: duplicates don't break a run" },
+      { call: "longest_streak([10, 5, 12, 3, 11, 4])", expect: "3", label: "longest_streak: two runs of 3" },
+      { call: "longest_streak([-1, 0, 1, 7])", expect: "3", label: "longest_streak: negatives" },
+      { setup: "days = list(range(60000, 0, -1))", call: "longest_streak(days)", expect: "60000", limit: 3000, label: "longest_streak: one run of 60,000, fast",
+        slowMsg: "longest_streak is too slow. Only count upwards from numbers that start a run (n - 1 isn't in the set), or sort first." },
+      { call: "top_k([1, 1, 1, 2, 2, 3], 2)", expect: "[1, 2]", label: "top_k: the example" },
+      { call: "top_k([4, 4, 5, 5, 6], 2)", expect: "[4, 5]", label: "top_k: a tie goes to the smaller number" },
+      { call: "top_k([3, 1, 3, 1, 2], 3)", expect: "[1, 3, 2]", label: "top_k: ties, then the rest" },
+      { call: "top_k([7], 5)", expect: "[7]", label: "top_k: fewer numbers than k" },
+      { setup: "nums = [i % 20000 for i in range(60000)]", call: "top_k(nums, 3)", expect: "[0, 1, 2]", limit: 3000, label: "top_k: 60,000 numbers, fast",
+        slowMsg: "top_k is too slow. <code>nums.count(n)</code> inside a loop reads the whole list every time. Count everything in one pass." }
+    ],
+    fuzz: { n: 15, what: "random inputs for all three", gen: (r, i) => {
+      const nums = () => "[" + Array.from({ length: r.int(0, 9) }, () => r.int(-3, 8)).join(", ") + "]";
+      if (i % 3 === 0) return { call: "group_anagrams(" + JSON.stringify(Array.from({ length: r.int(0, 7) }, () => r.pick(["ab", "ba", "abc", "cab", "b", "a", "bca", "aab", "aba"]))) + ")" };
+      if (i % 3 === 1) return { call: "longest_streak(" + nums() + ")" };
+      return { call: "top_k(" + nums() + ", " + r.int(1, 4) + ")" };
+    } },
+    hints: [
+      "<code>group_anagrams</code>: <code>groups = {}</code>, then for each word <code>groups.setdefault(\"\".join(sorted(w)), []).append(w)</code>. Return <code>list(groups.values())</code>.",
+      "<code>longest_streak</code>: <code>s = set(days)</code>. For each n in s where <code>n - 1 not in s</code>, count up while <code>n + length in s</code>. Keep the best.",
+      "<code>top_k</code>: build <code>counts</code> in one pass, then <code>sorted(counts, key=lambda n: (-counts[n], n))[:k]</code>."
+    ],
+    solution: `def group_anagrams(words):
+    groups = {}
+    for w in words:
+        key = "".join(sorted(w))
+        groups.setdefault(key, []).append(w)
+    return list(groups.values())
+
+
+def longest_streak(days):
+    s = set(days)
+    best = 0
+    for n in s:
+        if n - 1 not in s:
+            length = 1
+            while n + length in s:
+                length += 1
+            best = max(best, length)
+    return best
+
+
+def top_k(nums, k):
+    counts = {}
+    for n in nums:
+        counts[n] = counts.get(n, 0) + 1
+    return sorted(counts, key=lambda n: (-counts[n], n))[:k]`,
+    alts: [`from collections import Counter
+
+
+def group_anagrams(words):
+    groups = {}
+    for w in words:
+        key = tuple(sorted(w))
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(w)
+    return [g for g in groups.values()]
+
+
+def longest_streak(days):
+    if not days:
+        return 0
+    nums = sorted(set(days))
+    best = run = 1
+    for i in range(1, len(nums)):
+        if nums[i] == nums[i - 1] + 1:
+            run += 1
+            best = max(best, run)
+        else:
+            run = 1
+    return best
+
+
+def top_k(nums, k):
+    c = Counter(nums)
+    pairs = sorted(c.items(), key=lambda p: (-p[1], p[0]))
+    return [n for n, _ in pairs[:k]]`],
+    wrong: [
+      { code: `def group_anagrams(words):
+    groups = []
+    for w in words:
+        for g in groups:
+            if sorted(g[0]) == sorted(w):
+                g.append(w)
+                break
+        else:
+            groups.append([w])
+    return groups
+
+
+def longest_streak(days):
+    s = set(days)
+    best = 0
+    for n in s:
+        if n - 1 not in s:
+            length = 1
+            while n + length in s:
+                length += 1
+            best = max(best, length)
+    return best
+
+
+def top_k(nums, k):
+    counts = {}
+    for n in nums:
+        counts[n] = counts.get(n, 0) + 1
+    return sorted(counts, key=lambda n: (-counts[n], n))[:k]`, why: "group_anagrams searches every group for every word" },
+      { code: `def group_anagrams(words):
+    groups = {}
+    for w in words:
+        groups.setdefault("".join(sorted(w)), []).append(w)
+    return list(groups.values())
+
+
+def longest_streak(days):
+    s = set(days)
+    best = 0
+    for n in s:
+        length = 1
+        while n + length in s:
+            length += 1
+        best = max(best, length)
+    return best
+
+
+def top_k(nums, k):
+    counts = {}
+    for n in nums:
+        counts[n] = counts.get(n, 0) + 1
+    return sorted(counts, key=lambda n: (-counts[n], n))[:k]`, why: "longest_streak counts up from every number" },
+      { code: `def group_anagrams(words):
+    groups = {}
+    for w in words:
+        groups.setdefault("".join(sorted(w)), []).append(w)
+    return list(groups.values())
+
+
+def longest_streak(days):
+    s = set(days)
+    best = 0
+    for n in s:
+        if n - 1 not in s:
+            length = 1
+            while n + length in s:
+                length += 1
+            best = max(best, length)
+    return best
+
+
+def top_k(nums, k):
+    counts = {}
+    for n in nums:
+        counts[n] = counts.get(n, 0) + 1
+    return sorted(counts, key=lambda n: -counts[n])[:k]`, why: "top_k ignores the tie rule" }
+    ]
+  },
+  bug: {
+    brief: "Mock interview: review a candidate's <code>longest_streak</code>. It passes the example, but the interviewer found <b>two</b> bugs: an empty list gives 1 instead of 0, and <code>[1, 2, 2, 3]</code> gives 2 instead of 3. Fix both.",
+    code: `def longest_streak(days):
+    days = sorted(days)
+    best = 1
+    run = 1
+    for i in range(1, len(days)):
+        if days[i] == days[i - 1] + 1:
+            run += 1
+            best = max(best, run)
+        else:
+            run = 1
+    return best
+
+print(longest_streak([100, 4, 200, 1, 3, 2]))
+print(longest_streak([]), longest_streak([1, 2, 2, 3]))`,
+    tests: [
+      { call: "longest_streak([100, 4, 200, 1, 3, 2])", expect: "4", label: "The example" },
+      { call: "longest_streak([])", expect: "0", label: "Empty list" },
+      { call: "longest_streak([1, 2, 2, 3])", expect: "3", label: "A duplicate in the middle of a run" },
+      { call: "longest_streak([5, 5, 5])", expect: "1", label: "Only duplicates" }
+    ],
+    hints: [
+      "Empty list: <code>best</code> starts at 1 before looking at any data. Return 0 straight away when there are no days.",
+      "Duplicates: after sorting, <code>[1, 2, 2, 3]</code> has 2 next to 2, which resets the run. Either skip a number equal to the one before it, or sort <code>set(days)</code> instead."
+    ],
+    fix: `def longest_streak(days):
+    if not days:
+        return 0
+    days = sorted(set(days))
+    best = 1
+    run = 1
+    for i in range(1, len(days)):
+        if days[i] == days[i - 1] + 1:
+            run += 1
+            best = max(best, run)
+        else:
+            run = 1
+    return best
+
+print(longest_streak([100, 4, 200, 1, 3, 2]))
+print(longest_streak([]), longest_streak([1, 2, 2, 3]))`,
+    lesson: "Passing the example proves little. Interviewers test empty input and duplicates first, so you should too."
+  },
+  explain: "Interview practice: pick one of the three questions and explain your solution as you would in a real interview: the pattern, the steps, the edge cases, and its Big-O.",
+  cards: [
+    { q: "What key groups anagrams together?", options: ["The word's length", "The word's letters, sorted", "The first letter", "The word reversed"], answer: 1 },
+    { q: "In <code>longest_streak</code>, when do you start counting up from n?", options: ["Always", "Only when n - 1 is not in the set", "Only when n is even", "Only for the smallest number"], answer: 1 },
+    { q: "<code>key=lambda n: (-counts[n], n)</code> sorts by…", options: ["Count, smallest first", "Count, biggest first, then the smaller number", "Number only", "Random order"], answer: 1 }
+  ],
+  skills: { interview: 4, logic: 3, python: 3, talk: 2 },
+  homeQuest: {
+    title: "Take it home",
+    intro: "Final week. The goal isn't to feel ready, it's to start applying. Interviews are a skill you get better at by doing them.",
+    tasks: [
+      { t: "Write a one-page resume", d: "Projects first: your flagship and two others, each with a live link, the tech you used and one result. Follow the Tech Interview Handbook resume guide.", skill: "talk" },
+      { t: "Update LinkedIn and GitHub", d: "A clear headline (\"Python developer: web apps and data\"), your projects pinned on GitHub, and a README on each one.", skill: "talk" },
+      { t: "Solve 15 practice problems", d: "Easy ones from NeetCode or LeetCode 75: arrays and hashing, two pointers, stack, binary search. Say each solution out loud with UMPIRE.", skill: "interview" },
+      { t: "Do two mock interviews", d: "One with a friend, one with a stranger (Exponent's free peer practice). Ask for honest feedback and fix one habit.", skill: "interview" },
+      { t: "Prepare your stories", d: "Practise \"Tell me about yourself\" (60 seconds) and two project stories: the problem, what you built, a hard bug, what you'd do differently.", skill: "talk" },
+      { t: "Send 10 applications", d: "Internships and junior roles, on company career pages, LinkedIn, Naukri, Wellfound or Internshala. Track each one in a spreadsheet and follow up after a week.", skill: "interview" }
+    ]
+  }
+}
+);
+
+/* Key ideas for each level's Tavern Talk (Explain) question, and a sample answer to compare with.
+   keys: [hint shown to the player, regex that spots the idea]. need: how many keys must show up
+   (default: 60% of them, rounded up). The regexes are generous on purpose: they look for the idea in
+   any reasonable wording, not for exact phrases. verify.js checks every sample answer passes and that
+   gibberish, word lists and copied questions fail. */
+const EXPLAIN = {
+  /* ── World 1 ── */
+  "1-1": {
+    keys: [
+      ["what the quotes do", /quote|string|text|\bstr\b|word|letters|characters/i],
+      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b/i]
+    ],
+    model: "print(\"5 + 5\") shows 5 + 5 exactly as written, because the quotes make it a string of text. print(5 + 5) has no quotes, so Python does the maths first and shows 10."
+  },
+  "1-2": {
+    keys: [
+      ["what = really means in Python", /stor|assign|save|put|set|keep|label|box|becomes|updat|replac|not.{0,20}equal|not the same as/i],
+      ["which side Python works out first", /right side|right-hand|first|before|evaluat|works? out|calculat|old value|current value/i],
+      ["what happens to the old value", /new|replac|overwrit|updat|becomes|increase|goes up|more than before|adds? 25/i]
+    ],
+    model: "In Python, = does not mean 'is equal to'. It means 'store this value'. Python first works out the right side, gold + 25, using the old value of gold, and then stores the answer back in gold, so the new value replaces the old one."
+  },
+  "1-3": {
+    keys: [
+      ["what the quotes make \"5\"", /string|text|\bstr\b|quote|word|character/i],
+      ["what + does to two strings", /join|glue|stick|concaten|combin|together|side by side|next to|attach/i],
+      ["what + does to two numbers", /add|sum|math|integer|\bint\b|plus/i]
+    ],
+    model: "With quotes, \"5\" is a string, which is text. Using + on two strings joins them side by side, so you get 55. Without quotes, 5 is a number, so + really adds them and gives 10."
+  },
+  "1-4": {
+    keys: [
+      ["what type input() always gives you", /string|text|\bstr\b|word|characters/i],
+      ["what int() does", /int\(\)|\bint\b|convert|turn|change|integer|whole number/i],
+      ["what you can do once it's a number", /math|calculat|add|compare|bigger|greater|less|subtract|plus|\+|>|</i]
+    ],
+    model: "input() always gives back text, even if the person types 16. int() converts that text into a whole number. Then we can do maths with the age or compare it, like checking if age >= 18."
+  },
+  "1-5": {
+    keys: [
+      ["what // gives (the whole hours)", /\/\/|floor|whole|integer division|divid|division|how many (full|whole|times)/i],
+      ["what % gives (the leftover)", /%|remainder|left ?over|modul|remain/i],
+      ["the actual numbers for 135 minutes", /\b2\b|\btwo\b|\b15\b|fifteen|\b60\b|sixty/i]
+    ],
+    model: "135 // 60 divides and keeps only the whole part, so it gives 2 hours. 135 % 60 gives the remainder, what is left over after taking out the full hours, which is 15. So 135 minutes is 2 hours and 15 minutes."
+  },
+  "1-6": {
+    keys: [
+      ["what happens at the exact limit", /includ|equal|exact|same as|or more|at least|also counts|on the line|boundary|edge/i],
+      ["an example height", /\d{2,3}/]
+    ],
+    model: "With >= a person who is exactly the limit can ride, but with > they are turned away. If the rule is 120 cm and someone is exactly 120, height >= 120 is True but height > 120 is False. So the choice decides who is included at the edge."
+  },
+  "1-7": {
+    keys: [
+      ["what Python does after the first True check", /first|stop|only one|skip|the rest|once|the others|won't check|doesn't check|ignor/i],
+      ["what goes wrong if the order is changed", /order|top|before|after|wrong|catch|bigger|higher|largest|lower|swap|reverse|>=/i],
+      ["the grade example", /\d{2}|grade|score|mark/i]
+    ],
+    model: "Python checks the conditions from the top and stops at the first one that is True, skipping the rest. If score >= 50 came before score >= 90, a score of 95 would match the first check and get the lower grade. So the biggest limit has to come first."
+  },
+  "1-8": {
+    need: 3,
+    keys: [
+      ["normal inputs", /normal|usual|typical|regular|valid|correct|good|happy|right/i],
+      ["edge or boundary values", /edge|boundary|exact|limit|border|equal|just (above|below|over|under)|smallest|largest|minimum|maximum|zero|\b0\b/i],
+      ["wrong or unexpected inputs", /wrong|bad|invalid|negative|letters|typo|empty|blank|mistake|error|unexpected|weird|crash/i],
+      ["why you chose them", /because|so that|to (check|make sure|see|test|catch)|why|in case/i]
+    ],
+    model: "First I tried normal inputs, like a correct password, to see the happy path work. Then I tried edge values, such as an age exactly on the limit, because that is where > and >= mistakes hide. I also tried wrong inputs like a typo to make sure the gate stays closed."
+  },
+
+  /* ── World 2 ── */
+  "2-1": {
+    need: 3,
+    keys: [
+      ["which numbers range(1, 6) gives", /1\s*(,|to|-|through|and|until)\s*5|1 2 3 4 5|five numbers|up to 5/i],
+      ["whether the stop number is included", /not includ|isn't includ|excluded|exclusive|stops? before|doesn't includ|does not includ|never reach|not reach|left out|leaves out|without 6|6 is not|6 isn't|one less|up to but/i],
+      ["the range that gives 1 to 10", /range\(\s*1\s*,\s*11\s*\)|\b11\b|eleven/i],
+      ["how you'd check the first and last numbers", /first|last|print|check|test|look|list\(/i]
+    ],
+    model: "range(1, 6) gives 1, 2, 3, 4, 5. The stop number 6 is not included, so it stops one before it. For 1 to 10 you need range(1, 11). To check, I print the numbers and look at the first and the last one."
+  },
+  "2-2": {
+    keys: [
+      ["when a for loop fits", /for[\s\S]{0,80}(know|each|every|list|range|fixed|number of times|how many|items|collection)|(know|each|every|list|range|fixed|how many)[\s\S]{0,80}\bfor\b/i],
+      ["when a while loop fits", /while[\s\S]{0,80}(until|condition|don't know|do not know|unknown|true|keeps?|as long as|stop|correct|right|valid|quit)|(until|condition|don't know|as long as)[\s\S]{0,80}while/i],
+      ["an example of each", /example|e\.g|like|such as|password|guess|game|menu|list|count|range|times/i]
+    ],
+    model: "I use a for loop when I know how many times to repeat or have a list to go through, like printing each item in a shopping list. I use a while loop when I don't know how many times, and it should keep going until a condition changes, like asking for a password until it is correct."
+  },
+  "2-3": {
+    need: 3,
+    keys: [
+      ["the index of the first item", /\b0\b|zero/i],
+      ["the index of the last item", /len|length|minus 1|- ?1|one less/i],
+      ["what [-1] does", /end|back|last|from the right|negative|backwards/i],
+      ["why [-1] is easier", /easier|shorter|simple|clean|less|don't need|no need|without|mistake|error|readab|any (size|length)|whatever/i]
+    ],
+    model: "The first item is at index 0, and the last is at len(backpack) - 1. backpack[-1] counts from the end, so it gives the last item. It is easier because it is shorter and you don't need to work out the length, so there is less chance of an off-by-one mistake."
+  },
+  "2-4": {
+    need: 3,
+    keys: [
+      ["what you keep track of", /best|biggest|largest|highest|max|smallest|so far|current/i],
+      ["how each item is compared", /compar|each|every|loop|go through|check|replac|update|bigger than|greater|\bif\b/i],
+      ["why starting at 0 can go wrong", /negative|minus|below zero|less than (0|zero)|not in the list|not a real|isn't in|never|wrong|lower than (0|zero)|empty/i]
+    ],
+    model: "Keep a variable for the best value seen so far. Go through each item, compare it with the best, and if it is bigger, replace the best. Start with the first item, because if every number is negative, a start of 0 would wrongly win even though 0 is not in the list."
+  },
+  "2-5": {
+    need: 3,
+    keys: [
+      ["what print does", /show|screen|display|see|output|prints? (it|out|to)/i],
+      ["what return does", /back|give|hand|send|caller|called|use (it|the value)|store|variable|result/i],
+      ["why it matters for testing", /test|check|assert|compare|reuse|later|other code|another function/i]
+    ],
+    model: "print only shows a value on the screen for a person to read. return hands the value back to the code that called the function, so it can be stored in a variable and used later. Tests need return, because a test can only check a value it gets back."
+  },
+  "2-6": {
+    need: 3,
+    keys: [
+      ["testing or fixing one piece at a time", /test|debug|fix|find (the )?(bug|problem|mistake)|check/i],
+      ["reusing code instead of repeating it", /reuse|re-use|again|repeat|duplicat|copy|many places|more than once|other programs|share/i],
+      ["reading and understanding the program", /read|understand|clear|name|organi[sz]|simple|small|focus|one (job|thing|task)/i],
+      ["the password checker example", /password|has_digit|digit|upper|length|strong/i]
+    ],
+    model: "Small functions each do one job, so the program is easier to read. In the password checker, has_digit only checks for a number, so I can test it alone and find a bug faster. I can also reuse it in another program instead of copying the same code again."
+  },
+  "2-7": {
+    need: 3,
+    keys: [
+      ["what a dictionary is good at", /key|look ?up|name|label|by (its )?(name|word)|pair|map/i],
+      ["what a list is good at", /order|position|index|sequence|line|queue|one after|numbered/i],
+      ["real-life examples", /example|e\.g|like|such as|phone|contact|shopping|dictionary|menu|price|marks|students|queue|playlist|grocer|to-?do|book|scores|names/i]
+    ],
+    model: "I use a dictionary when I want to look things up by a key, like a phone book where each name gives a number. I use a list when the order or position matters, like a shopping list or a queue of people. A menu with prices fits a dictionary because each dish name maps to its price."
+  },
+  "2-8": {
+    need: 3,
+    keys: [
+      ["the data your tracker stores", /list|dict|store|amount|expense|data|total|saved/i],
+      ["the functions you wrote", /function|def\b|main\(|add_|menu|show_/i],
+      ["the wrong inputs you tried and what happened", /abc|\b0\b|zero|wrong|invalid|letters|negative|error|valueerror|try|except|message/i]
+    ],
+    model: "My tracker stores the expenses in a list, and each expense has an amount and a category. I wrote small functions: one to add an expense, one to show the total, and main() to run the menu. When I typed abc as an amount, it showed a friendly message instead of crashing, and 0 or negative amounts were refused."
+  },
+
+  /* ── World 3 ── */
+  "3-1": {
+    need: 3,
+    keys: [
+      ["reading the error message first", /read|traceback|error message|last line|message|line number/i],
+      ["finding the line and guessing the cause", /find|guess|hypothes|cause|why|locat|which line|look at/i],
+      ["changing one thing and running again", /change|fix|edit|try|run (it )?again|re-?run|test again|one thing/i],
+      ["the step beginners skip and why it matters", /skip|forget|forgot|beginner|ignore|don't read|without reading|guessing|random|panic/i]
+    ],
+    model: "First I read the traceback, starting with the last line, which names the error. Then I find the line it points to and guess the cause. I change one thing and run it again to see if it worked. Beginners often skip reading the message and just change code at random, which wastes time."
+  },
+  "3-2": {
+    keys: [
+      ["what except ValueError catches", /only|specific|expect|that (one|error)|valueerror|particular|just the/i],
+      ["what a bare except hides", /hide|hidden|swallow|silent|mask|catch(es)? (every|all|any)|everything|other (errors|bugs|mistakes)|typo|nameerror|never (see|know)|cover/i]
+    ],
+    model: "except ValueError only catches the one error we expect, like someone typing letters instead of a number. A bare except catches everything, so it also hides real bugs. In the typo bug, a misspelled name caused a NameError, but the bare except swallowed it and printed the friendly message, so the bug stayed hidden."
+  },
+  "3-3": {
+    need: 3,
+    keys: [
+      ["when the input is impossible or invalid", /invalid|impossible|wrong|bad|can't|cannot|not (allowed|valid|enough)|more than|negative|too much|problem/i],
+      ["why a returned value isn't safe enough", /ignor|miss|forget|unnotic|silent|quietly|mistake|confus|looks like|none|-1|wrong (number|value|answer)|keeps going|carry on|stop|crash|caller|force|must (handle|deal)|notice|loud|clear/i],
+      ["the withdraw example", /withdraw|balance|money|account|bank|amount/i]
+    ],
+    model: "A function should raise an error when it is asked to do something impossible, like withdraw taking more money than the balance. If it just returned a value such as -1 or None, the caller might not notice and keep going with a wrong number. Raising stops the program clearly, so the problem must be handled."
+  },
+  "3-4": {
+    keys: [
+      ["what with does for you", /clos/i],
+      ["what .strip() removes", /newline|\\n|new line|space|whitespace|enter|line break|invisible|extra|end of (each|the) line/i]
+    ],
+    model: "with open(...) as f: closes the file for us when the block ends, even if an error happens in the middle, so we never forget. Each line we read ends with an invisible newline, \\n, and .strip() removes it along with extra spaces, so comparisons like line == \"apple\" work."
+  },
+  "3-5": {
+    need: 3,
+    keys: [
+      ["what mode \"w\" does to the file", /wipe|eras|delet|replac|overwrit|clear|empt|start(s)? (fresh|over|again|from scratch)|new file|remov/i],
+      ["what mode \"a\" does", /add|end|append|keep|bottom|after|extra|on top/i],
+      ["a real situation for each", /log|diary|journal|report|score|save|setting|notes|history|chat|record|receipt|backup|example/i]
+    ],
+    model: "Mode \"w\" wipes the file and starts fresh, so the old content is gone. Mode \"a\" keeps what is there and adds new lines at the end. I would use \"w\" to save today's report from scratch, and \"a\" for a diary or a log where every new entry is added after the old ones."
+  },
+  "3-6": {
+    need: 3,
+    keys: [
+      ["how you call it after import math", /math\.sqrt|math\.|dot|prefix|whole module|everything|all of/i],
+      ["how you call it after from math import sqrt", /directly|just sqrt|only sqrt|without (the )?math|sqrt\(|only (the|one|that)|shorter|just (the|one)/i],
+      ["when you'd prefer each", /prefer|when|clear|where it came|clash|conflict|same name|readab|many|lots|few|one function|short/i]
+    ],
+    model: "import math brings in the whole module, so you write math.sqrt(16) and anyone reading can see where sqrt came from. from math import sqrt brings in only that one function, so you can call sqrt(16) directly, which is shorter. I prefer import math when I use many functions, and from-import when I only need one."
+  },
+  "3-7": {
+    keys: [
+      ["which kinds of inputs good tests cover", /edge|boundary|normal|empty|zero|\b0\b|negative|corner|different|many|several|unusual/i],
+      ["checking exact expected answers", /expect|exact|correct (answer|value)|right answer|assert|==|known/i],
+      ["what happened with the broken versions", /fail|caught|catch|broken|bug|wrong|mutant|differ|break/i]
+    ],
+    model: "A good test checks exact expected answers, for normal inputs and also edge cases like an empty cart or a discount right on the limit. My tests caught the broken versions of cart.py because each broken version gave a different number for one of those cases, so an assert failed."
+  },
+  "3-8": {
+    keys: [
+      ["two things that could go wrong", /missing|not found|no file|empty|bad line|wrong format|blank|letters|typo|invalid|filenotfound|valueerror|corrupt|broken/i],
+      ["how your code handles them", /\btry\b|except|check|skip|message|tell|default|strip|ask again|catch|handle|\bif\b/i]
+    ],
+    model: "Two things could go wrong: the questions file might be missing, or a line in it might have the wrong format. For the missing file I catch FileNotFoundError and show a friendly message. For bad lines, I check the format and skip them instead of crashing, so the quiz still runs."
+  },
+
+  /* ── World 4 ── */
+  "4-1": {
+    keys: [
+      ["what shop[\"items\"] gives you", /list/i],
+      ["what [1] picks", /second|index 1|\[1\]|dict/i],
+      ["what [\"tags\"][0] gives you", /first|\[0\]|string|\bstr\b|text|word|tag/i]
+    ],
+    model: "shop is a dict, so shop[\"items\"] gives the list of items. [1] picks the second item in that list, which is a dict. [\"tags\"] gives that item's list of tags, and [0] picks the first tag, which is a string."
+  },
+  "4-2": {
+    keys: [
+      ["what JSON is", /text|format|string|file|standard|readable/i],
+      ["who else can read it", /other (programs|languages|apps|tools)|any language|javascript|web|api|share|send|everywhere|universal|standard/i],
+      ["what you get back when you load it", /load|back|read (it )?back|dict|list|type|structure|parse|can't (read|get)|turn (it )?back|eval/i]
+    ],
+    model: "JSON is a standard text format for data, like lists and dicts. Almost every language and website can read it, so programs can share data. With json.loads we get a real dict or list back, but text made with str() can't be safely turned back into data."
+  },
+  "4-3": {
+    keys: [
+      ["the request", /request|url|\bget\b|\bask|send|call/i],
+      ["the status code", /status|200|404|500|\bcode\b|\bok\b|success/i],
+      ["the JSON body", /json|body|data|dict|response/i],
+      ["what can go wrong", /wrong|fail|error|offline|internet|network|timeout|not found|down|missing|bad|invalid|key/i]
+    ],
+    model: "My code sends a request to a URL, usually a GET. The server replies with a status code, like 200 for OK or 404 for not found, and a body of JSON that I turn into a dict with .json(). Things can go wrong at each step: no internet, a bad status code, or a missing key in the data."
+  },
+  "4-4": {
+    need: 4,
+    keys: [
+      ["what SELECT does", /select[\s\S]{0,60}(column|field|which|what|pick|choose|name|price)/i],
+      ["what FROM does", /from[\s\S]{0,60}(table|which|items|snacks|products|shop)/i],
+      ["what WHERE does", /where[\s\S]{0,60}(filter|condition|only|rows|which|match|keep|categor|snack|price)/i],
+      ["what ORDER BY does", /order[\s\S]{0,40}(sort|order|arrang|cheap|price|ascend|descend|lowest|highest|small)/i],
+      ["why a second shop is used", /second|another|other|different|hard-?cod|cheat|real|any (data|shop)|general|copy|fake/i]
+    ],
+    model: "SELECT picks which columns I want, like the name and price. FROM says which table to read, items. WHERE filters the rows so only snacks are kept. ORDER BY sorts them by price, cheapest first. The checker runs it on a second shop to make sure the query really works and the answer is not just copied in."
+  },
+  "4-5": {
+    need: 3,
+    keys: [
+      ["what WHERE filters", /where[\s\S]{0,80}(row|before|each|single|individual)/i],
+      ["what HAVING filters", /having[\s\S]{0,80}(group|after|total|count|sum|avg|aggregate)/i],
+      ["an example from the shop", /categor|snack|price|stock|item|product|order|shop|customer|sweets|drinks/i]
+    ],
+    model: "WHERE filters single rows before they are grouped, for example only items with price above 20. HAVING filters whole groups after GROUP BY, using totals like COUNT or SUM. So to find categories with more than two items, I group by category and use HAVING COUNT(*) > 2."
+  },
+  "4-6": {
+    need: 3,
+    keys: [
+      ["which rows a JOIN keeps", /join[\s\S]{0,100}(only|match|both|in common|have orders|has ordered|ordered)/i],
+      ["which rows a LEFT JOIN keeps", /left[\s\S]{0,100}(all|every|even|also|including|no orders|without|null|none|empty|zero)/i],
+      ["when you'd need each", /when|need|use|example|report|list|find|who/i]
+    ],
+    model: "A JOIN keeps only the rows that match in both tables, so I only see customers who have ordered something. A LEFT JOIN keeps every customer from the left table, even ones with no orders, and fills the order columns with NULL. I need LEFT JOIN to find customers who never ordered."
+  },
+  "4-7": {
+    need: 3,
+    keys: [
+      ["where the attacker types", /type|typ|enter|input|box|form|field|login|password|username|user/i],
+      ["what their text does to the query", /chang|trick|\brun|command|query|instructions|delete|drop|bypass|log in as|access|steal/i],
+      ["how ? placeholders stop it", /placeholder|\?|separat|plain text|just (text|data)|only (text|data)|never (run|execut)|treated as|as data|as a value|not (as )?code|safe/i]
+    ],
+    model: "Imagine a login box. A sneaky person types a piece of SQL instead of a name, and if our code glues that text into the query, it can change what the query does, like logging in without a password. With ? placeholders the database gets the query and the data separately, so whatever they type is treated only as plain text, never as a command."
+  },
+  "4-8": {
+    need: 3,
+    keys: [
+      ["the two tables", /two tables|habits?[\s\S]{0,80}(check|log|done|days?|entr)|tables/i],
+      ["what UNIQUE does for the name", /unique|duplicat|twice|same name|only once|one of each/i],
+      ["how the streak is counted", /\brow\b|in a row|consecutive|back|yesterday|today|each day|previous|counting|until|gap|miss/i]
+    ],
+    model: "It uses two tables: habits, with an id and a name, and checkins, which stores the habit id and the day each time it is done. The name is UNIQUE so the same habit can't be added twice. For the streak, I start from today and count back one day at a time until I find a day with no check-in."
+  },
+
+  /* ── World 5 ── */
+  "5-1": {
+    need: 4,
+    keys: [
+      ["the request", /request/i],
+      ["the method", /method|\bget\b/i],
+      ["the response", /respon/i],
+      ["the status code", /status|200|404/i],
+      ["what the browser does with the page", /server|html|browser|draw|render|display|show/i]
+    ],
+    model: "When I type a URL, the browser sends a request to the server. The request has a method, GET, which means 'give me this page'. The server sends back a response with a status code, like 200 for OK or 404 for not found, plus the HTML. The browser then draws that HTML as the page I see."
+  },
+  "5-2": {
+    keys: [
+      ["people using screen readers", /screen reader|blind|access|disab|assistive|read aloud|everyone/i],
+      ["search engines and other programs", /search|google|seo|robot|program|tool|crawler|understand|meaning/i],
+      ["where the looks should come from", /css|style|look|change|design|separate|later|easier/i]
+    ],
+    model: "Tags tell browsers and other programs what the content means. A screen reader can announce a real heading or list to a blind user, and search engines understand the page better. How it looks belongs in CSS, so I can change the design later without changing the meaning."
+  },
+  "5-3": {
+    keys: [
+      ["how someone can get around the HTML checks", /skip|bypass|change|edit|remove|delete|dev ?tools|curl|script|postman|hack|send (it )?(directly|straight)|without the (form|browser)|turn off|inspect|disable|fake/i],
+      ["which part you can actually trust", /trust|control|only|last|server|safe|real|backend|guard/i]
+    ],
+    model: "The HTML checks run in the user's browser, so anyone can remove them with developer tools or send a request directly without using the form. The server is the only part we control, so it must check the data again before trusting it."
+  },
+  "5-4": {
+    need: 3,
+    keys: [
+      ["how the URL is matched", /match|path|url|route|address/i],
+      ["what happens to the part after /hello/", /asha|name (variable|parameter|argument)|variable|parameter|argument/i],
+      ["who calls your function", /call|\brun|function|def\b/i],
+      ["what is sent back", /return|response|send|back|page|show|browser/i]
+    ],
+    model: "The decorator tells Flask that this function handles paths that look like /hello/<name>. When someone visits /hello/Asha, Flask matches the route, takes Asha from the URL and calls the function with name = \"Asha\". Whatever the function returns is sent back to the browser as the response."
+  },
+  "5-5": {
+    need: 3,
+    keys: [
+      ["the paths", /\/menu|\/api|path|route|endpoint|url/i],
+      ["the filters", /filter|query|\?|veg|price|max|categor|param|argument/i],
+      ["what happens on errors", /error|404|400|status|not found|bad request|message/i]
+    ],
+    model: "GET /api/menu returns every dish as a JSON list. You can filter with query arguments: ?veg=true keeps only vegetarian dishes and ?max_price=30 keeps dishes costing 30 or less. GET /api/menu/3 returns one dish. If the id doesn't exist you get status 404 with {\"error\": \"not found\"}, and a max_price that isn't a number gives 400."
+  },
+  "5-6": {
+    keys: [
+      ["what users might send", /anything|missing|empty|blank|wrong|bad|invalid|fake|long|huge|negative|text instead|letters|type/i],
+      ["what could go wrong if it's stored", /crash|error|break|junk|garbage|corrupt|database|stor|attack|hack|spam|security|xss|injection|fill|full|slow|500/i]
+    ],
+    model: "Anyone can send anything in a POST request, not just what our form allows. If the server stored it without checking, an empty or missing field could crash the code with a 500 error, and a huge message or junk could fill the database. Validating first lets us reply 400 with a clear message instead."
+  },
+  "5-7": {
+    need: 3,
+    keys: [
+      ["what an XSS attack does", /script|code|\brun|javascript|html|inject|attack/i],
+      ["what escaping does", /escap|&lt;|safe|plain text|turns? [\s\S]{0,20}into|convert|replace|harmless|as text/i],
+      ["why keys must stay out of the code", /share|github|public|push|commit|repo|leak|steal|anyone|\bgit\b/i],
+      ["where environment variables live", /environ|\benv\b|os\.environ|outside|separate|server|setting|config|\.env/i]
+    ],
+    model: "XSS is when someone types HTML or a script into a form, and the page shows it as real code that runs in other people's browsers. Escaping turns characters like < into &lt;, so the browser shows them as plain text. API keys belong in environment variables because code gets pushed to GitHub and shared, and anyone could steal a key written in it."
+  },
+  "5-8": {
+    need: 3,
+    keys: [
+      ["the routes and status codes", /route|status|200|201|400|404|\bget\b|post/i],
+      ["how the data is stored", /sqlite|database|table|\bsql\b|stor|save/i],
+      ["escaping to stop XSS", /escap|xss|html|safe|script/i],
+      ["the other security step", /placeholder|\?|injection|validat|check|secret|\benv\b|length|empty/i]
+    ],
+    model: "GET / shows the messages as an HTML page, GET /api/entries returns them as JSON, and POST /api/entries adds one, replying 201 when it works or 400 when the name or message is empty. DELETE gives 204, or 404 if the entry is missing. Messages are stored in a sqlite table called entries with an id, a name and a message. For security I escape every message before showing it to stop XSS, and I use ? placeholders in SQL to stop injection."
+  },
+
+  /* ── World 6 ── */
+  "6-1": {
+    need: 3,
+    keys: [
+      ["who has the problem", /\bwho\b|users?|people|students?|friends?|parent|teacher|shop|owner|anyone|someone|family|beginner|player|customer|\bmy\b|\bfor\b/i],
+      ["what the problem is", /problem|hard|difficult|forget|waste|trouble|need|want|struggl|track|manag|keep/i],
+      ["the 2–3 must-have features", /feature|must|able to|\bcan\b|add|show|list|save|track|search|remind|first version|mvp/i]
+    ],
+    model: "I want to build a study planner for college students who forget deadlines and waste time deciding what to study. The must-have features for the MVP are: add a task with a due date, show tasks sorted by deadline, and save them so they are still there tomorrow."
+  },
+  "6-2": {
+    need: 3,
+    keys: [
+      ["at least two different structures", /(?=[\s\S]*\blists?\b)(?=[\s\S]*\b(dict|dictionar|sets?\b|tuples?))|(?=[\s\S]*\bdict)(?=[\s\S]*\b(sets?\b|tuples?))|(?=[\s\S]*\bsets?\b)(?=[\s\S]*\btuples?)/i],
+      ["what makes each one fit", /order|key|look ?up|duplicat|unique|fixed|change|position|fast|pair|group/i],
+      ["your reasons", /because|since|so (that|i|it)|as it|to keep|which|why/i]
+    ],
+    model: "For a recipe app, I would store the steps in a list because their order matters. Each recipe would be a dict, so I can look up its name, time and steps by key. The tags would be a set, since a tag should never appear twice, and a nutrition fact like (calories, protein) could be a tuple because it never changes."
+  },
+  "6-3": {
+    need: 3,
+    keys: [
+      ["what self is", /object|instance|itself|this (one|account|object)|the account|\bacc\b|that (one|account)/i],
+      ["who fills in self", /automatic|python (passes|gives|puts|sends|fills)|passes|first (argument|parameter)|behind the scenes|for you|filled|hidden|secretly|on its own|by itself/i],
+      ["where 500 goes", /500|amount|second|other (parameter|one)/i]
+    ],
+    model: "self is the object the method is working on, here the account acc. When I write acc.deposit(500), Python automatically passes acc in as the first parameter, self. So I only give the second one, and 500 goes into amount."
+  },
+  "6-4": {
+    need: 3,
+    keys: [
+      ["inheritance (\"is a\")", /is a|is-a|inherit|parent|child|subclass|kind of|type of|extends/i],
+      ["composition (\"has a\")", /has a|has-a|compos|contain|holds|inside|owns|made of|has an?\b|attribute/i],
+      ["an example from your project", /example|e\.g|like|such as|\bmy\b|for instance|class/i]
+    ],
+    model: "Inheritance means 'is a': a child class is a kind of its parent and reuses its code, like an ExamTask is a Task. Composition means 'has a': one object holds another as an attribute, like my Planner has a list of tasks. In my project, a planner is not a kind of task, so composition fits there."
+  },
+  "6-5": {
+    keys: [
+      ["what makes it cleaner", /name|function|repeat|duplicat|constant|magic|slab|short|small|simpl|clear|readab|loop|table|list/i],
+      ["how the tests made it safe", /test|same (result|output|answer|behavio)|still (work|pass)|nothing (broke|changed)|didn't break|safe|check|prove|confiden/i]
+    ],
+    model: "I replaced the long chain of if statements with a table of slabs and one loop, and gave the numbers clear names instead of magic numbers. It is shorter and easier to change. The hidden tests checked the same bills before and after, so I knew the refactor didn't break anything."
+  },
+  "6-6": {
+    need: 3,
+    keys: [
+      ["what makes dates tricky", /month|leap|february|\bfeb\b|28|29|30|31|days in/i],
+      ["what datetime does for you", /datetime|module|timedelta|handles|knows|correct|automatic|built|library/i],
+      ["an example that goes wrong by hand", /example|e\.g|like|such as|adding|\badd|\d|year|end of|next|week|deadline|birthday/i]
+    ],
+    model: "Months have different lengths and leap years add February 29, so plain number maths makes mistakes. For example, adding 7 days to January 28 by hand might give January 35. With datetime, date + timedelta(days=7) correctly gives February 4, because the module already knows the calendar."
+  },
+  "6-7": {
+    need: 3,
+    keys: [
+      ["the edge cases you thought about", /empty|blank|spaces?|comma|rupee|₹|\brs\b|negative|minus|letter|abc|decimal|\bdot\b|zero|none|symbol|currency|\d,\d/i],
+      ["which one was hardest", /hard|difficult|tricky|tough|challeng|longest|confus/i],
+      ["how you handled it", /strip|replace|remov|raise|valueerror|check|\bif\b|\btry\b|except|float|int\(|return/i]
+    ],
+    model: "I thought about an empty string, extra spaces, the ₹ symbol, commas like 1,200, negative amounts and letters like abc. The hardest was commas, because I had to remove them without breaking decimals. I used strip and replace, then float, and raised a ValueError for anything that still wasn't a number."
+  },
+  "6-8": {
+    need: 3,
+    keys: [
+      ["the two classes and their jobs", /task[\s\S]{0,120}planner|planner[\s\S]{0,120}task|two classes|each class|one job|responsib/i],
+      ["how saving works", /json|save|file|to_dict|from_dict|load|dump/i],
+      ["the edge cases you handled", /edge|missing|empty|duplicat|past|overdue|wrong|invalid|no file|not found|bad|blank|error/i]
+    ],
+    model: "I used two classes so each has one job: Task holds one task's title, date and done flag, and Planner manages the list of tasks. To save, each Task turns itself into a dict with to_dict, and the planner writes the list as JSON. I handled edge cases like a missing save file, an empty title and duplicate tasks."
+  },
+
+  /* ── World 7 ── */
+  "7-1": {
+    need: 3,
+    keys: [
+      ["what git add does", /add[\s\S]{0,100}(stag|choose|pick|select|prepar|ready|basket|list|mark|which)/i],
+      ["what git commit does", /commit[\s\S]{0,100}(save|snapshot|photo|record|checkpoint|message|version|point|history)/i],
+      ["what git push does", /push[\s\S]{0,100}(upload|github|remote|online|server|cloud|share|internet|send)/i]
+    ],
+    model: "git add picks which changes you want to save, like putting items in a box before you seal it. git commit seals the box: it saves a snapshot of those changes on your computer with a message describing them. git push uploads your commits to GitHub so others can see them and you have a backup."
+  },
+  "7-2": {
+    need: 3,
+    keys: [
+      ["why it happens", /same (line|part|place|spot|file|bit)|both|two (people|branches|changes)|different changes/i],
+      ["what Git can't decide", /can't|cannot|doesn't know|does not know|decide|choose|which (one|version)|confus|automatic/i],
+      ["how you'd resolve it", /talk|\bask|discuss|pick|choose|combine|keep|marker|<<<|edit|remove|test|commit|together/i]
+    ],
+    model: "A merge conflict happens when two people change the same lines of a file on different branches. Git can't decide which version to keep, so it marks both. To resolve it, I talk to my teammate, edit the file to keep the right lines, remove the markers, run the tests, and commit."
+  },
+  "7-3": {
+    need: 3,
+    keys: [
+      ["the order you write things in", /test[\s\S]{0,60}(first|before)|(first|before)[\s\S]{0,60}test|\bred\b|fail first/i],
+      ["one benefit", /benefit|help|catch|confiden|clear|think|design|bug|safe|know when|done|regress|proof/i],
+      ["a time you might not use it", /not use|wouldn't|would not|skip|don't|unless|quick|prototype|experiment|explor|unsure|unclear|throw|small script|when you don't know/i]
+    ],
+    model: "In test-driven development, you write a failing test first, then write just enough code to make it pass, then clean up. One benefit is that you think clearly about what the code should do and know when it is done. I might not use it for a quick experiment where I don't know yet what I want to build."
+  },
+  "7-4": {
+    need: 3,
+    keys: [
+      ["what it is", /is a|\bapp\b|tool|program|game|website|\bsite\b|project|helps|lets/i],
+      ["who it's for", /\bfor\b|users?|students?|people|anyone|beginners|teachers|friends|\bwho\b/i],
+      ["why you built it", /built|made|because|wanted|\bwhy\b|problem|needed|frustrat|struggl/i]
+    ],
+    model: "Study Planner is a simple command-line app that helps college students keep track of assignments and deadlines. It is for anyone who keeps forgetting due dates. I built it because I missed two deadlines in one week and wanted one place to see what is due next."
+  },
+  "7-5": {
+    need: 3,
+    keys: [
+      ["what happens to secrets written in the code", /leak|share|github|public|push|commit|anyone|steal|repo|history/i],
+      ["why settings change between computers", /change|different|without (editing|changing)|each (computer|machine|server)|server|environment|deploy|production|local|easy/i],
+      ["what goes in .gitignore", /\.env|venv|__pycache__|\.pyc|secret|key|password|database|\.db|\blog|cache|node_modules|config/i]
+    ],
+    model: "Code gets pushed to GitHub and shared, so a secret written in it can leak to anyone, and it stays in the history. Settings also change between my laptop and the server, so reading them from the environment means I don't edit the code. In .gitignore I put .env, venv, __pycache__ and my local database file."
+  },
+  "7-6": {
+    keys: [
+      ["when you'd run it", /before|every|each|always|hook|habit|routine|push|commit/i],
+      ["what it can still miss", /miss|can't|cannot|won't|not (catch|find|detect)|unknown|different (format|pattern)|new (kind|type)|split|encoded|base64|obfusc|history|image|false|private (info|data)|personal|email|phone|address/i]
+    ],
+    model: "I would run the scanner before every commit and push, as part of my routine, so a key never leaves my laptop. A simple scanner can still miss secrets that don't match its patterns, like a password split across two lines or a new kind of key, and it can't clean secrets already in the Git history."
+  },
+  "7-7": {
+    need: 3,
+    keys: [
+      ["running or testing it", /\brun|test|try|execut/i],
+      ["reading and understanding each line", /read|understand|line by line|explain|every line|each line|know what/i],
+      ["checking security and edge cases", /secur|secret|key|injection|edge|empty|invalid|error|hallucin|made.up|exist|fake|import|librar|version|license|wrong/i],
+      ["why it matters", /because|since|so (that|i|it)|can be wrong|mistake|confident|sure|blame|responsib|my name|my code/i]
+    ],
+    model: "First I read every line and make sure I can explain what it does. Then I run it with tests, including edge cases like empty input. I also check for security problems and for imports or functions the AI may have made up. I do this because AI code can look confident and still be wrong, and once I use it, it is my code."
+  },
+  "7-8": {
+    need: 4,
+    keys: [
+      ["the tests", /test/i],
+      ["checking for secrets", /secret|scan|\bkey|password|\.env|gitignore/i],
+      ["the README, docs or commit", /readme|\bdoc|commit|version|changelog|\btag\b|message/i],
+      ["deploying and checking the live site", /deploy|live|\bsite\b|pages|host|publish|\burl\b|check it|browser|server/i],
+      ["why some checks are must-pass", /must|because|since|so (that|users|nobody|no one)|break|users?|leak|can't (undo|take back)|public/i]
+    ],
+    model: "After the last change, I run all the tests, then the secret scanner, then update the README and commit with a clear message. I push, deploy, and open the live site to check that it works. Tests and the secret scan are must-pass, because a broken app hurts users and a leaked key can't be taken back."
+  },
+  /* ── World 8 ── */
+  "8-1": {
+    need: 3,
+    keys: [
+      ["the UMPIRE steps you'd follow", /umpire|understand|plan|match|review|evaluat|implement|say it back|repeat/i],
+      ["the questions you'd ask first", /\bask|question|clarif|what if|should (i|it)|can (the|numbers|there)/i],
+      ["the edge cases you'd test", /duplicat|repeat|same|empty|one number|single|negative|\[5, ?5|\bnone\b/i]
+    ],
+    model: "First I'd say it back: return the second biggest different value. I'd ask what to return if the list is empty or has one number, and whether [5, 5, 3] should give 5 or 3. My plan is to remove duplicates with a set, sort, and return the second last value, or None if there are fewer than two. I'd test an empty list, repeats like [5, 5, 3], and all negative numbers."
+  },
+  "8-2": {
+    need: 3,
+    keys: [
+      ["what the dict stores", /dict|position|index|seen|stor|remember/i],
+      ["how you find the partner", /target ?- ?n|partner|complement|\bneed|differen|subtract|minus/i],
+      ["why it's faster than checking every pair", /o\(n\)|one (pass|loop)|once|every pair|nested|loop inside|n²|n\^2|faster|one step|o\(1\)/i]
+    ],
+    model: "I loop through the list once. A dict remembers each number I've seen and its position. For each number n, the partner I need is target - n, so I check if it's already in the dict. Checking a dict takes about one step, so the whole thing is O(n), instead of O(n²) for checking every pair."
+  },
+  "8-3": {
+    need: 3,
+    keys: [
+      ["where the two pointers start", /both ends|start|\bend\b|left[\s\S]{0,40}right|first and last|smallest[\s\S]{0,40}biggest/i],
+      ["which pointer moves, and when", /too (small|big|low|high)|\bmove|smaller|bigger|increase|decrease/i],
+      ["why it's safe and needs a sorted list", /sort|order|can't|cannot|never|no partner|drop|safe|rule out/i]
+    ],
+    model: "Put one pointer at the start and one at the end. If the two numbers add up to less than the target, move the left pointer right to get a bigger number; if more, move the right pointer left. It's safe because the list is sorted: if the smallest number plus the biggest is too small, the smallest number can never be part of an answer, so we can drop it."
+  },
+  "8-4": {
+    need: 3,
+    keys: [
+      ["counting everything first", /count|dict|counter|tally/i],
+      ["how you find the first unique one", /first|once|== ?1|only one|appears once|second (pass|loop)|again/i],
+      ["why s.count inside a loop is slow", /whole string|every (time|letter|character)|again|n²|n\^2|loop inside|hidden loop|slow|o\(n/i]
+    ],
+    model: "First I count every character in one pass with a dict. Then I loop through the string again and return the position of the first character whose count is 1. s.count(ch) is slow because it reads the whole string again for every letter, which is a loop inside a loop, O(n²). Mine is two passes, so O(n)."
+  },
+  "8-5": {
+    need: 3,
+    keys: [
+      ["the starter's Big-O", /o\(n²\)|o\(n\^2\)|o\(n2\)|o\(n ?\* ?n\)|n squared|quadratic|n²|n\^2/i],
+      ["your version's Big-O", /o\(n\)|linear|one pass|once/i],
+      ["where the hidden loop was", /slice|\[:i\]|in tickets|hidden|copies|copy|search/i],
+      ["what you traded for speed", /memory|space|\bset\b|remember|extra/i]
+    ],
+    model: "The starter is O(n²): for every ticket, tickets[:i] copies the earlier tickets and in searches them, which is a hidden loop. My version keeps a set of tickets already seen, so each check takes one step and the whole thing is O(n). I traded some extra memory for the set to get a lot more speed."
+  },
+  "8-6": {
+    need: 3,
+    keys: [
+      ["what happens to opening brackets", /push|append|opening|\badd/i],
+      ["what happens on a closing bracket", /\bpop|\btop\b|last|closing|match|partner/i],
+      ["where ([)] fails", /wrong|doesn't match|does not match|mismatch|not (its|the) partner|top is \[|\[ is on top/i],
+      ["the check at the end", /empty|left over|nothing left|left open/i]
+    ],
+    model: "Every opening bracket is pushed onto the stack. For a closing bracket, I pop the top and check it is its partner. With ([)], I push ( and then [. Then ) arrives, but the top is [, which doesn't match, so it returns False right there. At the end the stack must also be empty, or something was left open."
+  },
+  "8-7": {
+    need: 3,
+    keys: [
+      ["what each guess does to the range", /half|halv|middle|divid|split/i],
+      ["why 20 guesses are enough", /\b20\b|twenty|log|2\^|power|1,?048,?576|million/i],
+      ["what < or high = mid would break", /miss|skip|\blast\b|stuck|forever|infinite|never (end|stop|find)|same (number|range)|one left/i]
+    ],
+    model: "Each guess is the middle of what's left, so every answer throws away half of the numbers. 2 to the power 20 is more than a million, so after 20 halvings only one number can be left. With while low < high, the loop would stop before checking the last number left. With high = mid, the range could stop shrinking and the loop would get stuck forever."
+  },
+  "8-8": {
+    keys: [
+      ["the pattern you used", /dict|\bset\b|count|sort|\bkey\b|pattern|hash|counter/i],
+      ["the steps", /first|then|loop|for each|step|after/i],
+      ["the edge cases", /empty|duplicat|\btie|negative|edge|single|one (word|number)|fewer/i],
+      ["its Big-O", /o\(|big-?o|linear|n log n/i]
+    ],
+    model: "I'll explain top_k. First I count each number with a dict in one pass. Then I sort the distinct numbers by count, biggest first, using the key (-count, n) so ties go to the smaller number, and take the first k. Edge cases: fewer than k numbers, ties, and an empty list. Counting is O(n) and sorting the distinct numbers is O(n log n)."
+  }
+};
+
+for (const L of LEVELS) {
+  const x = EXPLAIN[L.id];
+  if (x) Object.assign(L, { explainKeys: x.keys, explainNeed: x.need, explainModel: x.model });
+}
+
 /* Practice versions of real Python modules, so later worlds can run real-looking code in the browser.
    json, os, requests, flask, pytest, sqlite3 and html behave like the real ones for everything the
    lessons use. open() reads and writes practice files kept in memory for each run. */
@@ -10756,6 +12843,36 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+/* ───────── Explain (Tavern Talk) check ─────────
+   No AI needed. An answer passes when it reads like real sentences in the player's own words
+   and touches enough of the level's key ideas (L.explainKeys: [hint, regex] pairs). */
+const EXPLAIN_GLUE = new Set(("the a an is are was were be it its it's to and of if in on at that this these those so because then " +
+  "when while you we i i'm my your our they them their he she will would can could should but for with not no as or by from " +
+  "each every what which how why do does did there here has have had into than also just only one").split(" "));
+function explainWords(s) { return String(s || "").toLowerCase().replace(/[’`]/g, "'").match(/[a-z0-9_]+(?:'[a-z]+)?/g) || []; }
+function explainCheck(text, L) {
+  const t = String(text || "").trim(), words = explainWords(t);
+  const no = (msg) => ({ ok: false, msg, hits: [] });
+  if (words.length < 12) return no("A little more, please. Aim for at least 12 words.");
+  const distinct = new Set(words);
+  if (distinct.size < Math.max(8, words.length * 0.4)) return no("Lots of the same words repeated. Try explaining it in full sentences.");
+  const glue = words.filter((w) => EXPLAIN_GLUE.has(w)).length;
+  if (glue < 3 || glue < words.length * 0.12) return no("That reads like a list of words, not an explanation. Write it in sentences, as if you're telling a friend.");
+  const mash = words.filter((w) => w.length >= 5 && !/\d/.test(w) && (!/[aeiouy]/.test(w) || /[^aeiouy]{5}/.test(w))).length;
+  if (mash > words.length * 0.25) return no("Some of that doesn't look like real words. Explain it in plain sentences.");
+  const asked = new Set(explainWords(String(L.explain || "").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ")));
+  const fresh = [...distinct].filter((w) => !asked.has(w) && !EXPLAIN_GLUE.has(w));
+  if (fresh.length < 5) return no("That mostly repeats the question. Answer it in your own words: what happens, and why?");
+  const keys = L.explainKeys || [];
+  const hits = keys.map(([, re]) => re.test(t));
+  const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
+  const got = hits.filter(Boolean).length;
+  if (got >= need) return { ok: true, msg: "", hits };
+  const miss = keys.filter((_, i) => !hits[i]);
+  return { ok: false, hits, msg: `Good start, but a strong answer needs a bit more. Hint: say something about <b>${escapeHtml(miss[0][0])}</b>.` +
+    (miss.length > 1 ? ` (${got} of ${need} key ideas so far.)` : "") };
+}
+
 /* Code Quest — game app. */
 
 /* ───────── Constants & helpers ───────── */
@@ -12019,15 +14136,26 @@ function stageExplain(host, L) {
       <label class="sr" for="expl">Your explanation</label>
       <textarea id="expl" placeholder="In my own words…">${esc(val)}</textarea>
       <div class="row"><span class="wc" id="wc"></span>${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Get interviewer feedback</button>` : ""}<button class="btn primary" id="saveExpl">${s.e ? "Update answer" : "Save answer"}</button></div>
+      <div id="xres"></div>
       <div id="fb"></div>
     </div>
     <div class="next-row" style="max-width:760px">${levelClear(L.id) ? `<button class="btn" data-world>Back to ${esc(WORLDS[L.world - 1].name)}</button>` : ""}</div>`;
-  const ta = $("#expl"), wc = $("#wc");
+  const ta = $("#expl"), wc = $("#wc"), xres = $("#xres");
+  // After a pass: which key ideas the answer covered, and a sample answer to compare with.
+  const showReview = (hits) => {
+    const keys = L.explainKeys || [];
+    xres.innerHTML = (keys.length ? `<div class="xcheck"><b>Key ideas a strong answer covers</b><ul>${keys.map(([k], i) =>
+      `<li class="${hits[i] ? "hit" : ""}">${hits[i] ? "✓" : "○"} ${esc(k)}</li>`).join("")}</ul></div>` : "") +
+      (L.explainModel ? `<details class="xmodel"><summary>Compare with a sample answer</summary><p>${esc(L.explainModel)}</p><p class="muted">Yours doesn't need to match it. Did you miss anything worth adding?</p></details>` : "");
+  };
+  if (s.e) showReview(explainCheck(s.e, L).hits);
   const count = () => { const n = (ta.value.trim().match(/\S+/g) || []).length; wc.textContent = `${n} words${n < 12 ? " · aim for at least 12" : ""}`; return n; };
   count();
   ta.addEventListener("input", () => { count(); lsSet(draftKey, ta.value); });
   $("#saveExpl").addEventListener("click", () => {
-    if (count() < 12) { wc.textContent = "A little more, please. Aim for at least 12 words."; ta.focus(); return; }
+    const chk = explainCheck(ta.value, L);
+    if (!chk.ok) { xres.innerHTML = `<div class="xhint">${chk.msg}</div>`; ta.focus(); return; }
+    showReview(chk.hits);
     const first = !s.e;
     s.e = ta.value.trim().slice(0, 2000);
     if (first) addXP(XP.explain, "Explained it"); else save();

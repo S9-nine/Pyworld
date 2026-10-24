@@ -28,7 +28,7 @@ async function loadGame() {
   try { const { DOMParser } = require(path.join(VENDOR, "node_modules", "linkedom")); global.DOMParser = DOMParser; } catch (_) {}
   const content = require("./build-list.js").content;
   const src = ["vmods.js", "runner.js"].concat(content).map((f) => fs.readFileSync(path.join(__dirname, f), "utf8")).join("\n") +
-    "\n;globalThis.__CQ = { LEVELS, WORLDS, SKILLS, runTests, runPython, outputLines, runSql };";
+    "\n;globalThis.__CQ = { LEVELS, WORLDS, SKILLS, runTests, runPython, outputLines, runSql, explainCheck };";
   vm.runInThisContext(src, { filename: "game.js" });
   return global.__CQ;
 }

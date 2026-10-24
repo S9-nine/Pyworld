@@ -25,8 +25,8 @@ const WORLDS = [
     topics: "tests, README, deployment, AI-assisted review, first open-source PR",
     boss: "Flagship shipped + one merged pull request", job: "Shipping, Git, collaboration" },
   { id: 8, name: "Interview Arena", when: "Week 8", x: 890, y: 95,
-    topics: "coding puzzles (arrays, hashmaps), mock interviews, resume, LinkedIn",
-    boss: "Applications sent", job: "Interviews, communication" }
+    topics: "the interview method, hash maps, two pointers, Big-O, stacks, binary search, resume and applications",
+    boss: "The Final Interview + 10 applications sent", job: "Interviews, communication" }
 ];
 
 const RESOURCES = {

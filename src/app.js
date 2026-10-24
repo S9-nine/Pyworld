@@ -1261,15 +1261,26 @@ function stageExplain(host, L) {
       <label class="sr" for="expl">Your explanation</label>
       <textarea id="expl" placeholder="In my own words…">${esc(val)}</textarea>
       <div class="row"><span class="wc" id="wc"></span>${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Get interviewer feedback</button>` : ""}<button class="btn primary" id="saveExpl">${s.e ? "Update answer" : "Save answer"}</button></div>
+      <div id="xres"></div>
       <div id="fb"></div>
     </div>
     <div class="next-row" style="max-width:760px">${levelClear(L.id) ? `<button class="btn" data-world>Back to ${esc(WORLDS[L.world - 1].name)}</button>` : ""}</div>`;
-  const ta = $("#expl"), wc = $("#wc");
+  const ta = $("#expl"), wc = $("#wc"), xres = $("#xres");
+  // After a pass: which key ideas the answer covered, and a sample answer to compare with.
+  const showReview = (hits) => {
+    const keys = L.explainKeys || [];
+    xres.innerHTML = (keys.length ? `<div class="xcheck"><b>Key ideas a strong answer covers</b><ul>${keys.map(([k], i) =>
+      `<li class="${hits[i] ? "hit" : ""}">${hits[i] ? "✓" : "○"} ${esc(k)}</li>`).join("")}</ul></div>` : "") +
+      (L.explainModel ? `<details class="xmodel"><summary>Compare with a sample answer</summary><p>${esc(L.explainModel)}</p><p class="muted">Yours doesn't need to match it. Did you miss anything worth adding?</p></details>` : "");
+  };
+  if (s.e) showReview(explainCheck(s.e, L).hits);
   const count = () => { const n = (ta.value.trim().match(/\S+/g) || []).length; wc.textContent = `${n} words${n < 12 ? " · aim for at least 12" : ""}`; return n; };
   count();
   ta.addEventListener("input", () => { count(); lsSet(draftKey, ta.value); });
   $("#saveExpl").addEventListener("click", () => {
-    if (count() < 12) { wc.textContent = "A little more, please. Aim for at least 12 words."; ta.focus(); return; }
+    const chk = explainCheck(ta.value, L);
+    if (!chk.ok) { xres.innerHTML = `<div class="xhint">${chk.msg}</div>`; ta.focus(); return; }
+    showReview(chk.hits);
     const first = !s.e;
     s.e = ta.value.trim().slice(0, 2000);
     if (first) addXP(XP.explain, "Explained it"); else save();

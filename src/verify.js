@@ -9,7 +9,7 @@
 const { loadGame } = require("./test-env.js");
 
 (async () => {
-  const { LEVELS, WORLDS, SKILLS, runTests, runPython, outputLines, runSql } = await loadGame();
+  const { LEVELS, WORLDS, SKILLS, runTests, runPython, outputLines, runSql, explainCheck } = await loadGame();
 
   const args = process.argv.slice(2);
   const pick = LEVELS.filter((L) => !args.length || args.includes(L.id) || args.includes("w" + L.world));
@@ -26,6 +26,7 @@ const { loadGame } = require("./test-env.js");
     for (const c of L.cards || []) if (!(c.answer >= 0 && c.answer < c.options.length) || c.options.length > 4) bad(L, "card answer out of range: " + c.q);
     // Lesson examples run (with a default answer for input()).
     for (const [i, ex] of (L.learn || []).entries()) {
+      if (ex.code == null) { ok(); continue; }   // a text-only card
       const lang = ex.lang || (L.code && L.code.kind);
       if (lang === "sql") {
         const r = await runSql(ex.code, ex.db || L.code.db);
@@ -105,6 +106,22 @@ const { loadGame } = require("./test-env.js");
         const r = await runTests(T, w.code || w);
         if (r.pass) bad(L, kind + " wrong " + (j + 1) + " (should fail) PASSES" + (w.why ? " — " + w.why : "")); else ok();
       }
+    }
+    // Tavern Talk: the sample answer passes; filler, gibberish and a copied question don't.
+    if (!L.explainKeys || !L.explainModel) bad(L, "explain has no key ideas or sample answer (src/explain.js)");
+    else {
+      const r = explainCheck(L.explainModel, L);
+      if (!r.ok) bad(L, "explain sample answer is rejected: " + r.msg.replace(/<[^>]+>/g, "")); else ok();
+      const q = L.explain.replace(/<[^>]+>/g, "").replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
+      const junk = {
+        "random words": "pizza blue jumping mountain quickly elephant guitar seven window happy river music",
+        "keyboard mash": "asdfgh qwerty jkljkl zxcvb hjkhjk asdasd qweqwe sdfsdf the is it a to and",
+        "unrelated sentences": "The cat is on the mat and it is a sunny day, so we can go to the park with my dog after lunch.",
+        "vague filler": "I think this is a very important concept and it is good to know. It helps a lot and we should always use it in our work.",
+        "copied question": q + " I think so, yes.",
+        "same word repeated": "it is the thing the thing the thing the thing the thing the thing the thing"
+      };
+      for (const [what, text] of Object.entries(junk)) if (explainCheck(text, L).ok) bad(L, "explain accepts " + what); else ok();
     }
   }
   console.log("\n" + pick.length + " levels, " + checks + " checks passed, " + problems + " problem" + (problems === 1 ? "" : "s") + ".");

@@ -553,3 +553,33 @@ async function runHtmlTests(task, code) {
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
+
+/* ───────── Explain (Tavern Talk) check ─────────
+   No AI needed. An answer passes when it reads like real sentences in the player's own words
+   and touches enough of the level's key ideas (L.explainKeys: [hint, regex] pairs). */
+const EXPLAIN_GLUE = new Set(("the a an is are was were be it its it's to and of if in on at that this these those so because then " +
+  "when while you we i i'm my your our they them their he she will would can could should but for with not no as or by from " +
+  "each every what which how why do does did there here has have had into than also just only one").split(" "));
+function explainWords(s) { return String(s || "").toLowerCase().replace(/[’`]/g, "'").match(/[a-z0-9_]+(?:'[a-z]+)?/g) || []; }
+function explainCheck(text, L) {
+  const t = String(text || "").trim(), words = explainWords(t);
+  const no = (msg) => ({ ok: false, msg, hits: [] });
+  if (words.length < 12) return no("A little more, please. Aim for at least 12 words.");
+  const distinct = new Set(words);
+  if (distinct.size < Math.max(8, words.length * 0.4)) return no("Lots of the same words repeated. Try explaining it in full sentences.");
+  const glue = words.filter((w) => EXPLAIN_GLUE.has(w)).length;
+  if (glue < 3 || glue < words.length * 0.12) return no("That reads like a list of words, not an explanation. Write it in sentences, as if you're telling a friend.");
+  const mash = words.filter((w) => w.length >= 5 && !/\d/.test(w) && (!/[aeiouy]/.test(w) || /[^aeiouy]{5}/.test(w))).length;
+  if (mash > words.length * 0.25) return no("Some of that doesn't look like real words. Explain it in plain sentences.");
+  const asked = new Set(explainWords(String(L.explain || "").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ")));
+  const fresh = [...distinct].filter((w) => !asked.has(w) && !EXPLAIN_GLUE.has(w));
+  if (fresh.length < 5) return no("That mostly repeats the question. Answer it in your own words: what happens, and why?");
+  const keys = L.explainKeys || [];
+  const hits = keys.map(([, re]) => re.test(t));
+  const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
+  const got = hits.filter(Boolean).length;
+  if (got >= need) return { ok: true, msg: "", hits };
+  const miss = keys.filter((_, i) => !hits[i]);
+  return { ok: false, hits, msg: `Good start, but a strong answer needs a bit more. Hint: say something about <b>${escapeHtml(miss[0][0])}</b>.` +
+    (miss.length > 1 ? ` (${got} of ${need} key ideas so far.)` : "") };
+}
