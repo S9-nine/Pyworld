@@ -230,9 +230,58 @@ function openModal(html, { onOpen, dismiss = true } = {}) {
   $$("[data-close]", bg).forEach((b) => b.addEventListener("click", closeModal));
   if (onOpen) onOpen(bg);
   fixSvgVars(bg);
-  const f = $("button, input, textarea", bg); if (f) f.focus();
+  // Open at the top: focus a text box if there is one, otherwise the dialog itself (focusing a
+  // button at the bottom would scroll the player past the start of the notice).
+  const m = $(".modal", bg);
+  m.tabIndex = -1;
+  ($("input, textarea", bg) || m).focus({ preventScroll: true });
+  m.scrollTop = 0;
+  scrollCue(m);
+}
+/* A "More below" button while a scrollable box has more to read. */
+function scrollCue(box) {
+  const cue = document.createElement("button");
+  cue.type = "button"; cue.className = "scroll-cue"; cue.textContent = "More below ↓";
+  cue.addEventListener("click", () => box.scrollBy({ top: box.clientHeight * 0.8, behavior: "smooth" }));
+  box.appendChild(cue);
+  const update = () => { cue.hidden = box.scrollHeight - box.scrollTop - box.clientHeight < 24; };
+  box.addEventListener("scroll", update, { passive: true });
+  update();
 }
 function closeModal() { $("#modalSlot").innerHTML = ""; }
+
+/* ───────── Feel-good touches ─────────
+   Small and quick, never in the way, and switched off for players who ask for reduced motion. */
+const PRAISE = {
+  code: ["All tests passed!", "Clean code! Every test passed.", "Forged! The checker is impressed.", "Every test is green. Nice work!"],
+  bug: ["Bug squashed.", "Squashed it!", "Bug gone. Real debugger instincts!"],
+  think: ["Correct!", "Yes! Spot on.", "Nailed it.", "Exactly right."]
+};
+const praise = (kind) => { const a = PRAISE[kind]; return a[(Math.random() * a.length) | 0]; };
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* A little pixel burst from an element, with optional floating text like "+25 XP". */
+function sparkle(el, text) {
+  if (!el || reducedMotion()) return;
+  const r = el.getBoundingClientRect(), wrap = document.createElement("div");
+  wrap.className = "sparkle"; wrap.setAttribute("aria-hidden", "true");
+  wrap.style.left = r.left + r.width / 2 + "px"; wrap.style.top = r.top + r.height / 2 + "px";
+  const cols = ["#F4B400", "#38b764", "#73eff7", "#ef7d57", "#f4f4f4"];
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement("i"), a = (i / 14) * Math.PI * 2, d = 26 + Math.random() * 30;
+    p.style.setProperty("--dx", Math.cos(a) * d + "px"); p.style.setProperty("--dy", Math.sin(a) * d + "px");
+    p.style.background = cols[i % cols.length];
+    wrap.appendChild(p);
+  }
+  if (text) { const t = document.createElement("b"); t.textContent = text; wrap.appendChild(t); }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 1100);
+}
+/* The hero in the top bar reacts: a hop on a pass, a puzzled tilt on a miss. */
+function heroReact(mood) {
+  const a = $("#heroChip .avatar");
+  if (!a || reducedMotion()) return;
+  a.classList.remove("hop", "puzzled"); void a.offsetWidth; a.classList.add(mood);
+}
 
 /* ───────── Confetti ───────── */
 function confetti() {
@@ -807,13 +856,14 @@ function stageLearn(host, L) {
     <div class="learn-grid">${L.learn.map((c, i) => {
       const lang = c.lang || task.kind || "python";
       return `
-      <article class="card lcard"><h3>${esc(c.h)}</h3><p>${c.p}</p>
+      <article class="card lcard"><h3>${esc(c.h)}</h3><p>${c.p}</p>${c.pic ? picHtml(c.pic, i) : ""}
         ${c.code != null ? `<div class="bench mini"><div class="bench-bar"><span class="file"><i></i>${esc(c.file || exampleName(lang, i))}</span>${lang !== "text" ? `<button class="btn sm ghost" data-reset="${i}" style="color:var(--code-muted)">${ICON.reset} Reset</button><button class="btn sm go" data-run="${i}">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>` : ""}</div>
         <div data-ed="${i}"></div>${lang !== "text" ? `<div class="console" data-con="${i}"></div>` : ""}</div>` : ""}
       </article>`;
     }).join("")}
     </div>
     <div class="next-row">${nextStageBtn(L, "learn")}</div>`;
+  $$("[data-pic]", host).forEach(wirePic);
   L.learn.forEach((c, i) => {
     if (c.code == null) return;
     const lang = c.lang || task.kind || "python";
@@ -826,6 +876,8 @@ function stageLearn(host, L) {
       else runInBench(ed, con, e.currentTarget, Object.assign(benchCtx(task), c.files ? { files: c.files } : {}, { keep: true }));
     });
     $(`[data-reset="${i}"]`, host).addEventListener("click", () => { ed.set(c.code); con.clear(); resetPractice(); });
+    $(`[data-ed="${i}"]`, host).addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); $(`[data-run="${i}"]`, host).click(); } });
+    $(`[data-run="${i}"]`, host).title = "Run (Ctrl+Enter)";
   });
   $("[data-next]", host).addEventListener("click", () => {
     if (!lv(L.id).l) { lv(L.id).l = 1; addXP(XP.learn, "Lesson read"); }
@@ -1039,7 +1091,9 @@ function stageThink(host, L) {
       checkBtn: (label, fn) => { nav.innerHTML = `<button class="btn primary" id="qCheck">${label}</button>`; $("#qCheck").addEventListener("click", fn); },
       answered: (correct) => {
         if (!s.t[qi]) { s.t[qi] = correct ? 1 : 2; addXP(correct ? XP.think : XP.thinkRetry, correct ? "Riddle solved" : "Learned from a miss"); }
-        why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? "Correct!" : "Not quite."}</b>${q.why}</div>`;
+        why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? praise("think") : "Not quite."}</b>${q.why}</div>`;
+        heroReact(correct ? "hop" : "puzzled");
+        if (correct) sparkle($("b", why));
         const last = qi === L.think.length - 1;
         nav.innerHTML = last ? nextStageBtn(L, "think") : `<button class="btn primary" id="qNext">Next riddle</button>`;
         if (last) { bindNext(host, L); afterStage(L); }
@@ -1187,6 +1241,10 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
   };
 
   const runBtn = $("#runBtn", host), checkBtn = $("#checkBtn", host);
+  runBtn.title = "Run (Ctrl+Enter)"; checkBtn.title = "Check (Ctrl+Shift+Enter)";
+  host.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); (e.shiftKey ? checkBtn : runBtn).click(); }
+  });
   runBtn.addEventListener("click", () => {
     if (lang === "sql") return runSqlBench(ed, con, task.db);
     if (lang === "html") return previewHtml(conEl, ed.get());
@@ -1220,12 +1278,15 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
       } else con.write(res.results[res.results.length - 1].out || "");
     } else con.hint("Fix the note on the left, then check again.");
     if (!res.pass) {
+      heroReact("puzzled");
       if (!isBug) { meta.fails = (meta.fails || 0) + 1; save(); drawHints(); }
       return;
     }
+    heroReact("hop");
+    sparkle(checkBtn, isBug ? "Squashed!" : "Forged!");
     if (isBug) {
       if (!s.b) { s.b = 1; addXP(XP.bug, "Bug squashed"); }
-      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>Bug squashed.</b> ${task.lesson || "Reading the error message first is the habit that makes debugging fast."}</div>`;
+      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>${praise("bug")}</b> ${task.lesson || "Reading the error message first is the habit that makes debugging fast."}</div>`;
     } else {
       const used = (meta.h || 0) + (meta.sage || 0);
       const stars = meta.rev ? 1 : Math.max(1, 3 - used);
@@ -1235,7 +1296,7 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
       if (!prev) addXP(XP.codeBase + XP.codeStar * stars, `Forge cleared · ${stars} star${stars > 1 ? "s" : ""}`);
       else if (stars > prev) addXP(XP.codeStar * (stars - prev), "More stars");
       else save();
-      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>All tests passed!</b> ${starsHtml(stars)}${stars < 3 ? "<br>Replay later without hints for three stars." : ""}${task.after ? "<br>" + task.after : ""}</div>`;
+      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>${praise("code")}</b> ${starsHtml(stars)}${stars < 3 ? "<br>Replay later without hints for three stars." : ""}${task.after ? "<br>" + task.after : ""}</div>`;
       meta.h = 0; meta.sage = 0; meta.fails = 0; meta.rev = 0;
       save();
     }
@@ -1248,50 +1309,146 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
 const stageCode = (h, L) => challengeStage(h, L, "code");
 const stageBug = (h, L) => challengeStage(h, L, "bug");
 
+/* ───────── Tavern Talk ─────────
+   The innkeeper asks a question. Key ideas tick off live while the player types, a short answer is
+   fine if it covers them, and wrong ideas get a friendly correction. After passing, every key idea
+   shows its explanation (so a missed one still teaches), and rewriting a passed answer costs a star. */
+const INNKEEPER = { pal: { s: "#ffcd9e", n: "#8b5a2b", w: "#f4f4f4", g: "#38b764" }, rows: [
+  "....kkkk....", "...kssssk...", "..kssssssk..", "..ksbssbsk..", "..kssssssk..", "..knnnnnnk..",
+  "...kssssk...", "..kwwwwwwk..", ".kgwwwwwwgk.", ".kgwwwwwwgk.", "..kwwwwwwk..", "..kkkkkkkk.."] };
+function innkeeperSvg(size) {
+  const pal = Object.assign({}, PIX_BASE, INNKEEPER.pal);
+  const rects = INNKEEPER.rows.map((row, y) => [...row].map((ch, x) => ch !== "." && pal[ch] ? `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}"/>` : "").join("")).join("");
+  return `<svg viewBox="0 0 12 12" width="${size}" height="${size}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+}
+const INN_PRAISE = ["Now that's a clear answer!", "Spoken like a real developer.", "The whole tavern nods. Well explained!", "Clear and correct. An interviewer would smile at that."];
+const INN_SHORT = ["Short and right! In an interview, add one line on <i>why</i>.", "Nice and to the point. That's a strength in interviews."];
+const INN_NOTICE = ["Ooh, good point", "Yes! You covered", "Nice, that covers", "The innkeeper nods"];
+const STARTERS = ["First, Python…", "This works because…", "For example,…", "The difference is…", "If you didn't, then…"];
+const pickOne = (a) => a[(Math.random() * a.length) | 0];
+function starsToSpend() { const h = S.hero; return Math.max(0, (h.stars | 0) - (h.spent | 0)); }
+function spendStar() { if (starsToSpend() < 1) return false; S.hero.spent = (S.hero.spent | 0) + 1; save(); return true; }
+
 function stageExplain(host, L) {
   const s = lv(L.id);
   const draftKey = draftNS() + L.id + ".explain";
-  const val = s.e || lsGet(draftKey) || "";
+  const keys = L.explainKeys || [];
+  const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
+  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let locked = !!s.e;
   host.innerHTML = `
     <div class="stage-intro"><h2>Tavern Talk</h2><span class="muted">Explaining code out loud is half of every interview. Practise it here.</span></div>
     <div class="card explain-box">
-      <div class="eyebrow">The innkeeper asks</div>
-      <h3 style="font-size:18px;font-weight:600">${L.explain}</h3>
-      <p class="muted" style="font-size:14px">Write 2–4 sentences as if you're explaining it to a friend. Saying it out loud first helps.</p>
+      <div class="inn">
+        <div class="inn-face" id="innFace">${innkeeperSvg(56)}</div>
+        <div class="inn-bubble">
+          <div class="eyebrow">The innkeeper asks</div>
+          <h3>${L.explain}</h3>
+          <p class="inn-say" id="innSay" aria-live="polite">${locked ? "You've answered this one. Read what each idea means below." : "A sentence or two is plenty. Saying it out loud first helps."}</p>
+        </div>
+      </div>
+      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> ${esc(k)}</li>`).join("")}</ul></div>` : ""}
+      <div class="starters" id="starters"><span class="muted">Stuck? Start with:</span>${STARTERS.map((t) => `<button type="button" class="chip">${esc(t)}</button>`).join("")}</div>
       <label class="sr" for="expl">Your explanation</label>
-      <textarea id="expl" placeholder="In my own words…">${esc(val)}</textarea>
-      <div class="row"><span class="wc" id="wc"></span>${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Get interviewer feedback</button>` : ""}<button class="btn primary" id="saveExpl">${s.e ? "Update answer" : "Save answer"}</button></div>
+      <textarea id="expl" placeholder="In my own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
+      <div class="row">
+        <span class="wc" id="wc"></span>
+        ${Speech ? `<button class="btn" id="micBtn" type="button" title="Speak your answer. Uses your browser's speech service.">🎤 Speak</button>` : ""}
+        ${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Interviewer feedback</button>` : ""}
+        <button class="btn primary" id="saveExpl"></button>
+      </div>
       <div id="xres"></div>
       <div id="fb"></div>
     </div>
     <div class="next-row" style="max-width:760px">${levelClear(L.id) ? `<button class="btn" data-world>Back to ${esc(WORLDS[L.world - 1].name)}</button>` : ""}</div>`;
-  const ta = $("#expl"), wc = $("#wc"), xres = $("#xres");
-  // After a pass: which key ideas the answer covered, and a sample answer to compare with.
-  const showReview = (hits) => {
-    const keys = L.explainKeys || [];
-    xres.innerHTML = (keys.length ? `<div class="xcheck"><b>Key ideas a strong answer covers</b><ul>${keys.map(([k], i) =>
-      `<li class="${hits[i] ? "hit" : ""}">${hits[i] ? "✓" : "○"} ${esc(k)}</li>`).join("")}</ul></div>` : "") +
-      (L.explainModel ? `<details class="xmodel"><summary>Compare with a sample answer</summary><p>${esc(L.explainModel)}</p><p class="muted">Yours doesn't need to match it. Did you miss anything worth adding?</p></details>` : "");
+  const ta = $("#expl"), wc = $("#wc"), xres = $("#xres"), say = $("#innSay"), face = $("#innFace"), saveBtn = $("#saveExpl");
+  const react = (html) => {
+    say.innerHTML = html;
+    face.classList.remove("react"); void face.offsetWidth; face.classList.add("react");
   };
-  if (s.e) showReview(explainCheck(s.e, L).hits);
-  const count = () => { const n = (ta.value.trim().match(/\S+/g) || []).length; wc.textContent = `${n} words${n < 12 ? " · aim for at least 12" : ""}`; return n; };
-  count();
-  ta.addEventListener("input", () => { count(); lsSet(draftKey, ta.value); });
-  $("#saveExpl").addEventListener("click", () => {
+  // Live ticks: count the key ideas as the player types, and notice each new one.
+  let seen = new Set();
+  const tick = (announce) => {
     const chk = explainCheck(ta.value, L);
-    if (!chk.ok) { xres.innerHTML = `<div class="xhint">${chk.msg}</div>`; ta.focus(); return; }
-    showReview(chk.hits);
+    $$("#xlist li", host).forEach((li, i) => { li.classList.toggle("hit", !!chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○"; });
+    const c = $("#xcount"); if (c) c.textContent = `${chk.got} of ${keys.length} · aim for ${need}`;
+    const n = (ta.value.trim().match(/\S+/g) || []).length;
+    wc.textContent = n ? `${n} word${n === 1 ? "" : "s"}` : "";
+    if (announce && chk.kind === "wrong" && !locked) react(chk.msg);
+    else if (announce) {
+      const fresh = chk.hits.map((h, i) => h && !seen.has(i) ? i : -1).filter((i) => i >= 0);
+      if (fresh.length && !locked) react(`${pickOne(INN_NOTICE)}: <b>${esc(keys[fresh[0]][0])}</b>.`);
+    }
+    seen = new Set(chk.hits.map((h, i) => h ? i : -1).filter((i) => i >= 0));
+    return chk;
+  };
+  // After passing: every key idea with its explanation. Missed ones are open, so they still teach.
+  const showReview = (hits) => {
+    const answers = L.explainAnswers || [];
+    xres.innerHTML = (keys.length ? `<div class="xcheck"><b>What each key idea means</b><ul>${keys.map(([k], i) => hits[i]
+      ? `<li class="hit"><details><summary>✓ ${esc(k)}</summary><p>${esc(answers[i] || "")}</p></details></li>`
+      : `<li class="miss">○ <b>${esc(k)}</b><p>${esc(answers[i] || "")}</p></li>`).join("")}</ul></div>` : "") +
+      (L.explainModel ? `<details class="xmodel"><summary>Compare with a sample answer</summary><p>${esc(L.explainModel)}</p><p class="muted">Yours doesn't need to match it. Short and clear is great.</p></details>` : "");
+  };
+  const setLocked = (on) => {
+    locked = on;
+    ta.readOnly = on;
+    $("#starters").hidden = on;
+    saveBtn.innerHTML = on ? `Rewrite answer (1 ★ · you have ${starsToSpend()})` : s.e ? "Save new answer" : "Save answer";
+    saveBtn.title = on ? `You have ${starsToSpend()} star${starsToSpend() === 1 ? "" : "s"} to spend.` : "";
+  };
+  setLocked(locked);
+  tick(false);
+  if (s.e) showReview(explainCheck(s.e, L).hits);
+  ta.addEventListener("input", () => { tick(true); if (!locked) lsSet(draftKey, ta.value); });
+  $$("#starters .chip", host).forEach((b) => b.addEventListener("click", () => {
+    const t = b.textContent.replace(/…$/, " ");
+    const before = ta.value.trimEnd();
+    ta.value = (before ? before + (/[.!?]$/.test(before) ? " " : ". ") : "") + t;
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.dispatchEvent(new Event("input"));
+  }));
+  saveBtn.addEventListener("click", () => {
+    if (locked) {
+      if (!spendStar()) return react(`You need a star to rewrite. Clear a Forge with fewer hints to earn more. (Reading the ideas below is always free.)`);
+      setLocked(false); ta.focus();
+      return react("A fresh start! Rewrite it, then save.");
+    }
+    const chk = tick(false);
+    if (!chk.ok) { react(chk.msg); ta.focus(); return; }
+    const n = (ta.value.trim().match(/\S+/g) || []).length;
     const first = !s.e;
     s.e = ta.value.trim().slice(0, 2000);
+    showReview(chk.hits);
+    react(n < 12 ? pickOne(INN_SHORT) : pickOne(INN_PRAISE));
     if (first) addXP(XP.explain, "Explained it"); else save();
-    $("#saveExpl").textContent = "Update answer";
-    toast("Answer saved");
+    setLocked(true);
+    sparkle(saveBtn, "+XP"); heroReact("hop");
     afterStage(L);
     if (levelClear(L.id)) render();
   });
+  const mic = $("#micBtn");
+  if (mic) {
+    let rec = null;
+    mic.addEventListener("click", () => {
+      if (locked) return react("Rewrite the answer first, then you can speak a new one.");
+      if (rec) { rec.stop(); return; }
+      rec = new Speech();
+      rec.lang = navigator.language || "en-IN"; rec.continuous = true; rec.interimResults = false;
+      rec.onresult = (e) => {
+        const said = [...e.results].slice(e.resultIndex).map((r) => r[0].transcript).join(" ").trim();
+        if (said) { ta.value = (ta.value.trimEnd() + " " + said).trim(); ta.dispatchEvent(new Event("input")); }
+      };
+      rec.onend = () => { rec = null; mic.textContent = "🎤 Speak"; mic.classList.remove("live"); };
+      rec.onerror = (e) => { react(e.error === "not-allowed" ? "The browser blocked the microphone. You can allow it in the address bar, or just type." : "I couldn't hear that. Try again, or type it."); };
+      rec.start();
+      mic.textContent = "■ Stop"; mic.classList.add("live");
+      react("I'm listening… explain it like you would to a friend.");
+    });
+  }
   const fb = $("#fbBtn");
   if (fb) fb.addEventListener("click", async () => {
-    if (count() < 6) { wc.textContent = "Write a bit first, then ask for feedback."; return; }
+    if ((ta.value.trim().match(/\S+/g) || []).length < 4) return react("Write a bit first, then ask for feedback.");
     fb.disabled = true;
     const box = $("#fb");
     box.innerHTML = `<div class="sage"><b>${ICON.sage} Interviewer feedback</b><span>Reading…</span></div>`;

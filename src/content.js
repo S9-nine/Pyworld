@@ -127,14 +127,14 @@ print("Population: 42")`,
 {
   id: "1-2", world: 1, n: 2, title: "Memory Boxes", concept: "variables",
   learn: [
-    { h: "A variable is a labelled box",
-      p: "A variable stores a value under a name so you can use it later. In Python, <code>=</code> means <b>put this value in the box</b>. It does not mean \"equals\" like in math.",
+    { h: "A variable is a name for a value",
+      p: "A variable stores a value under a name so you can use it later. Picture a name tag tied to the value. In Python, <code>=</code> means <b>tie this name to this value</b>. It does not mean \"equals\" like in math.",
       code: `hero = "Kai"
 gold = 50
 print(hero)
 print(gold)` },
-    { h: "Boxes can be refilled",
-      p: "Python always works out the <b>right side first</b>, then stores the result in the name on the left. So <code>gold = gold + 25</code> means: take what's in gold, add 25, put the answer back in gold.",
+    { h: "A name can move to a new value",
+      p: "Python always works out the <b>right side first</b>, then ties the name on the left to the result. So <code>gold = gold + 25</code> means: look up gold, add 25, then tie gold to the answer.",
       code: `gold = 50
 gold = gold + 25
 print(gold)` },

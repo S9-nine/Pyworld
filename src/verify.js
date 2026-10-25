@@ -119,9 +119,18 @@ const { loadGame } = require("./test-env.js");
         "unrelated sentences": "The cat is on the mat and it is a sunny day, so we can go to the park with my dog after lunch.",
         "vague filler": "I think this is a very important concept and it is good to know. It helps a lot and we should always use it in our work.",
         "copied question": q + " I think so, yes.",
-        "same word repeated": "it is the thing the thing the thing the thing the thing the thing the thing"
+        "same word repeated": "it is the thing the thing the thing the thing the thing the thing the thing",
+        "short filler": "the cat sat down"
       };
       for (const [what, text] of Object.entries(junk)) if (explainCheck(text, L).ok) bad(L, "explain accepts " + what); else ok();
+      // Every key idea has a short answer to show after passing, and no sample text trips a "wrong idea".
+      if ((L.explainAnswers || []).length !== L.explainKeys.length) bad(L, "explain needs one answer per key idea (" + (L.explainAnswers || []).length + " answers, " + L.explainKeys.length + " keys)"); else ok();
+      for (const text of [L.explainModel].concat(L.explainAnswers || [])) for (const [re] of L.explainWrong || []) if (re.test(text)) bad(L, "explain wrong-idea pattern matches correct text: " + text.slice(0, 60));
+      // Real players' answers: short correct ones must pass, wrong ideas must get their correction.
+      for (const [text, want] of EXPLAIN_EXAMPLES[L.id] || []) {
+        const r2 = explainCheck(text, L), got = r2.ok ? "pass" : r2.kind;
+        if (got !== want) bad(L, `explain example should ${want} but got ${got}: "${text.slice(0, 50)}…"`); else ok();
+      }
     }
   }
   console.log("\n" + pick.length + " levels, " + checks + " checks passed, " + problems + " problem" + (problems === 1 ? "" : "s") + ".");
@@ -135,3 +144,18 @@ function summary(r) {
   const f = r.results.find((x) => !x.pass);
   return f ? (f.label || "").replace(/<[^>]+>/g, "") + " → " + (f.msg || "").replace(/<[^>]+>/g, "") : "?";
 }
+
+/* Answers players really wrote in Tavern Talk, and what the check must do with them:
+   "pass", or the kind of "not yet" ("wrong" = a misconception that gets a correction). */
+const EXPLAIN_EXAMPLES = {
+  "1-1": [["first prints as a string, second prints 10", "pass"],
+          ["the first one prints as a string and the second prints as 10", "pass"],
+          ["the first is a strnig in quotes, the secnod one does the mtah and shows 10", "pass"]],
+  "1-2": [["gold stores the value as its a variable and when u use gold again it just adds extra to the existing variable, as the left side works first and then reads to the right", "wrong"],
+          ["gold is a variable, so it stores a value. Python works out the right side first, gold + 25, using the old value 50, then saves the result 75 back into gold.", "pass"]],
+  "1-4": [["input gives a number so we use int to compare the age", "wrong"]],
+  "2-1": [["range(1, 6) includes 6 so it gives 1 to 6, use range(1, 10) and print it to check the first and last", "wrong"]],
+  "2-5": [["print just shows it on screen but retrun gives the value back so tests can check it", "pass"]],
+  "4-5": [["where filters groups and having filters each row after the grouping, like for categories", "wrong"]],
+  "7-1": [["git add stages files, git commit uploads them to github with a message, and push shares it", "wrong"]]
+};

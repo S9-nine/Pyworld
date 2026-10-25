@@ -559,6 +559,91 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .xmodel summary { cursor: pointer; font-weight: 600; }
 .xmodel p { margin: 6px 0 0; }
 
+/* "More below" cue inside long notices */
+.scroll-cue { position: sticky; bottom: 0; justify-self: center; margin-top: -8px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 -10px 18px var(--surface); }
+.scroll-cue[hidden] { display: none; }
+
+/* Output differences in test results */
+.probs { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+.diff { margin-top: 6px; display: grid; gap: 3px; font-size: 13px; }
+.diff > div { display: flex; gap: 8px; align-items: baseline; }
+.diff span { min-width: 52px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; opacity: .75; }
+.diff code { white-space: pre-wrap; word-break: break-word; }
+.diff mark { border-radius: 3px; padding: 0 1px; color: inherit; }
+.diff mark.d-x { background: rgb(219 79 59 / .45); text-decoration: line-through; text-decoration-thickness: 1px; }
+.diff mark.d-m { background: rgb(35 132 90 / .55); }
+
+/* Tavern Talk: innkeeper, live key ideas, starters */
+.inn { display: flex; gap: 14px; align-items: flex-start; }
+.inn-face { flex: 0 0 auto; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.inn-face.react { animation: inn-bob .45s ease; }
+@keyframes inn-bob { 30% { transform: translateY(-6px); } 60% { transform: translateY(0); } 80% { transform: translateY(-2px); } }
+.inn-bubble { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.inn-bubble h3 { font-size: 18px; font-weight: 600; }
+.inn-say { margin: 0; padding: 8px 12px; border-radius: 10px; background: var(--sun-soft); color: var(--ink); font-size: 14px; border-left: 3px solid var(--sun); }
+.xlive { margin-top: 4px; font-size: 14px; }
+.xlive-head { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.xlive-head span { font-size: 12px; opacity: .75; }
+.xlive ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 3px; }
+.xlive li { opacity: .7; transition: color .2s, opacity .2s; }
+.xlive li.hit { opacity: 1; color: var(--grass); font-weight: 600; }
+.starters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+.starters[hidden] { display: none; }
+.chip { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.chip:hover { border-color: var(--sun); }
+#micBtn.live { border-color: var(--danger); color: var(--danger); }
+.explain-box textarea[readonly] { opacity: .8; }
+.xcheck li.miss { opacity: 1; }
+.xcheck li p, .xcheck li details p { margin: 2px 0 0 18px; font-weight: 400; color: var(--ink); opacity: .9; }
+.xcheck li.hit summary { cursor: pointer; }
+@media (max-width: 560px) { .inn-face { width: 48px; height: 48px; } .inn-face svg { width: 40px; height: 40px; } }
+@media (prefers-reduced-motion: reduce) { .inn-face.react { animation: none; } }
+
+/* Feel-good touches */
+.sparkle { position: fixed; z-index: 80; pointer-events: none; width: 0; height: 0; }
+.sparkle i { position: absolute; width: 6px; height: 6px; left: -3px; top: -3px; animation: spark .7s ease-out forwards; }
+.sparkle b { position: absolute; left: 50%; top: -18px; transform: translateX(-50%); white-space: nowrap; font: 700 15px var(--font-display); color: var(--sun); text-shadow: 0 2px 0 rgb(0 0 0 / .35); animation: spark-up 1s ease-out forwards; }
+@keyframes spark { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+@keyframes spark-up { from { opacity: 0; transform: translate(-50%, 6px); } 25% { opacity: 1; } to { opacity: 0; transform: translate(-50%, -30px); } }
+.avatar.hop { animation: hero-hop .5s ease; }
+.avatar.puzzled { animation: hero-tilt .6s ease; }
+@keyframes hero-hop { 30% { transform: translateY(-8px); } 55% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
+@keyframes hero-tilt { 25% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 100% { transform: rotate(0); } }
+@media (prefers-reduced-motion: reduce) { .sparkle { display: none; } .avatar.hop, .avatar.puzzled { animation: none; } }
+
+
+/* Lesson pictures: live pixel scenes (src/pics.js) */
+.pic { margin: 4px 0 0; display: grid; gap: 8px; }
+.pic-scene svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; border-radius: 10px; border: 2px solid var(--line); }
+.pic figcaption { font-size: 14px; color: var(--ink); text-align: center; max-width: 62ch; margin: 2px auto 0; min-height: 2.8em; }
+.pic-nav { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.pic-count { font: 600 12px var(--font-display); opacity: .75; min-width: 44px; text-align: center; }
+.pic text { font: 400 13px var(--font-display); letter-spacing: .02em; }
+.pic .px-sh { fill: #1a1c2c !important; }
+.pic .px-t, .pic .px-name { fill: #f4f4f4; }
+.pic .px-name { font-size: 13px; }
+.pic .px-v { fill: #ffcd75; font: 700 15px var(--font-code); }
+.pic .px-ink { fill: #5a3a12; font: 600 12px var(--font-code); }
+.pic .px-cream { fill: #f4e4c1; font: 600 12px var(--font-code); }
+.pic .px-code { fill: #73eff7; font: 600 12px var(--font-code); }
+.pic .px-idx { fill: #ffcd75; font: 700 12px var(--font-code); }
+.pic .px-neg { fill: #ef7d57; font: 700 12px var(--font-code); }
+.pic .px-lbl { fill: #94b0c2; font-size: 12px; }
+.pic .px-good { fill: #a7f070; font-size: 15px; }
+.pic .px-bad { fill: #ef7d57; font-size: 13px; }
+.px-rope { stroke: #94b0c2; stroke-width: 2; fill: none; stroke-dasharray: 6 4; animation: px-rope 1.2s linear infinite; }
+.lv { transition: transform .8s cubic-bezier(.45, 0, .2, 1), opacity .5s ease; }
+.px-wave { transform-box: fill-box; transform-origin: left center; animation: px-wave 1.8s ease-in-out infinite; }
+.px-star { animation: px-twinkle 2.4s steps(2) infinite; }
+.px-glint { animation: px-glint 2.2s steps(1) infinite; }
+.px-fire { transform-box: fill-box; transform-origin: center bottom; animation: px-fire .5s steps(2) infinite alternate; }
+@keyframes px-wave { 0%, 100% { transform: skewY(0); } 50% { transform: skewY(-4deg) scaleX(.97); } }
+@keyframes px-twinkle { 50% { opacity: .2; } }
+@keyframes px-glint { 0%, 70% { opacity: 0; } 75%, 90% { opacity: 1; } }
+@keyframes px-fire { to { transform: scaleY(.75); } }
+@keyframes px-rope { to { stroke-dashoffset: -10; } }
+@media (prefers-reduced-motion: reduce) { .lv { transition: none; } .px-wave, .px-star, .px-glint, .px-fire, .px-rope { animation: none; } }
+
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
   .creator-grid { grid-template-columns: minmax(0, 1fr); }
@@ -718,14 +803,14 @@ print("Population: 42")`,
 {
   id: "1-2", world: 1, n: 2, title: "Memory Boxes", concept: "variables",
   learn: [
-    { h: "A variable is a labelled box",
-      p: "A variable stores a value under a name so you can use it later. In Python, <code>=</code> means <b>put this value in the box</b>. It does not mean \"equals\" like in math.",
+    { h: "A variable is a name for a value",
+      p: "A variable stores a value under a name so you can use it later. Picture a name tag tied to the value. In Python, <code>=</code> means <b>tie this name to this value</b>. It does not mean \"equals\" like in math.",
       code: `hero = "Kai"
 gold = 50
 print(hero)
 print(gold)` },
-    { h: "Boxes can be refilled",
-      p: "Python always works out the <b>right side first</b>, then stores the result in the name on the left. So <code>gold = gold + 25</code> means: take what's in gold, add 25, put the answer back in gold.",
+    { h: "A name can move to a new value",
+      p: "Python always works out the <b>right side first</b>, then ties the name on the left to the result. So <code>gold = gold + 25</code> means: look up gold, add 25, then tie gold to the answer.",
       code: `gold = 50
 gold = gold + 25
 print(gold)` },
@@ -10377,7 +10462,7 @@ const EXPLAIN = {
   "1-2": {
     keys: [
       ["what = really means in Python", /stor|assign|save|put|set|keep|label|box|becomes|updat|replac|not.{0,20}equal|not the same as/i],
-      ["which side Python works out first", /right side|right-hand|first|before|evaluat|works? out|calculat|old value|current value/i],
+      ["which side Python works out first", /right side|right-hand|\bright\b[^.]{0,20}\b(first|before)\b|\b(first|before)\b[^.]{0,40}(\bright\b|gold ?\+ ?25|old value|adds?)|evaluat|old value|current value|existing value|works? out (the )?(right|sum|answer|maths?|gold)/i],
       ["what happens to the old value", /new|replac|overwrit|updat|becomes|increase|goes up|more than before|adds? 25/i]
     ],
     model: "In Python, = does not mean 'is equal to'. It means 'store this value'. Python first works out the right side, gold + 25, using the old value of gold, and then stores the answer back in gold, so the new value replaces the old one."
@@ -10947,9 +11032,666 @@ const EXPLAIN = {
   }
 };
 
+/* For every key idea, a short plain answer the player sees after passing (so a missed idea still
+   teaches something), in the same order as the keys above. "wrong" lists classic misconceptions:
+   [pattern, friendly correction]. A match blocks the pass and shows the correction. The patterns
+   skip negated sentences ("doesn't", "not") so a correct answer that mentions the myth still passes. */
+const EXPLAIN_EXTRA = {
+  "1-1": {
+    answers: ["Quotes make it a string: text that Python prints exactly as written, so you see 5 + 5.",
+      "Without quotes, 5 + 5 is a calculation. Python works it out first and prints 10."],
+    wrong: [[/(?<!not |n't )both (of them |lines |ones )?(print|show|give)s? 10/i, "Only the one without quotes prints 10. With quotes, Python prints the text 5 + 5 exactly as written."]]
+  },
+  "1-2": {
+    answers: ["= means \"store this value under this name\". It's not the equals sign from maths (that's ==, which compares).",
+      "Python works out the right side first: gold + 25, using the old value of gold (50), which gives 75.",
+      "Then 75 is stored under the name gold. The new value replaces the old 50, which is gone."],
+    wrong: [[/(?<!not (the )?|n't (the )?)\bleft\b[^.]{0,30}\b(first|before)\b|\b(starts?|begins?) (from|on|with) the left|\bleft (side )?(to|then) (the )?right\b/i,
+      "Python works out the RIGHT side first (gold + 25, using the old value), then stores the answer in the name on the LEFT."],
+      [/(?<!not |n't |doesn't |does not |never )(=|the equals sign) (means|is) (equal|equals|the same as)/i, "In Python, = doesn't mean \"equals\". It means \"store this value under this name\". (== is the one that compares.)"]]
+  },
+  "1-3": {
+    answers: ["With quotes, \"5\" is a string: the character 5, not the number.",
+      "+ on two strings joins them side by side, so \"5\" + \"5\" gives \"55\".",
+      "+ on two numbers adds them, so 5 + 5 gives 10."]
+  },
+  "1-4": {
+    answers: ["input() always gives back a string (text), even when the person types digits like 16.",
+      "int() turns that text into a whole number, so \"16\" becomes 16.",
+      "Once it's a number you can do maths with it and compare it, like age >= 18."],
+    wrong: [[/(?<!not |n't |never )input\(?\)?[^.]{0,30}\b(gives|returns|is) (back )?(a |an )?(number|int|integer)\b/i, "input() always gives text (a string), even if the person types digits. That's exactly why we need int()."]]
+  },
+  "1-5": {
+    answers: ["// divides and keeps only the whole part: 135 // 60 is 2 full hours.",
+      "% gives the remainder, what's left over after taking out the full hours: 135 % 60 is 15.",
+      "So 135 minutes is 2 hours and 15 minutes."],
+    wrong: [[/%[^.]{0,30}\bpercent/i, "In Python, % isn't percent. It gives the remainder: what's left over after dividing."]]
+  },
+  "1-6": {
+    answers: [">= includes the exact limit, > doesn't. Someone exactly at the limit is let in by >= but turned away by >.",
+      "For a 120 cm rule, a rider who is exactly 120 cm passes height >= 120 but fails height > 120."]
+  },
+  "1-7": {
+    answers: ["Python checks from the top and stops at the first condition that's True. The rest are skipped.",
+      "If a smaller limit comes first, a high score matches it and never reaches its real branch.",
+      "With score >= 50 checked before score >= 90, a 95 gets the lower grade. The biggest limit must come first."],
+    wrong: [[/(?<!not |n't |never )\b(checks?|runs?|tests?|looks at) (all|every|each) (of the )?(conditions?|checks?|branches|elifs?)\b/i, "Python doesn't check every condition: it stops at the first one that's True and skips the rest. That's why the order matters."]]
+  },
+  "1-8": {
+    answers: ["Normal inputs show that the happy path works, like a correct password.",
+      "Edge values sit exactly on a limit, which is where > vs >= mistakes hide.",
+      "Wrong inputs, like a typo or an empty answer, check that the program refuses them safely.",
+      "Saying why you chose each test shows an interviewer that you test on purpose, not at random."]
+  },
+  "2-1": {
+    answers: ["range(1, 6) gives 1, 2, 3, 4, 5.",
+      "The stop number is never included: the range stops one before it.",
+      "For 1 to 10, use range(1, 11).",
+      "Print the numbers (or list(range(...))) and check the first and the last one."],
+    wrong: [[/(?<!not |n't |never )\b(includes?|goes up to|ends? (at|with)|stops at) 6\b/i, "The stop number is never included: range(1, 6) stops at 5."]]
+  },
+  "2-2": {
+    answers: ["Use for when you know how many times, or have a list to go through: for item in shopping_list.",
+      "Use while when you repeat until something changes and don't know how many times: ask until the password is right.",
+      "Example: for prints each item in a list; while keeps a guessing game going until the guess is correct."]
+  },
+  "2-3": {
+    answers: ["The first item is at index 0. Python counts from 0.",
+      "The last item is at len(backpack) - 1.",
+      "backpack[-1] counts from the end, so it gives the last item.",
+      "It's shorter and works for any length, so there's no off-by-one mistake with len."],
+    wrong: [[/(?<!not )\bfirst (item|one|element|thing)[^.]{0,30}\b(index|position) (is )?1\b|\bindex 1 is the first/i, "Python counts from 0, so the first item is at index 0 (and index 1 is the second)."]]
+  },
+  "2-4": {
+    answers: ["Keep one variable with the best value seen so far.",
+      "Compare each item with it, and replace it when the item is better.",
+      "Start with the first item, not 0: if every number is negative, 0 would wrongly win even though it isn't in the list."]
+  },
+  "2-5": {
+    answers: ["print only shows the value on the screen, for a person to read.",
+      "return hands the value back to the code that called the function, so it can be stored and used.",
+      "Tests can only check a value the function gives back, so they need return."],
+    wrong: [[/(?<!not |n't |never )\bprint[^.]{0,30}\b(returns?|gives back|hands back|sends back) (the )?(value|result|answer|it)\b/i, "print only shows the value on screen. It doesn't give it back to your code: that's return's job."]]
+  },
+  "2-6": {
+    answers: ["A small function can be tested on its own, so bugs are easier to find and fix.",
+      "You can reuse a function instead of copying the same code into many places.",
+      "Each function does one job with a clear name, so the program is easier to read.",
+      "In the password checker, has_digit only checks for a number, so you can test and reuse just that piece."]
+  },
+  "2-7": {
+    answers: ["A dict looks things up by a key, like a phone book: name → number.",
+      "A list keeps things in order by position, like a queue or a shopping list.",
+      "A menu with prices fits a dict (dish → price). A playlist fits a list (song 1, song 2…)."]
+  },
+  "2-8": {
+    answers: ["It stores the expenses, usually as a list where each one has an amount and a category.",
+      "Small functions, each with one job: add an expense, show the total, and main() to run the menu.",
+      "Typing abc or 0 should show a friendly message instead of crashing or saving a bad amount."]
+  },
+  "3-1": {
+    answers: ["Read the traceback from the bottom: the last line names the error.",
+      "Go to the line it points to and make a guess about the cause.",
+      "Change one thing, then run it again to see if your guess was right.",
+      "Beginners often skip reading the message and change code at random, which wastes time."]
+  },
+  "3-2": {
+    answers: ["except ValueError only catches that one error you expect, like letters typed instead of a number.",
+      "A bare except catches everything, so it also hides real bugs, like a typo that causes a NameError."],
+    wrong: [[/(?<!not |n't |never )\bbare except[^.]{0,30}\b(is |are )?(better|safer|good)\b/i, "A bare except isn't safer: it hides every error, including real bugs like typos. Name the error you expect."]]
+  },
+  "3-3": {
+    answers: ["Raise when the function is asked to do something impossible or invalid, like taking more than the balance.",
+      "A returned value like -1 or None is easy to miss, and the program carries on with a wrong number. Raising can't be ignored.",
+      "withdraw(1000) on a balance of 500 should raise ValueError, not quietly return something."]
+  },
+  "3-4": {
+    answers: ["with closes the file for you when the block ends, even if an error happens.",
+      ".strip() removes the invisible newline (\\n) at the end of each line, and extra spaces."]
+  },
+  "3-5": {
+    answers: ["\"w\" wipes the file and starts fresh: the old content is gone.",
+      "\"a\" keeps what's there and adds new lines at the end.",
+      "Use \"w\" to save a fresh report or settings, and \"a\" for a diary, a log or a high-score history."],
+    wrong: [[/(?<!not |n't |never )["']?\ba\b["']? (mode )?[^.]{0,15}\b(wipes?|deletes?|erases?|overwrites?|clears?)\b/i, "Mode \"a\" never wipes the file: it adds to the end. It's \"w\" that starts fresh."]]
+  },
+  "3-6": {
+    answers: ["After import math you write math.sqrt(16): the module name shows where sqrt comes from.",
+      "After from math import sqrt you call sqrt(16) directly. It's shorter.",
+      "Use import math when you need many functions or want clear names; from-import when you need just one or two."]
+  },
+  "3-7": {
+    answers: ["Good tests cover normal inputs and edge cases: empty, zero, negative, exactly on a limit.",
+      "Each test checks an exact expected answer, so any wrong number fails.",
+      "Each broken version gave a different answer for at least one case, so an assert failed and caught it."]
+  },
+  "3-8": {
+    answers: ["The questions file could be missing, or a line in it could have the wrong format.",
+      "Catch FileNotFoundError with a friendly message, and skip broken lines instead of crashing."]
+  },
+  "4-1": {
+    answers: ["shop[\"items\"] gives the list of items.",
+      "[1] picks the second item in that list, which is a dict.",
+      "[\"tags\"] gives that item's list of tags, and [0] picks the first tag: a string."]
+  },
+  "4-2": {
+    answers: ["JSON is a standard text format for data like lists and dicts.",
+      "Almost every language, website and API can read it, so programs can share data.",
+      "json.loads gives back real lists and dicts. Text made with str() can't be safely turned back into data."]
+  },
+  "4-3": {
+    answers: ["Your code sends a request to a URL, usually with the GET method.",
+      "The server replies with a status code: 200 means OK, 404 means not found, 500 is a server error.",
+      "The body is JSON, which .json() turns into a dict or list.",
+      "No internet, a bad status code, or a missing key in the data. Check each one."]
+  },
+  "4-4": {
+    answers: ["SELECT picks which columns you want, like name and price.",
+      "FROM says which table to read.",
+      "WHERE keeps only the rows that match a condition, like category = 'snacks'.",
+      "ORDER BY sorts the results, like by price, cheapest first.",
+      "A second shop with different data makes sure the query really works, not just copies one answer."]
+  },
+  "4-5": {
+    answers: ["WHERE filters single rows before they're grouped.",
+      "HAVING filters whole groups after GROUP BY, using totals like COUNT or SUM.",
+      "Example: categories with more than two items need GROUP BY category and HAVING COUNT(*) > 2."],
+    wrong: [[/(?<!not |n't )\bwhere[^.]{0,30}\b(filters|works on|is for) (the )?groups\b|\bhaving[^.]{0,30}\b(filters|works on|is for) (single |each |individual )?rows\b/i, "It's the other way round: WHERE filters single rows before grouping, and HAVING filters groups after GROUP BY."]]
+  },
+  "4-6": {
+    answers: ["A JOIN keeps only rows that match in both tables: customers who have ordered.",
+      "A LEFT JOIN keeps every row from the left table, even with no match, and fills the gaps with NULL.",
+      "Use JOIN for orders with their customers; LEFT JOIN to find customers who never ordered."],
+    wrong: [[/(?<!not |n't )\bleft join[^.]{0,40}\bonly (shows |keeps |gives |returns )?(the )?(match|rows that match)/i, "A LEFT JOIN keeps every row from the left table, even ones with no match. It's the plain JOIN that keeps only matches."]]
+  },
+  "4-7": {
+    answers: ["The attacker types into a normal box, like the username or password field on a login form.",
+      "If the code glues their text into the SQL, it can change what the query does, like logging in without a password.",
+      "With ? placeholders, the data is sent separately from the query, so it's always treated as plain text, never as SQL."],
+    wrong: [[/(?<!not |n't |don't |doesn't )\bplaceholders?[^.]{0,30}\b(hides?|encrypts?|hashes?|scrambles?)\b/i, "Placeholders don't hide or encrypt anything. They send the data separately from the query, so it can never run as SQL."]]
+  },
+  "4-8": {
+    answers: ["Two tables: habits (id and name) and checkins (habit id and the day it was done).",
+      "UNIQUE on the name stops the same habit being added twice.",
+      "Start at today and count back one day at a time until a day has no check-in."]
+  },
+  "5-1": {
+    answers: ["The browser sends a request to the server for that URL.",
+      "The method says what you want: GET means \"give me this page\".",
+      "The server sends back a response: a status code plus the content.",
+      "The status code says how it went: 200 OK, 404 not found.",
+      "The response contains HTML, and the browser draws it as the page you see."]
+  },
+  "5-2": {
+    answers: ["Screen readers can announce real headings and lists to blind users.",
+      "Search engines and other programs understand what each part of the page is.",
+      "How it looks belongs in CSS, so the design can change without changing the meaning."]
+  },
+  "5-3": {
+    answers: ["HTML checks run in the user's browser, so anyone can remove them with developer tools or send a request directly.",
+      "Only the server is under your control, so it must check the data again before trusting it."],
+    wrong: [[/(?<!not |n't |never )\b(required|html (checks?|validation)|minlength)[^.]{0,40}\b(is|are) (enough|safe|sufficient)\b/i, "The HTML checks aren't enough on their own: anyone can skip them by sending a request directly. The server must check too."]]
+  },
+  "5-4": {
+    answers: ["Flask matches the visited URL against the route pattern /hello/<name>.",
+      "The part after /hello/ (Asha) is passed in as the name variable.",
+      "Flask calls your function for you, with name = \"Asha\".",
+      "Whatever the function returns is sent back to the browser as the response."]
+  },
+  "5-5": {
+    answers: ["GET /api/menu lists every item; GET /api/menu/3 gets one item.",
+      "Query arguments filter the list: ?veg=true and ?max_price=30.",
+      "Errors use status codes with a JSON message: 404 for a missing item, 400 for a bad filter."]
+  },
+  "5-6": {
+    answers: ["Anyone can send anything: missing fields, empty text, the wrong type, or a huge message.",
+      "Unchecked data can crash the code (a 500 error), store junk, or open the door to attacks."]
+  },
+  "5-7": {
+    answers: ["XSS is when someone's text contains HTML or a script that runs in other people's browsers.",
+      "Escaping turns characters like < into &lt;, so the browser shows them as text instead of running them.",
+      "Code gets pushed to GitHub and shared, so a key written in it can be found and stolen.",
+      "Environment variables live outside the code, set on each computer or server."],
+    wrong: [[/(?<!not |n't |never )\bescap\w*[^.]{0,30}\b(deletes?|removes?|blocks?) (the )?(text|message|script|comment)\b/i, "Escaping doesn't delete anything: it turns < and > into safe codes, so the text shows on the page instead of running."]]
+  },
+  "5-8": {
+    answers: ["Routes like GET / for the page and POST /api/entries to add, with 201 when it works and 400 when it's invalid.",
+      "Messages are stored in a SQLite table with an id, a name and a message.",
+      "Escaping every message before showing it stops XSS.",
+      "? placeholders stop SQL injection, and the server validates every field."]
+  },
+  "6-1": {
+    answers: ["Name a real group of people, like college students who forget deadlines.",
+      "Say the annoyance in one sentence: what's hard or slow for them today.",
+      "Pick only 2–3 must-have features for version 1. Everything else waits."]
+  },
+  "6-2": {
+    answers: ["Use at least two of: list, dict, set, tuple.",
+      "Lists keep order; dicts look up by key; sets remove duplicates; tuples hold values that never change.",
+      "Give a because for each choice. The reasons are what interviewers listen for."]
+  },
+  "6-3": {
+    answers: ["self is the object the method is working on, here acc.",
+      "Python passes acc in automatically as the first argument, self.",
+      "So you only give the second one: 500 goes into amount."],
+    wrong: [[/(?<!not |n't )\bself (is|means) (the )?(class|function|method)\b/i, "self isn't the class: it's the one object the method is working on, like acc."]]
+  },
+  "6-4": {
+    answers: ["Inheritance means \"is a\": a child class is a kind of its parent and reuses its code.",
+      "Composition means \"has a\": one object holds another as an attribute, like a Planner has a list of tasks.",
+      "Pick one real example of each from your own project idea."]
+  },
+  "6-5": {
+    answers: ["Clear names, no magic numbers, small functions, and a table plus a loop instead of a long if-chain.",
+      "The hidden tests gave the same results before and after, which proved nothing broke."]
+  },
+  "6-6": {
+    answers: ["Months have different lengths, and leap years add February 29.",
+      "datetime already knows the calendar, so date + timedelta(days=7) is always right.",
+      "By hand, January 28 + 7 days might give \"January 35\". datetime gives February 4."]
+  },
+  "6-7": {
+    answers: ["Empty text, spaces, the ₹ symbol, commas like 1,200, negatives and letters.",
+      "Say which was hardest and why. Commas are a common one, because removing them mustn't break decimals.",
+      "Clean the text step by step (strip, replace), convert with float, and raise ValueError for anything left over."]
+  },
+  "6-8": {
+    answers: ["Task holds one task's details; Planner manages the list. Each class has one job.",
+      "Each Task becomes a dict (to_dict), the planner saves the list as JSON, and from_dict loads it back.",
+      "A missing save file, an empty title and duplicate tasks."]
+  },
+  "7-1": {
+    answers: ["git add picks which changes go into the next snapshot (the staging area).",
+      "git commit saves that snapshot on your computer, with a message.",
+      "git push uploads your commits to GitHub so others can see them."],
+    wrong: [[/(?<!not |n't |never |doesn't |does not )\bcommit\w*[^.]{0,40}\b(uploads?|sends?|puts?|saves?) [^.]{0,15}\b(github|online|remote|cloud|internet)\b/i, "A commit only saves on your computer. git push is what uploads it to GitHub."]]
+  },
+  "7-2": {
+    answers: ["Two people change the same lines of the same file on different branches.",
+      "Git can't decide which version is right, so it marks both and asks you.",
+      "Talk to your teammate, keep the right lines, remove the <<< === >>> markers, run the tests, then commit."]
+  },
+  "7-3": {
+    answers: ["Write a failing test first, then just enough code to pass it, then tidy up.",
+      "You decide exactly what \"done\" means before coding, and the tests catch it if you break it later.",
+      "For a quick experiment, when you don't know yet what you want to build."],
+    wrong: [[/(?<!not |n't |never )\b(write|writing|code) (the )?(code|program) (first|before)[^.]{0,30}\btests?\b/i, "In TDD the test comes first: write a failing test, then the code to make it pass."]]
+  },
+  "7-4": {
+    answers: ["One line on what it is: a web app, a tool, a game.",
+      "Who it's for: the people who have the problem.",
+      "Why you built it: the real annoyance that started it."]
+  },
+  "7-5": {
+    answers: ["Secrets in code get pushed and shared, and stay in the Git history even after you delete them.",
+      "Settings like debug mode and database paths differ between your laptop and the server, so read them from the environment.",
+      ".env, venv/, __pycache__/ and local database files go in .gitignore."]
+  },
+  "7-6": {
+    answers: ["Run it before every commit and push, as a habit or a Git hook.",
+      "Secrets that don't match its patterns, a password split across lines, or secrets already in the Git history."]
+  },
+  "7-7": {
+    answers: ["Run it, with tests that include edge cases.",
+      "Read every line until you can explain what it does.",
+      "Check for security problems and for made-up functions or libraries.",
+      "AI code can look confident and still be wrong, and once you use it, it's your code."]
+  },
+  "7-8": {
+    answers: ["All tests must pass first.",
+      "Run the secret scanner: no keys or passwords in the code.",
+      "Update the README and commit with a clear message.",
+      "Deploy, then open the live site and check it works.",
+      "Tests and the secret scan are must-pass: broken apps hurt users, and a leaked key can't be taken back."]
+  },
+  "8-1": {
+    answers: ["Understand (say it back), Match a pattern, Plan, Implement, Review with an example, Evaluate the Big-O.",
+      "What should an empty list or one number give? Do repeats like [5, 5, 3] count once?",
+      "An empty list, one number, all the same, repeats, and negative numbers."]
+  },
+  "8-2": {
+    answers: ["The dict maps each number seen so far to its position.",
+      "For each number n, the partner you need is target - n. Look it up in the dict.",
+      "One pass with O(1) look-ups is O(n), instead of O(n²) for checking every pair."]
+  },
+  "8-3": {
+    answers: ["One pointer at the start (smallest), one at the end (biggest).",
+      "Sum too small: move left up. Too big: move right down.",
+      "The list is sorted, so a number that can't reach the target even with the biggest partner can be safely dropped."],
+    wrong: [[/(?<!it )\b(doesn't|does not|don't|do not) need[^.]{0,20}\bsort/i, "Two pointers needs a sorted list: that's what makes moving a pointer predictably raise or lower the sum."]]
+  },
+  "8-4": {
+    answers: ["First count every character in one pass, with a dict or Counter.",
+      "Then walk the string again and return the position of the first character with count 1.",
+      "s.count(ch) reads the whole string every time, so inside a loop it becomes O(n²)."]
+  },
+  "8-5": {
+    answers: ["The starter is O(n²): a loop with a hidden loop inside it.",
+      "The set version is O(n): one pass with O(1) checks.",
+      "tickets[:i] copies a slice and `in` searches it, on every lap.",
+      "Extra memory for the set, in exchange for much more speed."]
+  },
+  "8-6": {
+    answers: ["Every opening bracket is pushed onto the stack.",
+      "A closing bracket pops the top, which must be its partner.",
+      "In ([)], the ) arrives while [ is on top: not its partner, so it's False right there.",
+      "At the end the stack must be empty, or something was left open."],
+    wrong: [[/(?<!not |n't )\bstack (is|means|works like) (a )?(first in,? first out|fifo|queue)/i, "A stack is last in, first out: the newest item comes off first. First in, first out is a queue."]]
+  },
+  "8-7": {
+    answers: ["Each guess is the middle, so every answer throws away half of what's left.",
+      "2 to the power 20 is more than a million, so 20 halvings always get down to one number.",
+      "< skips the last candidate, and high = mid can stop the range shrinking, so the loop gets stuck."]
+  },
+  "8-8": {
+    answers: ["Name the pattern: a dict of groups, a set, or counting then sorting.",
+      "Walk through the steps in order, like you did in the code.",
+      "Empty input, duplicates, ties and negative numbers.",
+      "Say the time and space: for example O(n) with a set, or O(n log n) because of sorting."]
+  }
+};
+
 for (const L of LEVELS) {
-  const x = EXPLAIN[L.id];
-  if (x) Object.assign(L, { explainKeys: x.keys, explainNeed: x.need, explainModel: x.model });
+  const x = EXPLAIN[L.id], y = EXPLAIN_EXTRA[L.id] || {};
+  if (x) Object.assign(L, { explainKeys: x.keys, explainNeed: x.need, explainModel: x.model, explainAnswers: y.answers || [], explainWrong: y.wrong || [] });
+}
+
+/* Lesson pictures: small live pixel scenes in the game's world. Values are things lying on the
+   ground (coin piles for numbers, scrolls for text, a backpack for a list, a chest of drawers for a
+   dict); names are flags planted next to them. Reassigning a variable makes its flag fly to the new
+   value, and two names for one list are simply two flags at the same backpack.
+
+   One SVG per picture. Moving parts are wrapped in PX.live(states, …): each state says where the part
+   sits and how visible it is at that step ({x, y, o}), and CSS transitions animate between steps.
+   Flags wave, coins glint and stars twinkle with plain CSS; all of it stops for reduced motion.
+   A lesson card opts in with pic: "name" (see PIC_FOR at the bottom). */
+
+const PX = {
+  pal: { k: "#1a1c2c", w: "#f4f4f4", y: "#ffcd75", o: "#ef7d57" },
+  esc: (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])),
+  // Pixel art from rows of letters ("." is empty), merging runs into single rects.
+  sprite: (rows, x, y, s, pal = PX.pal) => rows.map((row, j) => {
+    let out = "", i = 0;
+    while (i < row.length) { const ch = row[i]; let k = 1; while (row[i + k] === ch) k++; if (ch !== "." && pal[ch]) out += `<rect x="${x + i * s}" y="${y + j * s}" width="${k * s}" height="${s}" fill="${pal[ch]}"/>`; i += k; }
+    return out;
+  }).join(""),
+  rect: (x, y, w, h, fill, extra = "") => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" ${extra}/>`,
+  // Text with a 1px pixel shadow, so it reads anywhere in the scene.
+  text: (x, y, str, cls = "px-t", anchor = "middle", shadow = true) => (shadow ? `<text class="${cls} px-sh" x="${x + 1}" y="${y + 1}" text-anchor="${anchor}">${PX.esc(str)}</text>` : "") + `<text class="${cls}" x="${x}" y="${y}" text-anchor="${anchor}">${PX.esc(str)}</text>`,
+  st: (s) => `transform:translate(${s.x || 0}px,${s.y || 0}px);opacity:${s.o == null ? 1 : s.o}`,
+  live: (states, inner) => `<g class="lv" data-st='${JSON.stringify(states)}' style="${PX.st(states[0])}">${inner}</g>`,
+  // The night-time scene: sky, a few twinkling stars, and grass along the bottom.
+  scene: (w, h, body, gy = h - 24) => {
+    const stars = [[0.08, 0.12], [0.3, 0.07], [0.52, 0.16], [0.71, 0.06], [0.9, 0.14], [0.42, 0.3], [0.83, 0.32]]
+      .map(([fx, fy], i) => `<rect class="px-star" style="animation-delay:${(i * 0.45).toFixed(2)}s" x="${Math.round(fx * w)}" y="${Math.round(fy * h)}" width="2" height="2" fill="#94b0c2"/>`).join("");
+    const tufts = Array.from({ length: Math.floor(w / 46) }, (_, i) => PX.rect(14 + i * 46 + (i % 3) * 7, gy + 7 + (i % 2) * 6, 6, 2, "#38b764")).join("");
+    return `<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${PX.rect(0, 0, w, h, "#1a1c2c")}${stars}` +
+      `${PX.rect(0, gy, w, h - gy, "#257179")}${PX.rect(0, gy, w, 3, "#38b764")}${tufts}${body}</svg>`;
+  },
+
+  /* ── Things in the world ── */
+  coins: (cx, gy, value) => {
+    const x = cx - 18, y = gy - 24;
+    return PX.sprite(["....yyyy....", "...ywwyyy...", "..yyyyyyyy..", ".ywwyyyyywy.", ".yyyyyyyyyy.", "ywwyyyyyywyy", "yyyyyyyyyyyy", ".oooooooooo."], x, y, 3) +
+      `<rect class="px-glint" x="${x + 9}" y="${y + 9}" width="3" height="3" fill="#f4f4f4"/>` + PX.text(cx, y - 7, value, "px-v");
+  },
+  scroll: (cx, gy, str) => {
+    const w = Math.max(40, String(str).length * 8 + 22), x = cx - w / 2, y = gy - 24;
+    return PX.rect(x, y, w, 20, "#f4e4c1") + PX.rect(x, y, w, 2, "#d9c49a") + PX.rect(x, y + 18, w, 2, "#d9c49a") +
+      PX.rect(x - 5, y - 2, 7, 24, "#d9c49a") + PX.rect(x + w - 2, y - 2, 7, 24, "#d9c49a") + PX.rect(x - 5, y + 9, 7, 2, "#a8743f") + PX.rect(x + w - 2, y + 9, 7, 2, "#a8743f") +
+      PX.text(cx, y + 14, str, "px-ink", "middle", false);
+  },
+  // A planted flag with the variable's name on its waving banner.
+  flag: (x, gy, name, col = "#3b5dc9", dark = "#29366f") => {
+    const bw = String(name).length * 8 + 18, top = gy - 74;
+    return PX.rect(x - 4, gy - 3, 11, 3, "#333c57") + PX.rect(x, top, 3, 74, "#94b0c2") + PX.rect(x - 1, top - 4, 5, 5, "#ffcd75") +
+      `<g class="px-wave">${PX.rect(x + 3, top + 2, bw, 20, col)}${PX.rect(x + 3, top + 19, bw, 3, dark)}${PX.rect(x + 3 + bw, top + 2, 7, 7, col)}${PX.rect(x + 3 + bw, top + 15, 7, 7, col)}` +
+      `${PX.text(x + 3 + bw / 2, top + 16, name, "px-name")}</g>`;
+  },
+  // A backpack with numbered pockets (a list).
+  pocket: (px, y, it) => PX.rect(px, y + 10, 44, 30, "#a8743f") + PX.rect(px, y + 10, 44, 3, "#5a3a12") + PX.text(px + 22, y + 31, it, "px-cream", "middle", false),
+  bag: (x, gy, items, opts = {}) => {
+    const w = items.length * 48 + 16, y = gy - 52;
+    let out = PX.rect(x + 10, y - 10, w - 20, 12, "#8b5a2b") + PX.rect(x + w / 2 - 14, y - 16, 28, 8, "#5a3a12") + PX.rect(x, y, w, 52, "#8b5a2b") + PX.rect(x, y + 48, w, 4, "#5a3a12");
+    items.forEach((it, i) => {
+      const px = x + 8 + i * 48;
+      out += PX.pocket(px, y, it);
+      if (opts.idx) out += PX.text(px + 22, y - 22, String(i), "px-idx");
+      if (opts.neg) out += PX.text(px + 22, gy + 17, String(i - items.length), "px-neg");
+    });
+    return out;
+  },
+  // A pixel hero (one of the game's own sprites), standing on the ground.
+  hero: (x, gy, i = 0, s = 3) => {
+    const sp = SPRITES[i % SPRITES.length];
+    return PX.sprite(sp.rows, x, gy - 12 * s, s, Object.assign({}, PIX_BASE, sp.pal));
+  },
+  // A pointing arrow above something, with a label.
+  pointer: (cx, y, label, cls = "px-v") => PX.text(cx, y, label, cls) + PX.sprite(["kyyyyk", ".kyyk.", "..kk.."], cx - 9, y + 5, 3),
+  bubble: (cx, y, str) => {
+    const w = String(str).length * 7.6 + 20;
+    return PX.rect(cx - w / 2, y, w, 22, "#f4f4f4") + PX.rect(cx - w / 2 + 2, y + 22, w - 4, 2, "#94b0c2") + PX.rect(cx - 3, y + 24, 6, 5, "#f4f4f4") + PX.text(cx, y + 15, str, "px-ink", "middle", false);
+  }
+};
+
+const PICS = {
+  /* 1-2: names are flags planted next to values */
+  tags: () => ({ w: 400, h: 136, caps: ["Each variable is a name planted next to a value. The hero flag marks the text \"Kai\" (a str). The gold flag marks a pile of 50 coins (an int)."],
+    body: PX.flag(40, 112, "hero") + PX.scroll(150, 112, "\"Kai\"") + PX.flag(232, 112, "gold") + PX.coins(340, 112, "50") }),
+
+  /* 1-2: gold = gold + 25: right side first, then the flag moves */
+  reassign: () => ({ w: 420, h: 186, caps: [
+      "Start: gold = 50. The gold flag is planted next to a pile of 50 coins.",
+      "gold = gold + 25. Right side first: Python looks up gold (50), works out 50 + 25, and makes a new pile of 75.",
+      "Then = moves the gold flag to the new pile. Nothing marks the old 50 any more, so Python clears it away."],
+    body: PX.live([{}, {}, { o: 0.2 }], PX.coins(150, 162, "50")) +
+      PX.live([{ o: 0, y: -10 }, {}, { o: 0 }], PX.bubble(250, 30, "50 + 25 → 75")) +
+      PX.live([{ o: 0, y: 14 }, {}, {}], PX.coins(330, 162, "75")) +
+      PX.live([{}, {}, { x: 238 }], PX.flag(46, 162, "gold")) }),
+
+  /* 1-3: + joins text, adds numbers */
+  plus: () => ({ w: 420, h: 196, caps: [
+      "The same + sign does different jobs. Top shelf: two pieces of text. Bottom: two numbers.",
+      "Text joins side by side: \"5\" + \"5\" is \"55\". Numbers add up: 5 + 5 is 10."],
+    body: PX.rect(60, 70, 240, 5, "#5a3a12") + PX.rect(70, 75, 5, 10, "#5a3a12") + PX.rect(285, 75, 5, 10, "#5a3a12") +
+      PX.text(30, 62, "str", "px-lbl") + PX.text(30, 164, "int", "px-lbl") +
+      PX.live([{}, { x: 65, o: 0 }], PX.scroll(110, 70, "\"5\"")) + PX.live([{}, { o: 0 }], PX.text(175, 58, "+", "px-v")) + PX.live([{}, { x: -65, o: 0 }], PX.scroll(240, 70, "\"5\"")) +
+      PX.live([{ o: 0, y: -8 }, {}], PX.scroll(175, 70, "\"55\"")) +
+      PX.live([{}, { x: 65, o: 0 }], PX.coins(110, 172, "5")) + PX.live([{}, { o: 0 }], PX.text(175, 160, "+", "px-v")) + PX.live([{}, { x: -65, o: 0 }], PX.coins(240, 172, "5")) +
+      PX.live([{ o: 0, y: -8 }, {}], PX.coins(175, 172, "10")) +
+      PX.text(360, 62, "\"5\" + \"5\"", "px-code") + PX.text(360, 150, "5 + 5", "px-code") }),
+
+  /* 1-7: the first open gate wins */
+  elif: () => {
+    const gy = 160, gx = [130, 220, 310];
+    const gate = (x) => PX.rect(x, gy - 58, 6, 58, "#566c86") + PX.rect(x + 46, gy - 58, 6, 58, "#566c86") + PX.rect(x - 2, gy - 62, 56, 6, "#94b0c2");
+    const labels = (texts, grades) => texts.map((t, i) => PX.text(gx[i] + 26, gy - 70, t, "px-code") + PX.text(gx[i] + 26, gy + 18, grades[i], "px-neg")).join("");
+    return { w: 420, h: 190, caps: [
+        "score = 95. Your hero walks the road and tries each gate in order, starting with >= 90.",
+        "95 >= 90 is True, so the hero goes through the first gate: grade A. The other gates are never tried.",
+        "Now the gates are in the wrong order: >= 50 comes first.",
+        "95 >= 50 is True straight away, so the hero takes the first gate: grade C. The A gate is never reached. Put the biggest limit first."],
+      body: gx.map(gate).join("") +
+        PX.live([{}, {}, { o: 0 }, { o: 0 }], labels([">= 90", ">= 70", ">= 50"], ["A", "B", "C"])) +
+        PX.live([{ o: 0 }, { o: 0 }, {}, {}], labels([">= 50", ">= 70", ">= 90"], ["C", "B", "A"])) +
+        PX.text(56, 40, "score = 95", "px-code") +
+        PX.live([{}, { x: 120, y: -4 }, {}, { x: 120, y: -4 }], PX.hero(34, gy, 0, 3)) +
+        PX.live([{ o: 0 }, {}, { o: 0 }, { o: 0 }], PX.text(156, 58, "✓ A", "px-good")) +
+        PX.live([{ o: 0 }, { o: 0 }, { o: 0 }, {}], PX.text(156, 58, "✓ C", "px-bad")) };
+  },
+
+  /* 2-3: positions in a backpack */
+  slots: () => {
+    const gy = 158, x = 110, pc = (i) => x + 8 + i * 48 + 22;
+    return { w: 420, h: 190, caps: [
+        "A list is a backpack with numbered pockets. Positions start at 0, so backpack[0] is \"map\".",
+        "Counting from the end uses negative numbers: backpack[-1] is the last pocket, \"bread\"."],
+      body: PX.bag(x, gy, ["map", "torch", "rope", "bread"], { idx: true, neg: true }) + PX.text(20, 30, "backpack", "px-code", "start") +
+        PX.live([{}, { x: pc(3) - pc(0), o: 0 }], PX.pointer(pc(0), 30, "[0]")) +
+        PX.live([{ o: 0 }, {}], PX.pointer(pc(3), 30, "[-1]")) };
+  },
+
+  /* 2-3: two names, one list */
+  alias: () => {
+    const gy = 160, x = 130;
+    const extra = PX.rect(x + 160, gy - 52, 48, 52, "#8b5a2b") + PX.rect(x + 160, gy - 4, 48, 4, "#5a3a12") + PX.pocket(x + 8 + 3 * 48, gy - 52, "4");
+    return { w: 540, h: 186, caps: [
+        "b = a doesn't copy the list. It plants a second flag at the same backpack.",
+        "So b.append(4) puts 4 into the one backpack, and a sees it too: a is now [1, 2, 3, 4].",
+        "c = a.copy() makes a new backpack with its own flag, so changing c leaves a alone."],
+      body: PX.flag(18, gy, "a") + PX.flag(70, gy, "b", "#ef7d57", "#b13e53") + PX.bag(x, gy, ["1", "2", "3"]) +
+        PX.live([{ o: 0, y: -16 }, {}, {}], extra) +
+        PX.live([{ o: 0, y: 10 }, { o: 0, y: 10 }, {}], PX.flag(366, gy, "c", "#38b764", "#257179") + `<g transform="translate(406 ${gy * 0.4}) scale(.6)">${PX.bag(0, gy, ["1", "2", "3", "4"])}</g>`) +
+        PX.live([{ o: 0 }, { o: 0 }, {}], PX.text(450, 30, "c = a.copy()", "px-code")) };
+  },
+
+  /* 2-5: return hands a value back */
+  machine: () => {
+    const gy = 160;
+    const forge = PX.rect(170, gy - 56, 80, 56, "#566c86") + PX.rect(176, gy - 50, 68, 30, "#333c57") +
+      `<g class="px-fire">${PX.rect(186, gy - 42, 12, 16, "#ef7d57")}${PX.rect(200, gy - 46, 14, 20, "#ffcd75")}${PX.rect(216, gy - 40, 12, 14, "#ef7d57")}</g>` +
+      PX.rect(164, gy - 64, 92, 8, "#94b0c2") + PX.text(210, gy - 72, "add_tax()", "px-code");
+    return { w: 420, h: 190, caps: [
+        "A function is a forge. You pass in an argument: price = 100.",
+        "The forge works on it inside, where you can't see.",
+        "return hands the answer back: 118. total = add_tax(100) plants the total flag on it. print would only show it on the screen."],
+      body: forge + PX.live([{}, { x: 120, o: 0 }, { x: 120, o: 0 }], PX.coins(80, gy, "100")) +
+        PX.live([{ o: 0, x: -50 }, { o: 0, x: -50 }, {}], PX.coins(350, gy, "118")) +
+        PX.live([{ o: 0 }, { o: 0 }, {}], PX.flag(262, gy, "total", "#38b764", "#257179") + PX.text(372, 104, "return", "px-good")) };
+  },
+
+  /* 2-7: a dict is a chest of labelled drawers */
+  drawers: () => {
+    const x = 130, gy = 166, rows = [["dosa", "40"], ["idli", "30"], ["vada", "25"]];
+    const chest = PX.rect(x, gy - 120, 120, 120, "#8b5a2b") + PX.rect(x - 4, gy - 124, 128, 6, "#5a3a12");
+    const drawer = (i, [k, v]) => {
+      const y = gy - 112 + i * 38;
+      const front = PX.rect(x + 8, y, 104, 32, "#a8743f") + PX.rect(x + 8, y + 29, 104, 3, "#5a3a12") + PX.rect(x + 26, y + 8, 68, 16, "#f4e4c1") + PX.text(x + 60, y + 20, `"${k}"`, "px-ink", "middle", false);
+      const inside = PX.sprite(["..yyyy..", ".ywyyyy.", "yyyyyyyy", ".oooooo."], x + 152, y + 10, 3) + PX.text(x + 196, y + 22, v, "px-v", "start");
+      return i === 1 ? PX.live([{ o: 0 }, {}], inside) + PX.live([{}, { x: 34 }], front) : front;
+    };
+    return { w: 420, h: 190, caps: [
+        "A dictionary is a chest of drawers, each with a label (the key): \"dosa\", \"idli\" and \"vada\".",
+        "prices[\"idli\"] opens the idli drawer straight away: 30. No searching through the others."],
+      body: chest + rows.map((r, i) => drawer(i, r)).join("") + PX.text(60, 40, "prices", "px-code") +
+        PX.live([{ o: 0 }, {}], PX.text(350, 40, "prices[\"idli\"]", "px-code")) };
+  },
+
+  /* 4-6: JOIN vs LEFT JOIN */
+  joins: () => {
+    const people = [["Asha", 10], ["Ravi", 4], ["Meera", 1]];
+    const villagers = people.map(([n, s], i) => PX.hero(24, 54 + i * 46, s, 2.5) + PX.text(64, 46 + i * 46, n, "px-t", "start")).join("");
+    const orders = [["chai", 0], ["dosa", 0], ["idli", 1]].map(([o, who], i) => `<path class="px-rope" d="M118 ${40 + who * 46}L298 ${44 + i * 46}"/>` + PX.scroll(332, 58 + i * 46, o)).join("");
+    return { w: 420, h: 214, caps: [
+        "JOIN keeps only customers whose orders match: Asha (twice) and Ravi. Meera has no orders, so she disappears from the result.",
+        "LEFT JOIN keeps every customer from the left table. Meera stays, with NULL (empty) where her order would be. That's how you find customers who never ordered."],
+      body: villagers + orders + PX.text(60, 18, "customers", "px-lbl") + PX.text(332, 18, "orders", "px-lbl") +
+        PX.live([{}, { o: 0 }], PX.text(320, 178, "Meera: left out", "px-bad")) +
+        PX.live([{ o: 0 }, {}], `<path class="px-rope px-dash" d="M118 132L298 170"/>` + PX.rect(304, 158, 56, 22, "none", 'stroke="#94b0c2" stroke-width="2" stroke-dasharray="4 3"') + PX.text(332, 174, "NULL", "px-lbl")) };
+  },
+
+  /* 7-1: where changes travel in Git */
+  git: () => {
+    const gy = 160, xs = [40, 140, 240, 340];
+    const desk = PX.rect(xs[0] - 6, gy - 24, 56, 6, "#8b5a2b") + PX.rect(xs[0], gy - 18, 6, 18, "#5a3a12") + PX.rect(xs[0] + 38, gy - 18, 6, 18, "#5a3a12");
+    const crate = PX.rect(xs[1], gy - 30, 44, 30, "#a8743f") + PX.rect(xs[1], gy - 30, 44, 4, "#5a3a12") + PX.rect(xs[1] + 20, gy - 30, 4, 30, "#8b5a2b");
+    const shelf = PX.rect(xs[2] - 4, gy - 60, 52, 60, "#5a3a12") + [0, 1, 2].map((r) => PX.rect(xs[2], gy - 56 + r * 19, 44, 14, ["#b13e53", "#3b5dc9", "#38b764"][r])).join("");
+    const cloud = PX.rect(xs[3] - 10, 40, 70, 22, "#f4f4f4") + PX.rect(xs[3], 30, 44, 12, "#f4f4f4") + PX.rect(xs[3] + 8, 22, 6, 10, "#94b0c2") + PX.rect(xs[3] + 26, 18, 8, 14, "#94b0c2") + PX.rect(xs[3] + 28, 10, 6, 6, "#b13e53");
+    const page = PX.rect(-2, -2, 22, 26, "#5a3a12") + PX.rect(0, 0, 18, 22, "#ffcd75") + PX.rect(3, 5, 12, 2, "#a8743f") + PX.rect(3, 10, 12, 2, "#a8743f") + PX.rect(3, 15, 8, 2, "#a8743f");
+    const spots = [{ x: xs[0] + 13, y: gy - 50 }, { x: xs[1] + 13, y: gy - 56 }, { x: xs[2] + 13, y: gy - 88 }, { x: xs[3] + 16, y: 44 }];
+    return { w: 420, h: 186, caps: [
+        "You change a file on your computer. Git hasn't saved anything yet.",
+        "git add puts the change in the staging crate: \"this goes in the next snapshot\".",
+        "git commit saves a snapshot on the history shelf, with a message. It's still only on your computer!",
+        "git push sends your commits up to GitHub, so others can see them."],
+      body: desk + crate + shelf + cloud + PX.text(xs[0] + 22, gy + 18, "your files", "px-lbl") + PX.text(xs[1] + 22, gy + 18, "staging", "px-lbl") + PX.text(xs[2] + 22, gy + 18, "history", "px-lbl") + PX.text(xs[3] + 25, 82, "GitHub", "px-lbl") +
+        PX.live([{ o: 0 }, {}, { o: 0.35 }, { o: 0.35 }], PX.text(xs[1] + 22, 30, "git add", "px-code")) +
+        PX.live([{ o: 0 }, { o: 0 }, {}, { o: 0.35 }], PX.text(xs[2] + 22, 30, "git commit", "px-code")) +
+        PX.live([{ o: 0 }, { o: 0 }, { o: 0 }, {}], PX.text(xs[3] + 25, 110, "git push", "px-code")) +
+        PX.live(spots, page) };
+  },
+
+  /* 8-6: a stack of plates */
+  stack: () => {
+    const gy = 166, plate = (col, dark) => PX.rect(0, 0, 110, 14, col) + PX.rect(6, 14, 98, 4, dark);
+    const at = (lvl) => ({ x: 120, y: gy - 22 - lvl * 22 });
+    const off = { x: 120, y: -30, o: 0 }, gone = { x: 290, y: 40, o: 0 };
+    return { w: 420, h: 190, caps: [
+        "append(\"red\") puts a plate on the pile.",
+        "append(\"blue\") goes on top of it…",
+        "…and append(\"green\") on top of that.",
+        "pop() always takes from the top: green comes off first. Last in, first out."],
+      body: PX.rect(100, gy - 4, 150, 4, "#94b0c2") +
+        PX.live([at(0), at(0), at(0), at(0)], plate("#b13e53", "#5d275d")) +
+        PX.live([off, at(1), at(1), at(1)], plate("#3b5dc9", "#29366f")) +
+        PX.live([off, off, at(2), gone], plate("#38b764", "#257179")) +
+        PX.live([{ o: 0 }, { o: 0 }, { o: 0 }, {}], PX.text(340, 70, "pop() → \"green\"", "px-code")) };
+  },
+
+  /* 8-7: binary search halves the row */
+  halving: () => {
+    const nums = [2, 5, 8, 12, 16, 23, 38], gy = 150, x0 = 22, step = 54;
+    const stone = (i) => { const x = x0 + i * step; return PX.rect(x, gy - 30, 44, 30, "#566c86") + PX.rect(x, gy - 30, 44, 4, "#94b0c2") + PX.text(x + 22, gy - 9, String(nums[i]), "px-t"); };
+    const fx = (i) => x0 + i * step + 20;
+    return { w: 410, h: 180, caps: [
+        "Looking for 23 in a sorted row of stones. Check the middle stone first: 12.",
+        "12 is too small, so 23 must be on the right. The whole left half is thrown away in one go.",
+        "The new middle is 23. Found it in 2 looks instead of 6."],
+      body: nums.map((_, i) => PX.live(i < 4 ? [{}, { o: 0.2, y: 6 }, { o: 0.2, y: 6 }] : [{}, {}, {}], stone(i))).join("") +
+        PX.live([{ x: fx(3) - 20 }, { x: fx(5) - 20 }, { x: fx(5) - 20 }], PX.flag(20, gy - 30, "mid", "#ef7d57", "#b13e53")) +
+        PX.live([{ o: 0 }, { o: 0 }, {}], PX.text(fx(5) + 10, 24, "found!", "px-good")) };
+  }
+};
+
+/* Which lesson cards get which picture: level id → { card index: picture }. */
+const PIC_FOR = {
+  "1-2": { 0: "tags", 1: "reassign" },
+  "1-3": { 1: "plus" },
+  "1-7": { 1: "elif" },
+  "2-3": { 1: "slots", 2: "alias" },
+  "2-5": { 2: "machine" },
+  "2-7": { 0: "drawers" },
+  "4-6": { 2: "joins" },
+  "7-1": { 1: "git" },
+  "8-6": { 0: "stack" },
+  "8-7": { 1: "halving" }
+};
+for (const L of LEVELS) for (const [i, name] of Object.entries(PIC_FOR[L.id] || {})) if (L.learn[i]) L.learn[i].pic = name;
+
+/* Markup for a card's picture. One SVG; the caption and the moving parts change with each step. */
+function picHtml(name, key) {
+  const p = PICS[name] && PICS[name]();
+  if (!p) return "";
+  const n = p.caps.length;
+  return `<figure class="pic" data-pic="${key}" data-steps="${n}" data-caps='${PX.esc(JSON.stringify(p.caps))}'>` +
+    `<div class="pic-scene" role="img" aria-label="${PX.esc(p.caps.join(" "))}">${PX.scene(p.w, p.h, p.body)}</div>` +
+    `<figcaption aria-live="polite">${PX.esc(p.caps[0])}</figcaption>` +
+    (n > 1 ? `<div class="pic-nav"><button type="button" class="btn sm" data-pp>◂ Back</button><span class="pic-count">1 / ${n}</span><button type="button" class="btn sm" data-pn>Next ▸</button><button type="button" class="btn sm ghost" data-play title="Play it again">↻ Replay</button></div>` : "") + `</figure>`;
+}
+function wirePic(fig) {
+  const n = +fig.dataset.steps, caps = JSON.parse(fig.dataset.caps), cap = fig.querySelector("figcaption");
+  if (n < 2) return;
+  const parts = [...fig.querySelectorAll(".lv")].map((g) => [g, JSON.parse(g.dataset.st)]);
+  let at = 0, timer = null;
+  const show = (i) => {
+    at = Math.max(0, Math.min(n - 1, i));
+    for (const [g, st] of parts) g.setAttribute("style", PX.st(st[Math.min(at, st.length - 1)]));
+    cap.textContent = caps[at];
+    fig.querySelector(".pic-count").textContent = `${at + 1} / ${n}`;
+    fig.querySelector("[data-pp]").disabled = at === 0;
+    fig.querySelector("[data-pn]").disabled = at === n - 1;
+  };
+  const stop = () => { clearInterval(timer); timer = null; };
+  const play = () => { stop(); show(0); timer = setInterval(() => { if (at >= n - 1) return stop(); show(at + 1); }, 2600); };
+  fig.querySelector("[data-pp]").addEventListener("click", () => { stop(); show(at - 1); });
+  fig.querySelector("[data-pn]").addEventListener("click", () => { stop(); show(at + 1); });
+  fig.querySelector("[data-play]").addEventListener("click", play);
+  show(0);
+  // Play through once by itself the first time the picture scrolls into view (not with reduced motion).
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); setTimeout(play, 700); } }, { threshold: 0.6 });
+    io.observe(fig);
+  }
 }
 
 /* Practice versions of real Python modules, so later worlds can run real-looking code in the browser.
@@ -12532,6 +13274,95 @@ function sqlFriendly(m) {
 
 const norm = (s) => String(s).replace(/ /g, " ").replace(/[ \t]+/g, " ").trim();
 
+/* ───────── Explaining output differences ─────────
+   When a printed line is close to an expected one, say exactly what differs, in words,
+   and show both lines with the differing characters highlighted. */
+function charDiff(a, b) {
+  // Longest common subsequence on characters: which chars of a and b are shared.
+  const n = a.length, m = b.length, d = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) d[i][j] = a[i] === b[j] ? d[i + 1][j + 1] + 1 : Math.max(d[i + 1][j], d[i][j + 1]);
+  const ka = new Array(n).fill(false), kb = new Array(m).fill(false);
+  let i = 0, j = 0;
+  while (i < n && j < m) { if (a[i] === b[j]) { ka[i] = kb[j] = true; i++; j++; } else if (d[i + 1][j] >= d[i][j + 1]) i++; else j++; }
+  return { ka, kb, same: d[0][0] };
+}
+function lineSimilarity(a, b) {
+  if (!a.length && !b.length) return 1;
+  if (a.length * b.length > 40000) return 0;
+  return (2 * charDiff(a, b).same) / (a.length + b.length);
+}
+function markDiff(text, keep, cls) {
+  let out = "", run = "", cur = null;
+  const flush = () => { if (run) out += cur ? `<mark class="${cls}">${escapeHtml(run).replace(/ /g, "&nbsp;")}</mark>` : escapeHtml(run); run = ""; };
+  for (let i = 0; i < text.length; i++) { const m = !keep[i]; if (cur !== null && m !== cur) flush(); cur = m; run += text[i]; }
+  flush();
+  return out;
+}
+/* Plain-English reasons a printed line differs from the expected one. */
+function diffReasons(want, got) {
+  const strip = (x) => x.replace(/[.!?:]+$/, "");
+  if (strip(want) === strip(got)) {
+    const wEnd = want.slice(strip(want).length), gEnd = got.slice(strip(got).length);
+    const name = (p) => (p === "." ? "full stop (.)" : "<b>" + escapeHtml(p) + "</b>");
+    return [!gEnd ? `it's missing the ${name(wEnd)} at the end` : !wEnd ? `it has an extra ${name(gEnd)} at the end` : `it should end with ${name(wEnd)}, not ${name(gEnd)}`];
+  }
+  if (want.toLowerCase() === got.toLowerCase()) {
+    const i = [...want].findIndex((c, k) => c !== got[k]);
+    return [`a capital letter is different: you wrote <b>${escapeHtml(got[i])}</b> where the answer has <b>${escapeHtml(want[i])}</b>`];
+  }
+  if (want.replace(/ /g, "") === got.replace(/ /g, "")) return [got.length > want.length ? "it has an extra space" : "it's missing a space"];
+  if (want.replace(/-/g, " ") === got.replace(/-/g, " ") || want.replace(/-/g, "") === got.replace(/-/g, "")) return ["check the hyphen (<b>-</b>)"];
+  if (want.toLowerCase().replace(/[^a-z0-9]/g, "") === got.toLowerCase().replace(/[^a-z0-9]/g, "")) return ["only capitals, spaces or punctuation differ: compare the highlighted characters"];
+  // Several things differ: name each kind of difference.
+  const r = [];
+  const words = (x) => x.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+  const ww = words(want), gw = words(got);
+  const missing = ww.filter((w) => !gw.includes(w)), extra = gw.filter((w) => !ww.includes(w));
+  if (missing.length) r.push(`the answer has <b>${escapeHtml(missing.slice(0, 4).join(" "))}</b>` + (extra.length ? ` where you have <b>${escapeHtml(extra.slice(0, 4).join(" "))}</b>` : ""));
+  else if (extra.length) r.push(`you have extra words: <b>${escapeHtml(extra.slice(0, 4).join(" "))}</b>`);
+  const gotWords = got.split(/\s+/);
+  const caps = want.split(/\s+/).filter((w) => /[A-Z]/.test(w) && !gotWords.includes(w) && gotWords.some((g) => g.toLowerCase() === w.toLowerCase()));
+  if (caps.length) r.push(`check the capitals in <b>${escapeHtml(caps.slice(0, 3).join(" "))}</b>`);
+  const hy = want.split(/\s+/).filter((w) => w.includes("-") && !gotWords.includes(w));
+  if (hy.length) r.push(`<b>${escapeHtml(hy[0].replace(/[.!?,]+$/, ""))}</b> has a hyphen (-)`);
+  if (/[.!?]$/.test(want) && !/[.!?]$/.test(got)) r.push(`it should end with ${want.endsWith(".") ? "a full stop (.)" : "<b>" + escapeHtml(want.slice(-1)) + "</b>"}`);
+  return r;
+}
+/* Little jokes for players who change the text on purpose. */
+const OUTPUT_JOKES = [
+  [/job.?ready in (a|one|1) (day|hour|minute|second)/i, "Job-ready in a day? Bold! The quest says 8 weeks, though."],
+  [/\b(hacked|hacker|pwned|lol|lmao|haha)\b/i, "Ha, nice try. The checker has seen it all."],
+  [/^(test|testing|asdf|qwerty)$/i, "Testing the checker? Respect. Now back to the quest."]
+];
+function lineCompareHtml(want, got) {
+  const { ka, kb } = charDiff(got, want);
+  return `<div class="diff"><div><span>yours</span><code>${markDiff(got, ka, "d-x")}</code></div><div><span>answer</span><code>${markDiff(want, kb, "d-m")}</code></div></div>`;
+}
+/* Every expected line that's missing, paired with the closest printed line that isn't already right. */
+function outputProblems(wants, lines) {
+  const left = lines.slice(), missing = [], probs = [];
+  for (const w of wants) { const j = left.indexOf(w); if (j >= 0) left.splice(j, 1); else missing.push(w); }
+  for (const w of missing) {
+    let best = -1, score = 0;
+    left.forEach((l, k) => { const sc = lineSimilarity(w, l); if (sc > score) { score = sc; best = k; } });
+    if (best >= 0 && score >= 0.5) { probs.push({ want: w, got: left[best] }); left.splice(best, 1); }
+    else probs.push({ want: w, got: null });
+  }
+  return probs;
+}
+function outputMessage(probs, total, printed) {
+  const ok = total - probs.length;
+  let head = !printed ? "Your program didn't print anything yet. " : ok ? `Your program runs, and ${ok} of ${total} lines are right. ` : "Your program runs. ";
+  const joke = probs.map((p) => p.got && OUTPUT_JOKES.find(([re]) => re.test(p.got))).find(Boolean);
+  if (joke) head = joke[1] + " " + head;
+  const items = probs.slice(0, 4).map((p) => {
+    if (!p.got) return `<li>Missing a line: <code>${escapeHtml(p.want)}</code></li>`;
+    const why = diffReasons(p.want, p.got);
+    return `<li>Close! ${why.length ? "Your line is different: " + why.join("; ") + "." : "Compare the highlighted parts."}${lineCompareHtml(p.want, p.got)}</li>`;
+  });
+  return head + (probs.length === 1 ? "One thing to fix:" : `${probs.length} things to fix:`) + `<ul class="probs">${items.join("")}</ul>` + (probs.length > 4 ? `…and ${probs.length - 4} more.` : "");
+}
+
 /* The program's printed lines, without blank lines and without the lines where input was typed.
    echo (line numbers) is exact; without it, lines equal to a prompt + answer are dropped. */
 function outputLines(out, prompts, echo, soft) {
@@ -12649,14 +13480,13 @@ async function checkOne(task, t, code) {
     fail("<code>" + escapeHtml(t.call) + "</code> should give <code>" + escapeHtml(call.want) + "</code> but gave <code>" + escapeHtml(call.value) + "</code>." +
       (call.value === "None" ? " Did the function forget to <code>return</code>?" : ""));
   }
-  for (const want of t.out || []) {
-    if (!res.pass) break;
-    if (!lines.includes(norm(want))) {
-      const close = lines.find((l) => l.toLowerCase().replace(/[^a-z0-9]/g, "") === norm(want).toLowerCase().replace(/[^a-z0-9]/g, ""));
-      fail(close
-        ? "Close! Expected <code>" + escapeHtml(want) + "</code> but got <code>" + escapeHtml(close) + "</code>. Check capitals, spaces and punctuation."
-        : "Expected a line <code>" + escapeHtml(want) + "</code>.");
+  if (res.pass && (t.out || []).length) {
+    const probs = outputProblems(t.out.map(norm), lines);
+    if (t.check === "name" && !lines.some((l) => /^My name is \S+/.test(l))) {
+      const near = lines.find((l) => /^my\s*name\s*is/i.test(l));
+      probs.push(near ? { want: near.replace(/^my\s*name\s*is/i, "My name is"), got: near } : { want: "My name is (your name)", got: null });
     }
+    if (probs.length) fail(outputMessage(probs, t.out.length + (t.check === "name" ? 1 : 0), lines.length));
   }
   if (res.pass && t.inOrder) {
     const wanted = t.out.map(norm), seq = lines.filter((l) => wanted.includes(l));
@@ -12674,9 +13504,6 @@ async function checkOne(task, t, code) {
     const extra = lines.find((l) => { const j = left.indexOf(l); if (j >= 0) { left.splice(j, 1); return false; } return true; });
     fail("Your program printed an extra line: <code>" + escapeHtml(extra == null ? "?" : extra) + "</code>. Print only <code>" + escapeHtml((t.out || []).join(" / ")) + "</code> for this case." +
       " If that line is a question for the user, put it inside <code>input(\"...\")</code>.");
-  }
-  if (res.pass && t.check === "name") {
-    if (!lines.some((l) => /^My name is \S+/.test(l))) fail("Line 2 should start with <code>My name is</code> followed by a name.");
   }
   if (res.pass && t.silent && lines.length) fail("This function should <b>return</b> its answer, not print it. Remove the <code>print()</code> inside the function.");
   for (const [name, want] of Object.entries(t.fileOut || {})) {
@@ -12858,27 +13685,56 @@ const EXPLAIN_GLUE = new Set(("the a an is are was were be it its it's to and of
   "when while you we i i'm my your our they them their he she will would can could should but for with not no as or by from " +
   "each every what which how why do does did there here has have had into than also just only one").split(" "));
 function explainWords(s) { return String(s || "").toLowerCase().replace(/[’`]/g, "'").match(/[a-z0-9_]+(?:'[a-z]+)?/g) || []; }
+/* Typos in important words shouldn't cost a pass ("retrun", "dictonary"). The important words are
+   taken from the level's key-idea patterns; a close misspelling adds the correct word for matching. */
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i].concat(new Array(b.length).fill(0)));
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+  }
+  return d[a.length][b.length];
+}
+function typoFixes(words, L) {
+  if (!L._vocab) L._vocab = [...new Set((L.explainKeys || []).flatMap(([, re]) => re.source.toLowerCase().replace(/\\./g, " ").match(/[a-z]{5,}/g) || []))];
+  const extra = [];
+  for (const w of new Set(words)) {
+    if (w.length < 5) continue;
+    for (const v of L._vocab) {
+      if (w.startsWith(v) || w[0] !== v[0]) continue;
+      const allowed = v.length >= 8 ? 2 : 1;
+      if (Math.min(editDistance(w, v), editDistance(w.slice(0, v.length), v)) <= allowed) extra.push(v);
+    }
+  }
+  return extra;
+}
+/* Returns { ok, msg, hits, got, need, kind }. hits are worked out even when the answer isn't ready
+   yet, so the page can tick key ideas live while the player types. */
 function explainCheck(text, L) {
   const t = String(text || "").trim(), words = explainWords(t);
-  const no = (msg) => ({ ok: false, msg, hits: [] });
-  if (words.length < 12) return no("A little more, please. Aim for at least 12 words.");
-  const distinct = new Set(words);
-  if (distinct.size < Math.max(8, words.length * 0.4)) return no("Lots of the same words repeated. Try explaining it in full sentences.");
-  const glue = words.filter((w) => EXPLAIN_GLUE.has(w)).length;
-  if (glue < 3 || glue < words.length * 0.12) return no("That reads like a list of words, not an explanation. Write it in sentences, as if you're telling a friend.");
-  const mash = words.filter((w) => w.length >= 5 && !/\d/.test(w) && (!/[aeiouy]/.test(w) || /[^aeiouy]{5}/.test(w))).length;
-  if (mash > words.length * 0.25) return no("Some of that doesn't look like real words. Explain it in plain sentences.");
-  const asked = new Set(explainWords(String(L.explain || "").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ")));
-  const fresh = [...distinct].filter((w) => !asked.has(w) && !EXPLAIN_GLUE.has(w));
-  if (fresh.length < 5) return no("That mostly repeats the question. Answer it in your own words: what happens, and why?");
   const keys = L.explainKeys || [];
-  const hits = keys.map(([, re]) => re.test(t));
+  const fixes = typoFixes(words, L);
+  const tt = fixes.length ? t + " " + fixes.join(" ") : t;
+  const hits = keys.map(([, re]) => re.test(tt));
   const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
   const got = hits.filter(Boolean).length;
-  if (got >= need) return { ok: true, msg: "", hits };
+  const res = (ok, kind, msg) => ({ ok, kind, msg, hits, got, need });
+  if (words.length < 5) return res(false, "short", "Tell me a little more: a sentence or two is plenty.");
+  // A common wrong idea blocks the pass, with a friendly correction, even if the key words are there.
+  for (const [re, fix] of L.explainWrong || []) if (re.test(t)) return res(false, "wrong", "Careful! " + fix);
+  const distinct = new Set(words);
+  if (distinct.size < Math.max(4, words.length * 0.4)) return res(false, "words", "Lots of the same words repeated there. Try saying it in a normal sentence.");
+  const glue = words.filter((w) => EXPLAIN_GLUE.has(w)).length;
+  if (words.length < 12 ? glue < 1 : glue < 3 || glue < words.length * 0.12) return res(false, "words", "That reads like a list of words. Say it in a sentence, as if you're telling a friend.");
+  const mash = words.filter((w) => w.length >= 5 && !/\d/.test(w) && (!/[aeiouy]/.test(w) || /[^aeiouy]{5}/.test(w))).length;
+  if (mash > words.length * 0.25) return res(false, "words", "Some of that doesn't look like real words. Try again in plain sentences.");
+  const asked = new Set(explainWords(String(L.explain || "").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ")));
+  const fresh = [...distinct].filter((w) => !asked.has(w) && !EXPLAIN_GLUE.has(w));
+  if (fresh.length < (words.length < 12 ? 3 : 5)) return res(false, "words", "That mostly repeats the question. In your own words: what happens, and why?");
+  if (got >= need) return res(true, "ok", "");
   const miss = keys.filter((_, i) => !hits[i]);
-  return { ok: false, hits, msg: `Good start, but a strong answer needs a bit more. Hint: say something about <b>${escapeHtml(miss[0][0])}</b>.` +
-    (miss.length > 1 ? ` (${got} of ${need} key ideas so far.)` : "") };
+  return res(false, "keys", `Nearly there! Say something about <b>${escapeHtml(miss[0][0])}</b>.` + (need - got > 1 ? ` (${got} of ${need} key ideas so far.)` : ""));
 }
 
 /* Code Quest — game app. */
@@ -13113,9 +13969,58 @@ function openModal(html, { onOpen, dismiss = true } = {}) {
   $$("[data-close]", bg).forEach((b) => b.addEventListener("click", closeModal));
   if (onOpen) onOpen(bg);
   fixSvgVars(bg);
-  const f = $("button, input, textarea", bg); if (f) f.focus();
+  // Open at the top: focus a text box if there is one, otherwise the dialog itself (focusing a
+  // button at the bottom would scroll the player past the start of the notice).
+  const m = $(".modal", bg);
+  m.tabIndex = -1;
+  ($("input, textarea", bg) || m).focus({ preventScroll: true });
+  m.scrollTop = 0;
+  scrollCue(m);
+}
+/* A "More below" button while a scrollable box has more to read. */
+function scrollCue(box) {
+  const cue = document.createElement("button");
+  cue.type = "button"; cue.className = "scroll-cue"; cue.textContent = "More below ↓";
+  cue.addEventListener("click", () => box.scrollBy({ top: box.clientHeight * 0.8, behavior: "smooth" }));
+  box.appendChild(cue);
+  const update = () => { cue.hidden = box.scrollHeight - box.scrollTop - box.clientHeight < 24; };
+  box.addEventListener("scroll", update, { passive: true });
+  update();
 }
 function closeModal() { $("#modalSlot").innerHTML = ""; }
+
+/* ───────── Feel-good touches ─────────
+   Small and quick, never in the way, and switched off for players who ask for reduced motion. */
+const PRAISE = {
+  code: ["All tests passed!", "Clean code! Every test passed.", "Forged! The checker is impressed.", "Every test is green. Nice work!"],
+  bug: ["Bug squashed.", "Squashed it!", "Bug gone. Real debugger instincts!"],
+  think: ["Correct!", "Yes! Spot on.", "Nailed it.", "Exactly right."]
+};
+const praise = (kind) => { const a = PRAISE[kind]; return a[(Math.random() * a.length) | 0]; };
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* A little pixel burst from an element, with optional floating text like "+25 XP". */
+function sparkle(el, text) {
+  if (!el || reducedMotion()) return;
+  const r = el.getBoundingClientRect(), wrap = document.createElement("div");
+  wrap.className = "sparkle"; wrap.setAttribute("aria-hidden", "true");
+  wrap.style.left = r.left + r.width / 2 + "px"; wrap.style.top = r.top + r.height / 2 + "px";
+  const cols = ["#F4B400", "#38b764", "#73eff7", "#ef7d57", "#f4f4f4"];
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement("i"), a = (i / 14) * Math.PI * 2, d = 26 + Math.random() * 30;
+    p.style.setProperty("--dx", Math.cos(a) * d + "px"); p.style.setProperty("--dy", Math.sin(a) * d + "px");
+    p.style.background = cols[i % cols.length];
+    wrap.appendChild(p);
+  }
+  if (text) { const t = document.createElement("b"); t.textContent = text; wrap.appendChild(t); }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 1100);
+}
+/* The hero in the top bar reacts: a hop on a pass, a puzzled tilt on a miss. */
+function heroReact(mood) {
+  const a = $("#heroChip .avatar");
+  if (!a || reducedMotion()) return;
+  a.classList.remove("hop", "puzzled"); void a.offsetWidth; a.classList.add(mood);
+}
 
 /* ───────── Confetti ───────── */
 function confetti() {
@@ -13690,13 +14595,14 @@ function stageLearn(host, L) {
     <div class="learn-grid">${L.learn.map((c, i) => {
       const lang = c.lang || task.kind || "python";
       return `
-      <article class="card lcard"><h3>${esc(c.h)}</h3><p>${c.p}</p>
+      <article class="card lcard"><h3>${esc(c.h)}</h3><p>${c.p}</p>${c.pic ? picHtml(c.pic, i) : ""}
         ${c.code != null ? `<div class="bench mini"><div class="bench-bar"><span class="file"><i></i>${esc(c.file || exampleName(lang, i))}</span>${lang !== "text" ? `<button class="btn sm ghost" data-reset="${i}" style="color:var(--code-muted)">${ICON.reset} Reset</button><button class="btn sm go" data-run="${i}">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>` : ""}</div>
         <div data-ed="${i}"></div>${lang !== "text" ? `<div class="console" data-con="${i}"></div>` : ""}</div>` : ""}
       </article>`;
     }).join("")}
     </div>
     <div class="next-row">${nextStageBtn(L, "learn")}</div>`;
+  $$("[data-pic]", host).forEach(wirePic);
   L.learn.forEach((c, i) => {
     if (c.code == null) return;
     const lang = c.lang || task.kind || "python";
@@ -13709,6 +14615,8 @@ function stageLearn(host, L) {
       else runInBench(ed, con, e.currentTarget, Object.assign(benchCtx(task), c.files ? { files: c.files } : {}, { keep: true }));
     });
     $(`[data-reset="${i}"]`, host).addEventListener("click", () => { ed.set(c.code); con.clear(); resetPractice(); });
+    $(`[data-ed="${i}"]`, host).addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); $(`[data-run="${i}"]`, host).click(); } });
+    $(`[data-run="${i}"]`, host).title = "Run (Ctrl+Enter)";
   });
   $("[data-next]", host).addEventListener("click", () => {
     if (!lv(L.id).l) { lv(L.id).l = 1; addXP(XP.learn, "Lesson read"); }
@@ -13922,7 +14830,9 @@ function stageThink(host, L) {
       checkBtn: (label, fn) => { nav.innerHTML = `<button class="btn primary" id="qCheck">${label}</button>`; $("#qCheck").addEventListener("click", fn); },
       answered: (correct) => {
         if (!s.t[qi]) { s.t[qi] = correct ? 1 : 2; addXP(correct ? XP.think : XP.thinkRetry, correct ? "Riddle solved" : "Learned from a miss"); }
-        why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? "Correct!" : "Not quite."}</b>${q.why}</div>`;
+        why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? praise("think") : "Not quite."}</b>${q.why}</div>`;
+        heroReact(correct ? "hop" : "puzzled");
+        if (correct) sparkle($("b", why));
         const last = qi === L.think.length - 1;
         nav.innerHTML = last ? nextStageBtn(L, "think") : `<button class="btn primary" id="qNext">Next riddle</button>`;
         if (last) { bindNext(host, L); afterStage(L); }
@@ -14070,6 +14980,10 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
   };
 
   const runBtn = $("#runBtn", host), checkBtn = $("#checkBtn", host);
+  runBtn.title = "Run (Ctrl+Enter)"; checkBtn.title = "Check (Ctrl+Shift+Enter)";
+  host.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); (e.shiftKey ? checkBtn : runBtn).click(); }
+  });
   runBtn.addEventListener("click", () => {
     if (lang === "sql") return runSqlBench(ed, con, task.db);
     if (lang === "html") return previewHtml(conEl, ed.get());
@@ -14103,12 +15017,15 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
       } else con.write(res.results[res.results.length - 1].out || "");
     } else con.hint("Fix the note on the left, then check again.");
     if (!res.pass) {
+      heroReact("puzzled");
       if (!isBug) { meta.fails = (meta.fails || 0) + 1; save(); drawHints(); }
       return;
     }
+    heroReact("hop");
+    sparkle(checkBtn, isBug ? "Squashed!" : "Forged!");
     if (isBug) {
       if (!s.b) { s.b = 1; addXP(XP.bug, "Bug squashed"); }
-      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>Bug squashed.</b> ${task.lesson || "Reading the error message first is the habit that makes debugging fast."}</div>`;
+      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>${praise("bug")}</b> ${task.lesson || "Reading the error message first is the habit that makes debugging fast."}</div>`;
     } else {
       const used = (meta.h || 0) + (meta.sage || 0);
       const stars = meta.rev ? 1 : Math.max(1, 3 - used);
@@ -14118,7 +15035,7 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
       if (!prev) addXP(XP.codeBase + XP.codeStar * stars, `Forge cleared · ${stars} star${stars > 1 ? "s" : ""}`);
       else if (stars > prev) addXP(XP.codeStar * (stars - prev), "More stars");
       else save();
-      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>All tests passed!</b> ${starsHtml(stars)}${stars < 3 ? "<br>Replay later without hints for three stars." : ""}${task.after ? "<br>" + task.after : ""}</div>`;
+      $("#codeMsg", host).innerHTML = `<div class="notice good"><b>${praise("code")}</b> ${starsHtml(stars)}${stars < 3 ? "<br>Replay later without hints for three stars." : ""}${task.after ? "<br>" + task.after : ""}</div>`;
       meta.h = 0; meta.sage = 0; meta.fails = 0; meta.rev = 0;
       save();
     }
@@ -14131,50 +15048,146 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
 const stageCode = (h, L) => challengeStage(h, L, "code");
 const stageBug = (h, L) => challengeStage(h, L, "bug");
 
+/* ───────── Tavern Talk ─────────
+   The innkeeper asks a question. Key ideas tick off live while the player types, a short answer is
+   fine if it covers them, and wrong ideas get a friendly correction. After passing, every key idea
+   shows its explanation (so a missed one still teaches), and rewriting a passed answer costs a star. */
+const INNKEEPER = { pal: { s: "#ffcd9e", n: "#8b5a2b", w: "#f4f4f4", g: "#38b764" }, rows: [
+  "....kkkk....", "...kssssk...", "..kssssssk..", "..ksbssbsk..", "..kssssssk..", "..knnnnnnk..",
+  "...kssssk...", "..kwwwwwwk..", ".kgwwwwwwgk.", ".kgwwwwwwgk.", "..kwwwwwwk..", "..kkkkkkkk.."] };
+function innkeeperSvg(size) {
+  const pal = Object.assign({}, PIX_BASE, INNKEEPER.pal);
+  const rects = INNKEEPER.rows.map((row, y) => [...row].map((ch, x) => ch !== "." && pal[ch] ? `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[ch]}"/>` : "").join("")).join("");
+  return `<svg viewBox="0 0 12 12" width="${size}" height="${size}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+}
+const INN_PRAISE = ["Now that's a clear answer!", "Spoken like a real developer.", "The whole tavern nods. Well explained!", "Clear and correct. An interviewer would smile at that."];
+const INN_SHORT = ["Short and right! In an interview, add one line on <i>why</i>.", "Nice and to the point. That's a strength in interviews."];
+const INN_NOTICE = ["Ooh, good point", "Yes! You covered", "Nice, that covers", "The innkeeper nods"];
+const STARTERS = ["First, Python…", "This works because…", "For example,…", "The difference is…", "If you didn't, then…"];
+const pickOne = (a) => a[(Math.random() * a.length) | 0];
+function starsToSpend() { const h = S.hero; return Math.max(0, (h.stars | 0) - (h.spent | 0)); }
+function spendStar() { if (starsToSpend() < 1) return false; S.hero.spent = (S.hero.spent | 0) + 1; save(); return true; }
+
 function stageExplain(host, L) {
   const s = lv(L.id);
   const draftKey = draftNS() + L.id + ".explain";
-  const val = s.e || lsGet(draftKey) || "";
+  const keys = L.explainKeys || [];
+  const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
+  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let locked = !!s.e;
   host.innerHTML = `
     <div class="stage-intro"><h2>Tavern Talk</h2><span class="muted">Explaining code out loud is half of every interview. Practise it here.</span></div>
     <div class="card explain-box">
-      <div class="eyebrow">The innkeeper asks</div>
-      <h3 style="font-size:18px;font-weight:600">${L.explain}</h3>
-      <p class="muted" style="font-size:14px">Write 2–4 sentences as if you're explaining it to a friend. Saying it out loud first helps.</p>
+      <div class="inn">
+        <div class="inn-face" id="innFace">${innkeeperSvg(56)}</div>
+        <div class="inn-bubble">
+          <div class="eyebrow">The innkeeper asks</div>
+          <h3>${L.explain}</h3>
+          <p class="inn-say" id="innSay" aria-live="polite">${locked ? "You've answered this one. Read what each idea means below." : "A sentence or two is plenty. Saying it out loud first helps."}</p>
+        </div>
+      </div>
+      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> ${esc(k)}</li>`).join("")}</ul></div>` : ""}
+      <div class="starters" id="starters"><span class="muted">Stuck? Start with:</span>${STARTERS.map((t) => `<button type="button" class="chip">${esc(t)}</button>`).join("")}</div>
       <label class="sr" for="expl">Your explanation</label>
-      <textarea id="expl" placeholder="In my own words…">${esc(val)}</textarea>
-      <div class="row"><span class="wc" id="wc"></span>${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Get interviewer feedback</button>` : ""}<button class="btn primary" id="saveExpl">${s.e ? "Update answer" : "Save answer"}</button></div>
+      <textarea id="expl" placeholder="In my own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
+      <div class="row">
+        <span class="wc" id="wc"></span>
+        ${Speech ? `<button class="btn" id="micBtn" type="button" title="Speak your answer. Uses your browser's speech service.">🎤 Speak</button>` : ""}
+        ${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Interviewer feedback</button>` : ""}
+        <button class="btn primary" id="saveExpl"></button>
+      </div>
       <div id="xres"></div>
       <div id="fb"></div>
     </div>
     <div class="next-row" style="max-width:760px">${levelClear(L.id) ? `<button class="btn" data-world>Back to ${esc(WORLDS[L.world - 1].name)}</button>` : ""}</div>`;
-  const ta = $("#expl"), wc = $("#wc"), xres = $("#xres");
-  // After a pass: which key ideas the answer covered, and a sample answer to compare with.
-  const showReview = (hits) => {
-    const keys = L.explainKeys || [];
-    xres.innerHTML = (keys.length ? `<div class="xcheck"><b>Key ideas a strong answer covers</b><ul>${keys.map(([k], i) =>
-      `<li class="${hits[i] ? "hit" : ""}">${hits[i] ? "✓" : "○"} ${esc(k)}</li>`).join("")}</ul></div>` : "") +
-      (L.explainModel ? `<details class="xmodel"><summary>Compare with a sample answer</summary><p>${esc(L.explainModel)}</p><p class="muted">Yours doesn't need to match it. Did you miss anything worth adding?</p></details>` : "");
+  const ta = $("#expl"), wc = $("#wc"), xres = $("#xres"), say = $("#innSay"), face = $("#innFace"), saveBtn = $("#saveExpl");
+  const react = (html) => {
+    say.innerHTML = html;
+    face.classList.remove("react"); void face.offsetWidth; face.classList.add("react");
   };
-  if (s.e) showReview(explainCheck(s.e, L).hits);
-  const count = () => { const n = (ta.value.trim().match(/\S+/g) || []).length; wc.textContent = `${n} words${n < 12 ? " · aim for at least 12" : ""}`; return n; };
-  count();
-  ta.addEventListener("input", () => { count(); lsSet(draftKey, ta.value); });
-  $("#saveExpl").addEventListener("click", () => {
+  // Live ticks: count the key ideas as the player types, and notice each new one.
+  let seen = new Set();
+  const tick = (announce) => {
     const chk = explainCheck(ta.value, L);
-    if (!chk.ok) { xres.innerHTML = `<div class="xhint">${chk.msg}</div>`; ta.focus(); return; }
-    showReview(chk.hits);
+    $$("#xlist li", host).forEach((li, i) => { li.classList.toggle("hit", !!chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○"; });
+    const c = $("#xcount"); if (c) c.textContent = `${chk.got} of ${keys.length} · aim for ${need}`;
+    const n = (ta.value.trim().match(/\S+/g) || []).length;
+    wc.textContent = n ? `${n} word${n === 1 ? "" : "s"}` : "";
+    if (announce && chk.kind === "wrong" && !locked) react(chk.msg);
+    else if (announce) {
+      const fresh = chk.hits.map((h, i) => h && !seen.has(i) ? i : -1).filter((i) => i >= 0);
+      if (fresh.length && !locked) react(`${pickOne(INN_NOTICE)}: <b>${esc(keys[fresh[0]][0])}</b>.`);
+    }
+    seen = new Set(chk.hits.map((h, i) => h ? i : -1).filter((i) => i >= 0));
+    return chk;
+  };
+  // After passing: every key idea with its explanation. Missed ones are open, so they still teach.
+  const showReview = (hits) => {
+    const answers = L.explainAnswers || [];
+    xres.innerHTML = (keys.length ? `<div class="xcheck"><b>What each key idea means</b><ul>${keys.map(([k], i) => hits[i]
+      ? `<li class="hit"><details><summary>✓ ${esc(k)}</summary><p>${esc(answers[i] || "")}</p></details></li>`
+      : `<li class="miss">○ <b>${esc(k)}</b><p>${esc(answers[i] || "")}</p></li>`).join("")}</ul></div>` : "") +
+      (L.explainModel ? `<details class="xmodel"><summary>Compare with a sample answer</summary><p>${esc(L.explainModel)}</p><p class="muted">Yours doesn't need to match it. Short and clear is great.</p></details>` : "");
+  };
+  const setLocked = (on) => {
+    locked = on;
+    ta.readOnly = on;
+    $("#starters").hidden = on;
+    saveBtn.innerHTML = on ? `Rewrite answer (1 ★ · you have ${starsToSpend()})` : s.e ? "Save new answer" : "Save answer";
+    saveBtn.title = on ? `You have ${starsToSpend()} star${starsToSpend() === 1 ? "" : "s"} to spend.` : "";
+  };
+  setLocked(locked);
+  tick(false);
+  if (s.e) showReview(explainCheck(s.e, L).hits);
+  ta.addEventListener("input", () => { tick(true); if (!locked) lsSet(draftKey, ta.value); });
+  $$("#starters .chip", host).forEach((b) => b.addEventListener("click", () => {
+    const t = b.textContent.replace(/…$/, " ");
+    const before = ta.value.trimEnd();
+    ta.value = (before ? before + (/[.!?]$/.test(before) ? " " : ". ") : "") + t;
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.dispatchEvent(new Event("input"));
+  }));
+  saveBtn.addEventListener("click", () => {
+    if (locked) {
+      if (!spendStar()) return react(`You need a star to rewrite. Clear a Forge with fewer hints to earn more. (Reading the ideas below is always free.)`);
+      setLocked(false); ta.focus();
+      return react("A fresh start! Rewrite it, then save.");
+    }
+    const chk = tick(false);
+    if (!chk.ok) { react(chk.msg); ta.focus(); return; }
+    const n = (ta.value.trim().match(/\S+/g) || []).length;
     const first = !s.e;
     s.e = ta.value.trim().slice(0, 2000);
+    showReview(chk.hits);
+    react(n < 12 ? pickOne(INN_SHORT) : pickOne(INN_PRAISE));
     if (first) addXP(XP.explain, "Explained it"); else save();
-    $("#saveExpl").textContent = "Update answer";
-    toast("Answer saved");
+    setLocked(true);
+    sparkle(saveBtn, "+XP"); heroReact("hop");
     afterStage(L);
     if (levelClear(L.id)) render();
   });
+  const mic = $("#micBtn");
+  if (mic) {
+    let rec = null;
+    mic.addEventListener("click", () => {
+      if (locked) return react("Rewrite the answer first, then you can speak a new one.");
+      if (rec) { rec.stop(); return; }
+      rec = new Speech();
+      rec.lang = navigator.language || "en-IN"; rec.continuous = true; rec.interimResults = false;
+      rec.onresult = (e) => {
+        const said = [...e.results].slice(e.resultIndex).map((r) => r[0].transcript).join(" ").trim();
+        if (said) { ta.value = (ta.value.trimEnd() + " " + said).trim(); ta.dispatchEvent(new Event("input")); }
+      };
+      rec.onend = () => { rec = null; mic.textContent = "🎤 Speak"; mic.classList.remove("live"); };
+      rec.onerror = (e) => { react(e.error === "not-allowed" ? "The browser blocked the microphone. You can allow it in the address bar, or just type." : "I couldn't hear that. Try again, or type it."); };
+      rec.start();
+      mic.textContent = "■ Stop"; mic.classList.add("live");
+      react("I'm listening… explain it like you would to a friend.");
+    });
+  }
   const fb = $("#fbBtn");
   if (fb) fb.addEventListener("click", async () => {
-    if (count() < 6) { wc.textContent = "Write a bit first, then ask for feedback."; return; }
+    if ((ta.value.trim().match(/\S+/g) || []).length < 4) return react("Write a bit first, then ask for feedback.");
     fb.disabled = true;
     const box = $("#fb");
     box.innerHTML = `<div class="sage"><b>${ICON.sage} Interviewer feedback</b><span>Reading…</span></div>`;

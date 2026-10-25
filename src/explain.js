@@ -15,7 +15,7 @@ const EXPLAIN = {
   "1-2": {
     keys: [
       ["what = really means in Python", /stor|assign|save|put|set|keep|label|box|becomes|updat|replac|not.{0,20}equal|not the same as/i],
-      ["which side Python works out first", /right side|right-hand|first|before|evaluat|works? out|calculat|old value|current value/i],
+      ["which side Python works out first", /right side|right-hand|\bright\b[^.]{0,20}\b(first|before)\b|\b(first|before)\b[^.]{0,40}(\bright\b|gold ?\+ ?25|old value|adds?)|evaluat|old value|current value|existing value|works? out (the )?(right|sum|answer|maths?|gold)/i],
       ["what happens to the old value", /new|replac|overwrit|updat|becomes|increase|goes up|more than before|adds? 25/i]
     ],
     model: "In Python, = does not mean 'is equal to'. It means 'store this value'. Python first works out the right side, gold + 25, using the old value of gold, and then stores the answer back in gold, so the new value replaces the old one."
@@ -585,7 +585,366 @@ const EXPLAIN = {
   }
 };
 
+/* For every key idea, a short plain answer the player sees after passing (so a missed idea still
+   teaches something), in the same order as the keys above. "wrong" lists classic misconceptions:
+   [pattern, friendly correction]. A match blocks the pass and shows the correction. The patterns
+   skip negated sentences ("doesn't", "not") so a correct answer that mentions the myth still passes. */
+const EXPLAIN_EXTRA = {
+  "1-1": {
+    answers: ["Quotes make it a string: text that Python prints exactly as written, so you see 5 + 5.",
+      "Without quotes, 5 + 5 is a calculation. Python works it out first and prints 10."],
+    wrong: [[/(?<!not |n't )both (of them |lines |ones )?(print|show|give)s? 10/i, "Only the one without quotes prints 10. With quotes, Python prints the text 5 + 5 exactly as written."]]
+  },
+  "1-2": {
+    answers: ["= means \"store this value under this name\". It's not the equals sign from maths (that's ==, which compares).",
+      "Python works out the right side first: gold + 25, using the old value of gold (50), which gives 75.",
+      "Then 75 is stored under the name gold. The new value replaces the old 50, which is gone."],
+    wrong: [[/(?<!not (the )?|n't (the )?)\bleft\b[^.]{0,30}\b(first|before)\b|\b(starts?|begins?) (from|on|with) the left|\bleft (side )?(to|then) (the )?right\b/i,
+      "Python works out the RIGHT side first (gold + 25, using the old value), then stores the answer in the name on the LEFT."],
+      [/(?<!not |n't |doesn't |does not |never )(=|the equals sign) (means|is) (equal|equals|the same as)/i, "In Python, = doesn't mean \"equals\". It means \"store this value under this name\". (== is the one that compares.)"]]
+  },
+  "1-3": {
+    answers: ["With quotes, \"5\" is a string: the character 5, not the number.",
+      "+ on two strings joins them side by side, so \"5\" + \"5\" gives \"55\".",
+      "+ on two numbers adds them, so 5 + 5 gives 10."]
+  },
+  "1-4": {
+    answers: ["input() always gives back a string (text), even when the person types digits like 16.",
+      "int() turns that text into a whole number, so \"16\" becomes 16.",
+      "Once it's a number you can do maths with it and compare it, like age >= 18."],
+    wrong: [[/(?<!not |n't |never )input\(?\)?[^.]{0,30}\b(gives|returns|is) (back )?(a |an )?(number|int|integer)\b/i, "input() always gives text (a string), even if the person types digits. That's exactly why we need int()."]]
+  },
+  "1-5": {
+    answers: ["// divides and keeps only the whole part: 135 // 60 is 2 full hours.",
+      "% gives the remainder, what's left over after taking out the full hours: 135 % 60 is 15.",
+      "So 135 minutes is 2 hours and 15 minutes."],
+    wrong: [[/%[^.]{0,30}\bpercent/i, "In Python, % isn't percent. It gives the remainder: what's left over after dividing."]]
+  },
+  "1-6": {
+    answers: [">= includes the exact limit, > doesn't. Someone exactly at the limit is let in by >= but turned away by >.",
+      "For a 120 cm rule, a rider who is exactly 120 cm passes height >= 120 but fails height > 120."]
+  },
+  "1-7": {
+    answers: ["Python checks from the top and stops at the first condition that's True. The rest are skipped.",
+      "If a smaller limit comes first, a high score matches it and never reaches its real branch.",
+      "With score >= 50 checked before score >= 90, a 95 gets the lower grade. The biggest limit must come first."],
+    wrong: [[/(?<!not |n't |never )\b(checks?|runs?|tests?|looks at) (all|every|each) (of the )?(conditions?|checks?|branches|elifs?)\b/i, "Python doesn't check every condition: it stops at the first one that's True and skips the rest. That's why the order matters."]]
+  },
+  "1-8": {
+    answers: ["Normal inputs show that the happy path works, like a correct password.",
+      "Edge values sit exactly on a limit, which is where > vs >= mistakes hide.",
+      "Wrong inputs, like a typo or an empty answer, check that the program refuses them safely.",
+      "Saying why you chose each test shows an interviewer that you test on purpose, not at random."]
+  },
+  "2-1": {
+    answers: ["range(1, 6) gives 1, 2, 3, 4, 5.",
+      "The stop number is never included: the range stops one before it.",
+      "For 1 to 10, use range(1, 11).",
+      "Print the numbers (or list(range(...))) and check the first and the last one."],
+    wrong: [[/(?<!not |n't |never )\b(includes?|goes up to|ends? (at|with)|stops at) 6\b/i, "The stop number is never included: range(1, 6) stops at 5."]]
+  },
+  "2-2": {
+    answers: ["Use for when you know how many times, or have a list to go through: for item in shopping_list.",
+      "Use while when you repeat until something changes and don't know how many times: ask until the password is right.",
+      "Example: for prints each item in a list; while keeps a guessing game going until the guess is correct."]
+  },
+  "2-3": {
+    answers: ["The first item is at index 0. Python counts from 0.",
+      "The last item is at len(backpack) - 1.",
+      "backpack[-1] counts from the end, so it gives the last item.",
+      "It's shorter and works for any length, so there's no off-by-one mistake with len."],
+    wrong: [[/(?<!not )\bfirst (item|one|element|thing)[^.]{0,30}\b(index|position) (is )?1\b|\bindex 1 is the first/i, "Python counts from 0, so the first item is at index 0 (and index 1 is the second)."]]
+  },
+  "2-4": {
+    answers: ["Keep one variable with the best value seen so far.",
+      "Compare each item with it, and replace it when the item is better.",
+      "Start with the first item, not 0: if every number is negative, 0 would wrongly win even though it isn't in the list."]
+  },
+  "2-5": {
+    answers: ["print only shows the value on the screen, for a person to read.",
+      "return hands the value back to the code that called the function, so it can be stored and used.",
+      "Tests can only check a value the function gives back, so they need return."],
+    wrong: [[/(?<!not |n't |never )\bprint[^.]{0,30}\b(returns?|gives back|hands back|sends back) (the )?(value|result|answer|it)\b/i, "print only shows the value on screen. It doesn't give it back to your code: that's return's job."]]
+  },
+  "2-6": {
+    answers: ["A small function can be tested on its own, so bugs are easier to find and fix.",
+      "You can reuse a function instead of copying the same code into many places.",
+      "Each function does one job with a clear name, so the program is easier to read.",
+      "In the password checker, has_digit only checks for a number, so you can test and reuse just that piece."]
+  },
+  "2-7": {
+    answers: ["A dict looks things up by a key, like a phone book: name → number.",
+      "A list keeps things in order by position, like a queue or a shopping list.",
+      "A menu with prices fits a dict (dish → price). A playlist fits a list (song 1, song 2…)."]
+  },
+  "2-8": {
+    answers: ["It stores the expenses, usually as a list where each one has an amount and a category.",
+      "Small functions, each with one job: add an expense, show the total, and main() to run the menu.",
+      "Typing abc or 0 should show a friendly message instead of crashing or saving a bad amount."]
+  },
+  "3-1": {
+    answers: ["Read the traceback from the bottom: the last line names the error.",
+      "Go to the line it points to and make a guess about the cause.",
+      "Change one thing, then run it again to see if your guess was right.",
+      "Beginners often skip reading the message and change code at random, which wastes time."]
+  },
+  "3-2": {
+    answers: ["except ValueError only catches that one error you expect, like letters typed instead of a number.",
+      "A bare except catches everything, so it also hides real bugs, like a typo that causes a NameError."],
+    wrong: [[/(?<!not |n't |never )\bbare except[^.]{0,30}\b(is |are )?(better|safer|good)\b/i, "A bare except isn't safer: it hides every error, including real bugs like typos. Name the error you expect."]]
+  },
+  "3-3": {
+    answers: ["Raise when the function is asked to do something impossible or invalid, like taking more than the balance.",
+      "A returned value like -1 or None is easy to miss, and the program carries on with a wrong number. Raising can't be ignored.",
+      "withdraw(1000) on a balance of 500 should raise ValueError, not quietly return something."]
+  },
+  "3-4": {
+    answers: ["with closes the file for you when the block ends, even if an error happens.",
+      ".strip() removes the invisible newline (\\n) at the end of each line, and extra spaces."]
+  },
+  "3-5": {
+    answers: ["\"w\" wipes the file and starts fresh: the old content is gone.",
+      "\"a\" keeps what's there and adds new lines at the end.",
+      "Use \"w\" to save a fresh report or settings, and \"a\" for a diary, a log or a high-score history."],
+    wrong: [[/(?<!not |n't |never )["']?\ba\b["']? (mode )?[^.]{0,15}\b(wipes?|deletes?|erases?|overwrites?|clears?)\b/i, "Mode \"a\" never wipes the file: it adds to the end. It's \"w\" that starts fresh."]]
+  },
+  "3-6": {
+    answers: ["After import math you write math.sqrt(16): the module name shows where sqrt comes from.",
+      "After from math import sqrt you call sqrt(16) directly. It's shorter.",
+      "Use import math when you need many functions or want clear names; from-import when you need just one or two."]
+  },
+  "3-7": {
+    answers: ["Good tests cover normal inputs and edge cases: empty, zero, negative, exactly on a limit.",
+      "Each test checks an exact expected answer, so any wrong number fails.",
+      "Each broken version gave a different answer for at least one case, so an assert failed and caught it."]
+  },
+  "3-8": {
+    answers: ["The questions file could be missing, or a line in it could have the wrong format.",
+      "Catch FileNotFoundError with a friendly message, and skip broken lines instead of crashing."]
+  },
+  "4-1": {
+    answers: ["shop[\"items\"] gives the list of items.",
+      "[1] picks the second item in that list, which is a dict.",
+      "[\"tags\"] gives that item's list of tags, and [0] picks the first tag: a string."]
+  },
+  "4-2": {
+    answers: ["JSON is a standard text format for data like lists and dicts.",
+      "Almost every language, website and API can read it, so programs can share data.",
+      "json.loads gives back real lists and dicts. Text made with str() can't be safely turned back into data."]
+  },
+  "4-3": {
+    answers: ["Your code sends a request to a URL, usually with the GET method.",
+      "The server replies with a status code: 200 means OK, 404 means not found, 500 is a server error.",
+      "The body is JSON, which .json() turns into a dict or list.",
+      "No internet, a bad status code, or a missing key in the data. Check each one."]
+  },
+  "4-4": {
+    answers: ["SELECT picks which columns you want, like name and price.",
+      "FROM says which table to read.",
+      "WHERE keeps only the rows that match a condition, like category = 'snacks'.",
+      "ORDER BY sorts the results, like by price, cheapest first.",
+      "A second shop with different data makes sure the query really works, not just copies one answer."]
+  },
+  "4-5": {
+    answers: ["WHERE filters single rows before they're grouped.",
+      "HAVING filters whole groups after GROUP BY, using totals like COUNT or SUM.",
+      "Example: categories with more than two items need GROUP BY category and HAVING COUNT(*) > 2."],
+    wrong: [[/(?<!not |n't )\bwhere[^.]{0,30}\b(filters|works on|is for) (the )?groups\b|\bhaving[^.]{0,30}\b(filters|works on|is for) (single |each |individual )?rows\b/i, "It's the other way round: WHERE filters single rows before grouping, and HAVING filters groups after GROUP BY."]]
+  },
+  "4-6": {
+    answers: ["A JOIN keeps only rows that match in both tables: customers who have ordered.",
+      "A LEFT JOIN keeps every row from the left table, even with no match, and fills the gaps with NULL.",
+      "Use JOIN for orders with their customers; LEFT JOIN to find customers who never ordered."],
+    wrong: [[/(?<!not |n't )\bleft join[^.]{0,40}\bonly (shows |keeps |gives |returns )?(the )?(match|rows that match)/i, "A LEFT JOIN keeps every row from the left table, even ones with no match. It's the plain JOIN that keeps only matches."]]
+  },
+  "4-7": {
+    answers: ["The attacker types into a normal box, like the username or password field on a login form.",
+      "If the code glues their text into the SQL, it can change what the query does, like logging in without a password.",
+      "With ? placeholders, the data is sent separately from the query, so it's always treated as plain text, never as SQL."],
+    wrong: [[/(?<!not |n't |don't |doesn't )\bplaceholders?[^.]{0,30}\b(hides?|encrypts?|hashes?|scrambles?)\b/i, "Placeholders don't hide or encrypt anything. They send the data separately from the query, so it can never run as SQL."]]
+  },
+  "4-8": {
+    answers: ["Two tables: habits (id and name) and checkins (habit id and the day it was done).",
+      "UNIQUE on the name stops the same habit being added twice.",
+      "Start at today and count back one day at a time until a day has no check-in."]
+  },
+  "5-1": {
+    answers: ["The browser sends a request to the server for that URL.",
+      "The method says what you want: GET means \"give me this page\".",
+      "The server sends back a response: a status code plus the content.",
+      "The status code says how it went: 200 OK, 404 not found.",
+      "The response contains HTML, and the browser draws it as the page you see."]
+  },
+  "5-2": {
+    answers: ["Screen readers can announce real headings and lists to blind users.",
+      "Search engines and other programs understand what each part of the page is.",
+      "How it looks belongs in CSS, so the design can change without changing the meaning."]
+  },
+  "5-3": {
+    answers: ["HTML checks run in the user's browser, so anyone can remove them with developer tools or send a request directly.",
+      "Only the server is under your control, so it must check the data again before trusting it."],
+    wrong: [[/(?<!not |n't |never )\b(required|html (checks?|validation)|minlength)[^.]{0,40}\b(is|are) (enough|safe|sufficient)\b/i, "The HTML checks aren't enough on their own: anyone can skip them by sending a request directly. The server must check too."]]
+  },
+  "5-4": {
+    answers: ["Flask matches the visited URL against the route pattern /hello/<name>.",
+      "The part after /hello/ (Asha) is passed in as the name variable.",
+      "Flask calls your function for you, with name = \"Asha\".",
+      "Whatever the function returns is sent back to the browser as the response."]
+  },
+  "5-5": {
+    answers: ["GET /api/menu lists every item; GET /api/menu/3 gets one item.",
+      "Query arguments filter the list: ?veg=true and ?max_price=30.",
+      "Errors use status codes with a JSON message: 404 for a missing item, 400 for a bad filter."]
+  },
+  "5-6": {
+    answers: ["Anyone can send anything: missing fields, empty text, the wrong type, or a huge message.",
+      "Unchecked data can crash the code (a 500 error), store junk, or open the door to attacks."]
+  },
+  "5-7": {
+    answers: ["XSS is when someone's text contains HTML or a script that runs in other people's browsers.",
+      "Escaping turns characters like < into &lt;, so the browser shows them as text instead of running them.",
+      "Code gets pushed to GitHub and shared, so a key written in it can be found and stolen.",
+      "Environment variables live outside the code, set on each computer or server."],
+    wrong: [[/(?<!not |n't |never )\bescap\w*[^.]{0,30}\b(deletes?|removes?|blocks?) (the )?(text|message|script|comment)\b/i, "Escaping doesn't delete anything: it turns < and > into safe codes, so the text shows on the page instead of running."]]
+  },
+  "5-8": {
+    answers: ["Routes like GET / for the page and POST /api/entries to add, with 201 when it works and 400 when it's invalid.",
+      "Messages are stored in a SQLite table with an id, a name and a message.",
+      "Escaping every message before showing it stops XSS.",
+      "? placeholders stop SQL injection, and the server validates every field."]
+  },
+  "6-1": {
+    answers: ["Name a real group of people, like college students who forget deadlines.",
+      "Say the annoyance in one sentence: what's hard or slow for them today.",
+      "Pick only 2–3 must-have features for version 1. Everything else waits."]
+  },
+  "6-2": {
+    answers: ["Use at least two of: list, dict, set, tuple.",
+      "Lists keep order; dicts look up by key; sets remove duplicates; tuples hold values that never change.",
+      "Give a because for each choice. The reasons are what interviewers listen for."]
+  },
+  "6-3": {
+    answers: ["self is the object the method is working on, here acc.",
+      "Python passes acc in automatically as the first argument, self.",
+      "So you only give the second one: 500 goes into amount."],
+    wrong: [[/(?<!not |n't )\bself (is|means) (the )?(class|function|method)\b/i, "self isn't the class: it's the one object the method is working on, like acc."]]
+  },
+  "6-4": {
+    answers: ["Inheritance means \"is a\": a child class is a kind of its parent and reuses its code.",
+      "Composition means \"has a\": one object holds another as an attribute, like a Planner has a list of tasks.",
+      "Pick one real example of each from your own project idea."]
+  },
+  "6-5": {
+    answers: ["Clear names, no magic numbers, small functions, and a table plus a loop instead of a long if-chain.",
+      "The hidden tests gave the same results before and after, which proved nothing broke."]
+  },
+  "6-6": {
+    answers: ["Months have different lengths, and leap years add February 29.",
+      "datetime already knows the calendar, so date + timedelta(days=7) is always right.",
+      "By hand, January 28 + 7 days might give \"January 35\". datetime gives February 4."]
+  },
+  "6-7": {
+    answers: ["Empty text, spaces, the ₹ symbol, commas like 1,200, negatives and letters.",
+      "Say which was hardest and why. Commas are a common one, because removing them mustn't break decimals.",
+      "Clean the text step by step (strip, replace), convert with float, and raise ValueError for anything left over."]
+  },
+  "6-8": {
+    answers: ["Task holds one task's details; Planner manages the list. Each class has one job.",
+      "Each Task becomes a dict (to_dict), the planner saves the list as JSON, and from_dict loads it back.",
+      "A missing save file, an empty title and duplicate tasks."]
+  },
+  "7-1": {
+    answers: ["git add picks which changes go into the next snapshot (the staging area).",
+      "git commit saves that snapshot on your computer, with a message.",
+      "git push uploads your commits to GitHub so others can see them."],
+    wrong: [[/(?<!not |n't |never |doesn't |does not )\bcommit\w*[^.]{0,40}\b(uploads?|sends?|puts?|saves?) [^.]{0,15}\b(github|online|remote|cloud|internet)\b/i, "A commit only saves on your computer. git push is what uploads it to GitHub."]]
+  },
+  "7-2": {
+    answers: ["Two people change the same lines of the same file on different branches.",
+      "Git can't decide which version is right, so it marks both and asks you.",
+      "Talk to your teammate, keep the right lines, remove the <<< === >>> markers, run the tests, then commit."]
+  },
+  "7-3": {
+    answers: ["Write a failing test first, then just enough code to pass it, then tidy up.",
+      "You decide exactly what \"done\" means before coding, and the tests catch it if you break it later.",
+      "For a quick experiment, when you don't know yet what you want to build."],
+    wrong: [[/(?<!not |n't |never )\b(write|writing|code) (the )?(code|program) (first|before)[^.]{0,30}\btests?\b/i, "In TDD the test comes first: write a failing test, then the code to make it pass."]]
+  },
+  "7-4": {
+    answers: ["One line on what it is: a web app, a tool, a game.",
+      "Who it's for: the people who have the problem.",
+      "Why you built it: the real annoyance that started it."]
+  },
+  "7-5": {
+    answers: ["Secrets in code get pushed and shared, and stay in the Git history even after you delete them.",
+      "Settings like debug mode and database paths differ between your laptop and the server, so read them from the environment.",
+      ".env, venv/, __pycache__/ and local database files go in .gitignore."]
+  },
+  "7-6": {
+    answers: ["Run it before every commit and push, as a habit or a Git hook.",
+      "Secrets that don't match its patterns, a password split across lines, or secrets already in the Git history."]
+  },
+  "7-7": {
+    answers: ["Run it, with tests that include edge cases.",
+      "Read every line until you can explain what it does.",
+      "Check for security problems and for made-up functions or libraries.",
+      "AI code can look confident and still be wrong, and once you use it, it's your code."]
+  },
+  "7-8": {
+    answers: ["All tests must pass first.",
+      "Run the secret scanner: no keys or passwords in the code.",
+      "Update the README and commit with a clear message.",
+      "Deploy, then open the live site and check it works.",
+      "Tests and the secret scan are must-pass: broken apps hurt users, and a leaked key can't be taken back."]
+  },
+  "8-1": {
+    answers: ["Understand (say it back), Match a pattern, Plan, Implement, Review with an example, Evaluate the Big-O.",
+      "What should an empty list or one number give? Do repeats like [5, 5, 3] count once?",
+      "An empty list, one number, all the same, repeats, and negative numbers."]
+  },
+  "8-2": {
+    answers: ["The dict maps each number seen so far to its position.",
+      "For each number n, the partner you need is target - n. Look it up in the dict.",
+      "One pass with O(1) look-ups is O(n), instead of O(n²) for checking every pair."]
+  },
+  "8-3": {
+    answers: ["One pointer at the start (smallest), one at the end (biggest).",
+      "Sum too small: move left up. Too big: move right down.",
+      "The list is sorted, so a number that can't reach the target even with the biggest partner can be safely dropped."],
+    wrong: [[/(?<!it )\b(doesn't|does not|don't|do not) need[^.]{0,20}\bsort/i, "Two pointers needs a sorted list: that's what makes moving a pointer predictably raise or lower the sum."]]
+  },
+  "8-4": {
+    answers: ["First count every character in one pass, with a dict or Counter.",
+      "Then walk the string again and return the position of the first character with count 1.",
+      "s.count(ch) reads the whole string every time, so inside a loop it becomes O(n²)."]
+  },
+  "8-5": {
+    answers: ["The starter is O(n²): a loop with a hidden loop inside it.",
+      "The set version is O(n): one pass with O(1) checks.",
+      "tickets[:i] copies a slice and `in` searches it, on every lap.",
+      "Extra memory for the set, in exchange for much more speed."]
+  },
+  "8-6": {
+    answers: ["Every opening bracket is pushed onto the stack.",
+      "A closing bracket pops the top, which must be its partner.",
+      "In ([)], the ) arrives while [ is on top: not its partner, so it's False right there.",
+      "At the end the stack must be empty, or something was left open."],
+    wrong: [[/(?<!not |n't )\bstack (is|means|works like) (a )?(first in,? first out|fifo|queue)/i, "A stack is last in, first out: the newest item comes off first. First in, first out is a queue."]]
+  },
+  "8-7": {
+    answers: ["Each guess is the middle, so every answer throws away half of what's left.",
+      "2 to the power 20 is more than a million, so 20 halvings always get down to one number.",
+      "< skips the last candidate, and high = mid can stop the range shrinking, so the loop gets stuck."]
+  },
+  "8-8": {
+    answers: ["Name the pattern: a dict of groups, a set, or counting then sorting.",
+      "Walk through the steps in order, like you did in the code.",
+      "Empty input, duplicates, ties and negative numbers.",
+      "Say the time and space: for example O(n) with a set, or O(n log n) because of sorting."]
+  }
+};
+
 for (const L of LEVELS) {
-  const x = EXPLAIN[L.id];
-  if (x) Object.assign(L, { explainKeys: x.keys, explainNeed: x.need, explainModel: x.model });
+  const x = EXPLAIN[L.id], y = EXPLAIN_EXTRA[L.id] || {};
+  if (x) Object.assign(L, { explainKeys: x.keys, explainNeed: x.need, explainModel: x.model, explainAnswers: y.answers || [], explainWrong: y.wrong || [] });
 }

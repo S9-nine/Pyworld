@@ -235,6 +235,95 @@ function sqlFriendly(m) {
 
 const norm = (s) => String(s).replace(/ /g, " ").replace(/[ \t]+/g, " ").trim();
 
+/* ───────── Explaining output differences ─────────
+   When a printed line is close to an expected one, say exactly what differs, in words,
+   and show both lines with the differing characters highlighted. */
+function charDiff(a, b) {
+  // Longest common subsequence on characters: which chars of a and b are shared.
+  const n = a.length, m = b.length, d = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) d[i][j] = a[i] === b[j] ? d[i + 1][j + 1] + 1 : Math.max(d[i + 1][j], d[i][j + 1]);
+  const ka = new Array(n).fill(false), kb = new Array(m).fill(false);
+  let i = 0, j = 0;
+  while (i < n && j < m) { if (a[i] === b[j]) { ka[i] = kb[j] = true; i++; j++; } else if (d[i + 1][j] >= d[i][j + 1]) i++; else j++; }
+  return { ka, kb, same: d[0][0] };
+}
+function lineSimilarity(a, b) {
+  if (!a.length && !b.length) return 1;
+  if (a.length * b.length > 40000) return 0;
+  return (2 * charDiff(a, b).same) / (a.length + b.length);
+}
+function markDiff(text, keep, cls) {
+  let out = "", run = "", cur = null;
+  const flush = () => { if (run) out += cur ? `<mark class="${cls}">${escapeHtml(run).replace(/ /g, "&nbsp;")}</mark>` : escapeHtml(run); run = ""; };
+  for (let i = 0; i < text.length; i++) { const m = !keep[i]; if (cur !== null && m !== cur) flush(); cur = m; run += text[i]; }
+  flush();
+  return out;
+}
+/* Plain-English reasons a printed line differs from the expected one. */
+function diffReasons(want, got) {
+  const strip = (x) => x.replace(/[.!?:]+$/, "");
+  if (strip(want) === strip(got)) {
+    const wEnd = want.slice(strip(want).length), gEnd = got.slice(strip(got).length);
+    const name = (p) => (p === "." ? "full stop (.)" : "<b>" + escapeHtml(p) + "</b>");
+    return [!gEnd ? `it's missing the ${name(wEnd)} at the end` : !wEnd ? `it has an extra ${name(gEnd)} at the end` : `it should end with ${name(wEnd)}, not ${name(gEnd)}`];
+  }
+  if (want.toLowerCase() === got.toLowerCase()) {
+    const i = [...want].findIndex((c, k) => c !== got[k]);
+    return [`a capital letter is different: you wrote <b>${escapeHtml(got[i])}</b> where the answer has <b>${escapeHtml(want[i])}</b>`];
+  }
+  if (want.replace(/ /g, "") === got.replace(/ /g, "")) return [got.length > want.length ? "it has an extra space" : "it's missing a space"];
+  if (want.replace(/-/g, " ") === got.replace(/-/g, " ") || want.replace(/-/g, "") === got.replace(/-/g, "")) return ["check the hyphen (<b>-</b>)"];
+  if (want.toLowerCase().replace(/[^a-z0-9]/g, "") === got.toLowerCase().replace(/[^a-z0-9]/g, "")) return ["only capitals, spaces or punctuation differ: compare the highlighted characters"];
+  // Several things differ: name each kind of difference.
+  const r = [];
+  const words = (x) => x.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+  const ww = words(want), gw = words(got);
+  const missing = ww.filter((w) => !gw.includes(w)), extra = gw.filter((w) => !ww.includes(w));
+  if (missing.length) r.push(`the answer has <b>${escapeHtml(missing.slice(0, 4).join(" "))}</b>` + (extra.length ? ` where you have <b>${escapeHtml(extra.slice(0, 4).join(" "))}</b>` : ""));
+  else if (extra.length) r.push(`you have extra words: <b>${escapeHtml(extra.slice(0, 4).join(" "))}</b>`);
+  const gotWords = got.split(/\s+/);
+  const caps = want.split(/\s+/).filter((w) => /[A-Z]/.test(w) && !gotWords.includes(w) && gotWords.some((g) => g.toLowerCase() === w.toLowerCase()));
+  if (caps.length) r.push(`check the capitals in <b>${escapeHtml(caps.slice(0, 3).join(" "))}</b>`);
+  const hy = want.split(/\s+/).filter((w) => w.includes("-") && !gotWords.includes(w));
+  if (hy.length) r.push(`<b>${escapeHtml(hy[0].replace(/[.!?,]+$/, ""))}</b> has a hyphen (-)`);
+  if (/[.!?]$/.test(want) && !/[.!?]$/.test(got)) r.push(`it should end with ${want.endsWith(".") ? "a full stop (.)" : "<b>" + escapeHtml(want.slice(-1)) + "</b>"}`);
+  return r;
+}
+/* Little jokes for players who change the text on purpose. */
+const OUTPUT_JOKES = [
+  [/job.?ready in (a|one|1) (day|hour|minute|second)/i, "Job-ready in a day? Bold! The quest says 8 weeks, though."],
+  [/\b(hacked|hacker|pwned|lol|lmao|haha)\b/i, "Ha, nice try. The checker has seen it all."],
+  [/^(test|testing|asdf|qwerty)$/i, "Testing the checker? Respect. Now back to the quest."]
+];
+function lineCompareHtml(want, got) {
+  const { ka, kb } = charDiff(got, want);
+  return `<div class="diff"><div><span>yours</span><code>${markDiff(got, ka, "d-x")}</code></div><div><span>answer</span><code>${markDiff(want, kb, "d-m")}</code></div></div>`;
+}
+/* Every expected line that's missing, paired with the closest printed line that isn't already right. */
+function outputProblems(wants, lines) {
+  const left = lines.slice(), missing = [], probs = [];
+  for (const w of wants) { const j = left.indexOf(w); if (j >= 0) left.splice(j, 1); else missing.push(w); }
+  for (const w of missing) {
+    let best = -1, score = 0;
+    left.forEach((l, k) => { const sc = lineSimilarity(w, l); if (sc > score) { score = sc; best = k; } });
+    if (best >= 0 && score >= 0.5) { probs.push({ want: w, got: left[best] }); left.splice(best, 1); }
+    else probs.push({ want: w, got: null });
+  }
+  return probs;
+}
+function outputMessage(probs, total, printed) {
+  const ok = total - probs.length;
+  let head = !printed ? "Your program didn't print anything yet. " : ok ? `Your program runs, and ${ok} of ${total} lines are right. ` : "Your program runs. ";
+  const joke = probs.map((p) => p.got && OUTPUT_JOKES.find(([re]) => re.test(p.got))).find(Boolean);
+  if (joke) head = joke[1] + " " + head;
+  const items = probs.slice(0, 4).map((p) => {
+    if (!p.got) return `<li>Missing a line: <code>${escapeHtml(p.want)}</code></li>`;
+    const why = diffReasons(p.want, p.got);
+    return `<li>Close! ${why.length ? "Your line is different: " + why.join("; ") + "." : "Compare the highlighted parts."}${lineCompareHtml(p.want, p.got)}</li>`;
+  });
+  return head + (probs.length === 1 ? "One thing to fix:" : `${probs.length} things to fix:`) + `<ul class="probs">${items.join("")}</ul>` + (probs.length > 4 ? `…and ${probs.length - 4} more.` : "");
+}
+
 /* The program's printed lines, without blank lines and without the lines where input was typed.
    echo (line numbers) is exact; without it, lines equal to a prompt + answer are dropped. */
 function outputLines(out, prompts, echo, soft) {
@@ -352,14 +441,13 @@ async function checkOne(task, t, code) {
     fail("<code>" + escapeHtml(t.call) + "</code> should give <code>" + escapeHtml(call.want) + "</code> but gave <code>" + escapeHtml(call.value) + "</code>." +
       (call.value === "None" ? " Did the function forget to <code>return</code>?" : ""));
   }
-  for (const want of t.out || []) {
-    if (!res.pass) break;
-    if (!lines.includes(norm(want))) {
-      const close = lines.find((l) => l.toLowerCase().replace(/[^a-z0-9]/g, "") === norm(want).toLowerCase().replace(/[^a-z0-9]/g, ""));
-      fail(close
-        ? "Close! Expected <code>" + escapeHtml(want) + "</code> but got <code>" + escapeHtml(close) + "</code>. Check capitals, spaces and punctuation."
-        : "Expected a line <code>" + escapeHtml(want) + "</code>.");
+  if (res.pass && (t.out || []).length) {
+    const probs = outputProblems(t.out.map(norm), lines);
+    if (t.check === "name" && !lines.some((l) => /^My name is \S+/.test(l))) {
+      const near = lines.find((l) => /^my\s*name\s*is/i.test(l));
+      probs.push(near ? { want: near.replace(/^my\s*name\s*is/i, "My name is"), got: near } : { want: "My name is (your name)", got: null });
     }
+    if (probs.length) fail(outputMessage(probs, t.out.length + (t.check === "name" ? 1 : 0), lines.length));
   }
   if (res.pass && t.inOrder) {
     const wanted = t.out.map(norm), seq = lines.filter((l) => wanted.includes(l));
@@ -377,9 +465,6 @@ async function checkOne(task, t, code) {
     const extra = lines.find((l) => { const j = left.indexOf(l); if (j >= 0) { left.splice(j, 1); return false; } return true; });
     fail("Your program printed an extra line: <code>" + escapeHtml(extra == null ? "?" : extra) + "</code>. Print only <code>" + escapeHtml((t.out || []).join(" / ")) + "</code> for this case." +
       " If that line is a question for the user, put it inside <code>input(\"...\")</code>.");
-  }
-  if (res.pass && t.check === "name") {
-    if (!lines.some((l) => /^My name is \S+/.test(l))) fail("Line 2 should start with <code>My name is</code> followed by a name.");
   }
   if (res.pass && t.silent && lines.length) fail("This function should <b>return</b> its answer, not print it. Remove the <code>print()</code> inside the function.");
   for (const [name, want] of Object.entries(t.fileOut || {})) {
@@ -561,25 +646,54 @@ const EXPLAIN_GLUE = new Set(("the a an is are was were be it its it's to and of
   "when while you we i i'm my your our they them their he she will would can could should but for with not no as or by from " +
   "each every what which how why do does did there here has have had into than also just only one").split(" "));
 function explainWords(s) { return String(s || "").toLowerCase().replace(/[’`]/g, "'").match(/[a-z0-9_]+(?:'[a-z]+)?/g) || []; }
+/* Typos in important words shouldn't cost a pass ("retrun", "dictonary"). The important words are
+   taken from the level's key-idea patterns; a close misspelling adds the correct word for matching. */
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i].concat(new Array(b.length).fill(0)));
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+  }
+  return d[a.length][b.length];
+}
+function typoFixes(words, L) {
+  if (!L._vocab) L._vocab = [...new Set((L.explainKeys || []).flatMap(([, re]) => re.source.toLowerCase().replace(/\\./g, " ").match(/[a-z]{5,}/g) || []))];
+  const extra = [];
+  for (const w of new Set(words)) {
+    if (w.length < 5) continue;
+    for (const v of L._vocab) {
+      if (w.startsWith(v) || w[0] !== v[0]) continue;
+      const allowed = v.length >= 8 ? 2 : 1;
+      if (Math.min(editDistance(w, v), editDistance(w.slice(0, v.length), v)) <= allowed) extra.push(v);
+    }
+  }
+  return extra;
+}
+/* Returns { ok, msg, hits, got, need, kind }. hits are worked out even when the answer isn't ready
+   yet, so the page can tick key ideas live while the player types. */
 function explainCheck(text, L) {
   const t = String(text || "").trim(), words = explainWords(t);
-  const no = (msg) => ({ ok: false, msg, hits: [] });
-  if (words.length < 12) return no("A little more, please. Aim for at least 12 words.");
-  const distinct = new Set(words);
-  if (distinct.size < Math.max(8, words.length * 0.4)) return no("Lots of the same words repeated. Try explaining it in full sentences.");
-  const glue = words.filter((w) => EXPLAIN_GLUE.has(w)).length;
-  if (glue < 3 || glue < words.length * 0.12) return no("That reads like a list of words, not an explanation. Write it in sentences, as if you're telling a friend.");
-  const mash = words.filter((w) => w.length >= 5 && !/\d/.test(w) && (!/[aeiouy]/.test(w) || /[^aeiouy]{5}/.test(w))).length;
-  if (mash > words.length * 0.25) return no("Some of that doesn't look like real words. Explain it in plain sentences.");
-  const asked = new Set(explainWords(String(L.explain || "").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ")));
-  const fresh = [...distinct].filter((w) => !asked.has(w) && !EXPLAIN_GLUE.has(w));
-  if (fresh.length < 5) return no("That mostly repeats the question. Answer it in your own words: what happens, and why?");
   const keys = L.explainKeys || [];
-  const hits = keys.map(([, re]) => re.test(t));
+  const fixes = typoFixes(words, L);
+  const tt = fixes.length ? t + " " + fixes.join(" ") : t;
+  const hits = keys.map(([, re]) => re.test(tt));
   const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
   const got = hits.filter(Boolean).length;
-  if (got >= need) return { ok: true, msg: "", hits };
+  const res = (ok, kind, msg) => ({ ok, kind, msg, hits, got, need });
+  if (words.length < 5) return res(false, "short", "Tell me a little more: a sentence or two is plenty.");
+  // A common wrong idea blocks the pass, with a friendly correction, even if the key words are there.
+  for (const [re, fix] of L.explainWrong || []) if (re.test(t)) return res(false, "wrong", "Careful! " + fix);
+  const distinct = new Set(words);
+  if (distinct.size < Math.max(4, words.length * 0.4)) return res(false, "words", "Lots of the same words repeated there. Try saying it in a normal sentence.");
+  const glue = words.filter((w) => EXPLAIN_GLUE.has(w)).length;
+  if (words.length < 12 ? glue < 1 : glue < 3 || glue < words.length * 0.12) return res(false, "words", "That reads like a list of words. Say it in a sentence, as if you're telling a friend.");
+  const mash = words.filter((w) => w.length >= 5 && !/\d/.test(w) && (!/[aeiouy]/.test(w) || /[^aeiouy]{5}/.test(w))).length;
+  if (mash > words.length * 0.25) return res(false, "words", "Some of that doesn't look like real words. Try again in plain sentences.");
+  const asked = new Set(explainWords(String(L.explain || "").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;/g, " ")));
+  const fresh = [...distinct].filter((w) => !asked.has(w) && !EXPLAIN_GLUE.has(w));
+  if (fresh.length < (words.length < 12 ? 3 : 5)) return res(false, "words", "That mostly repeats the question. In your own words: what happens, and why?");
+  if (got >= need) return res(true, "ok", "");
   const miss = keys.filter((_, i) => !hits[i]);
-  return { ok: false, hits, msg: `Good start, but a strong answer needs a bit more. Hint: say something about <b>${escapeHtml(miss[0][0])}</b>.` +
-    (miss.length > 1 ? ` (${got} of ${need} key ideas so far.)` : "") };
+  return res(false, "keys", `Nearly there! Say something about <b>${escapeHtml(miss[0][0])}</b>.` + (need - got > 1 ? ` (${got} of ${need} key ideas so far.)` : ""));
 }

@@ -163,3 +163,88 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .xmodel { margin-top: 10px; font-size: 14px; }
 .xmodel summary { cursor: pointer; font-weight: 600; }
 .xmodel p { margin: 6px 0 0; }
+
+/* "More below" cue inside long notices */
+.scroll-cue { position: sticky; bottom: 0; justify-self: center; margin-top: -8px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 -10px 18px var(--surface); }
+.scroll-cue[hidden] { display: none; }
+
+/* Output differences in test results */
+.probs { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+.diff { margin-top: 6px; display: grid; gap: 3px; font-size: 13px; }
+.diff > div { display: flex; gap: 8px; align-items: baseline; }
+.diff span { min-width: 52px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; opacity: .75; }
+.diff code { white-space: pre-wrap; word-break: break-word; }
+.diff mark { border-radius: 3px; padding: 0 1px; color: inherit; }
+.diff mark.d-x { background: rgb(219 79 59 / .45); text-decoration: line-through; text-decoration-thickness: 1px; }
+.diff mark.d-m { background: rgb(35 132 90 / .55); }
+
+/* Tavern Talk: innkeeper, live key ideas, starters */
+.inn { display: flex; gap: 14px; align-items: flex-start; }
+.inn-face { flex: 0 0 auto; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.inn-face.react { animation: inn-bob .45s ease; }
+@keyframes inn-bob { 30% { transform: translateY(-6px); } 60% { transform: translateY(0); } 80% { transform: translateY(-2px); } }
+.inn-bubble { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.inn-bubble h3 { font-size: 18px; font-weight: 600; }
+.inn-say { margin: 0; padding: 8px 12px; border-radius: 10px; background: var(--sun-soft); color: var(--ink); font-size: 14px; border-left: 3px solid var(--sun); }
+.xlive { margin-top: 4px; font-size: 14px; }
+.xlive-head { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.xlive-head span { font-size: 12px; opacity: .75; }
+.xlive ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 3px; }
+.xlive li { opacity: .7; transition: color .2s, opacity .2s; }
+.xlive li.hit { opacity: 1; color: var(--grass); font-weight: 600; }
+.starters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+.starters[hidden] { display: none; }
+.chip { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.chip:hover { border-color: var(--sun); }
+#micBtn.live { border-color: var(--danger); color: var(--danger); }
+.explain-box textarea[readonly] { opacity: .8; }
+.xcheck li.miss { opacity: 1; }
+.xcheck li p, .xcheck li details p { margin: 2px 0 0 18px; font-weight: 400; color: var(--ink); opacity: .9; }
+.xcheck li.hit summary { cursor: pointer; }
+@media (max-width: 560px) { .inn-face { width: 48px; height: 48px; } .inn-face svg { width: 40px; height: 40px; } }
+@media (prefers-reduced-motion: reduce) { .inn-face.react { animation: none; } }
+
+/* Feel-good touches */
+.sparkle { position: fixed; z-index: 80; pointer-events: none; width: 0; height: 0; }
+.sparkle i { position: absolute; width: 6px; height: 6px; left: -3px; top: -3px; animation: spark .7s ease-out forwards; }
+.sparkle b { position: absolute; left: 50%; top: -18px; transform: translateX(-50%); white-space: nowrap; font: 700 15px var(--font-display); color: var(--sun); text-shadow: 0 2px 0 rgb(0 0 0 / .35); animation: spark-up 1s ease-out forwards; }
+@keyframes spark { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+@keyframes spark-up { from { opacity: 0; transform: translate(-50%, 6px); } 25% { opacity: 1; } to { opacity: 0; transform: translate(-50%, -30px); } }
+.avatar.hop { animation: hero-hop .5s ease; }
+.avatar.puzzled { animation: hero-tilt .6s ease; }
+@keyframes hero-hop { 30% { transform: translateY(-8px); } 55% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
+@keyframes hero-tilt { 25% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 100% { transform: rotate(0); } }
+@media (prefers-reduced-motion: reduce) { .sparkle { display: none; } .avatar.hop, .avatar.puzzled { animation: none; } }
+
+
+/* Lesson pictures: live pixel scenes (src/pics.js) */
+.pic { margin: 4px 0 0; display: grid; gap: 8px; }
+.pic-scene svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; border-radius: 10px; border: 2px solid var(--line); }
+.pic figcaption { font-size: 14px; color: var(--ink); text-align: center; max-width: 62ch; margin: 2px auto 0; min-height: 2.8em; }
+.pic-nav { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.pic-count { font: 600 12px var(--font-display); opacity: .75; min-width: 44px; text-align: center; }
+.pic text { font: 400 13px var(--font-display); letter-spacing: .02em; }
+.pic .px-sh { fill: #1a1c2c !important; }
+.pic .px-t, .pic .px-name { fill: #f4f4f4; }
+.pic .px-name { font-size: 13px; }
+.pic .px-v { fill: #ffcd75; font: 700 15px var(--font-code); }
+.pic .px-ink { fill: #5a3a12; font: 600 12px var(--font-code); }
+.pic .px-cream { fill: #f4e4c1; font: 600 12px var(--font-code); }
+.pic .px-code { fill: #73eff7; font: 600 12px var(--font-code); }
+.pic .px-idx { fill: #ffcd75; font: 700 12px var(--font-code); }
+.pic .px-neg { fill: #ef7d57; font: 700 12px var(--font-code); }
+.pic .px-lbl { fill: #94b0c2; font-size: 12px; }
+.pic .px-good { fill: #a7f070; font-size: 15px; }
+.pic .px-bad { fill: #ef7d57; font-size: 13px; }
+.px-rope { stroke: #94b0c2; stroke-width: 2; fill: none; stroke-dasharray: 6 4; animation: px-rope 1.2s linear infinite; }
+.lv { transition: transform .8s cubic-bezier(.45, 0, .2, 1), opacity .5s ease; }
+.px-wave { transform-box: fill-box; transform-origin: left center; animation: px-wave 1.8s ease-in-out infinite; }
+.px-star { animation: px-twinkle 2.4s steps(2) infinite; }
+.px-glint { animation: px-glint 2.2s steps(1) infinite; }
+.px-fire { transform-box: fill-box; transform-origin: center bottom; animation: px-fire .5s steps(2) infinite alternate; }
+@keyframes px-wave { 0%, 100% { transform: skewY(0); } 50% { transform: skewY(-4deg) scaleX(.97); } }
+@keyframes px-twinkle { 50% { opacity: .2; } }
+@keyframes px-glint { 0%, 70% { opacity: 0; } 75%, 90% { opacity: 1; } }
+@keyframes px-fire { to { transform: scaleY(.75); } }
+@keyframes px-rope { to { stroke-dashoffset: -10; } }
+@media (prefers-reduced-motion: reduce) { .lv { transition: none; } .px-wave, .px-star, .px-glint, .px-fire, .px-rope { animation: none; } }
