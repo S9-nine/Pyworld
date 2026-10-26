@@ -29,7 +29,8 @@ INSERT INTO products VALUES
  (5, 'Chakli', 'snacks', 60, 33),
  (6, 'Nimbu Pani', 'drinks', 25, 50),
  (7, 'Namak Pare', 'snacks', 59, 8),
- (8, 'Thandai', 'drinks', 110, NULL);`;
+ (8, 'Thandai', 'drinks', 110, NULL),
+ (9, 'Kachori', 'snacks', 52, 14);`;
 const W4_ORDERS = `CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Asha', 'Pune'), (2, 'Ravi', 'Delhi'), (3, 'Meera', 'Kochi'), (4, 'Om', 'Pune');
 CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, amount INTEGER, day TEXT);
@@ -106,7 +107,7 @@ print(data["users"]["name"])`, options: ["\"name\" is misspelled", "data[\"users
       why: "<code>data[\"users\"]</code> is a list of users. Pick one first: <code>data[\"users\"][0][\"name\"]</code>, or loop over them." }
   ],
   code: {
-    brief: "A chai stall's orders arrive as a list of dictionaries like <code>{\"customer\": \"Asha\", \"item\": \"chai\", \"qty\": 2, \"price\": 15}</code>. Write three functions that <b>return</b> answers:<br>• <code>revenue(orders)</code>: total money, adding qty × price for every order.<br>• <code>items_sold(orders)</code>: a dictionary of item → total qty, items in the order they first appear.<br>• <code>leaderboard(orders)</code>: a list of <code>(customer, spent)</code> tuples, highest spender first. If two customers spent the same, sort them A–Z by name.",
+    brief: "A chai stall's orders arrive as a list of dictionaries like <code>{\"customer\": \"Asha\", \"item\": \"chai\", \"qty\": 2, \"price\": 15}</code>. Write three functions that <b>return</b> answers:<br>• <code>revenue(orders)</code>: total money, adding qty × price for every order.<br>• <code>items_sold(orders)</code>: a dictionary of item → total qty.<br>• <code>leaderboard(orders)</code>: a list of <code>(customer, spent)</code> tuples, highest spender first. If two customers spent the same, sort them A–Z by name.",
     sample: ">>> leaderboard(orders)\n[('Ravi', 120), ('Om', 90), ('Asha', 70)]",
     starter: `def revenue(orders):
     pass
@@ -138,6 +139,13 @@ print(leaderboard(orders))
       { call: "leaderboard([])", expect: "[]" }
     ],
     must: [["def\\s+leaderboard", "Define <code>leaderboard</code>."]],
+    // Hidden random orders, compared with the model answer. dict() and list() make a Counter,
+    // defaultdict or list of lists count as the same answer.
+    fuzz: { n: 12, what: "random orders", gen: (r, i) => {
+      const o = Array.from({ length: r.int(0, 6) }, () => ({ customer: r.pick(["Asha", "Ravi", "Om", "Meera"]), item: r.pick(["chai", "lassi", "samosa"]), qty: r.int(1, 4), price: r.pick([10, 15, 20, 40]) }));
+      const lit = JSON.stringify(o);
+      return { call: ["revenue(" + lit + ")", "dict(items_sold(" + lit + "))", "[tuple(x) for x in leaderboard(" + lit + ")]"][i % 3] };
+    } },
     hints: [
       "Each function is a World 2 pattern on a list of dictionaries: a total, a dictionary count, and a sort.",
       "<code>leaderboard</code>: first build a dictionary of customer → total spent. Then sort its <code>.items()</code>.",
@@ -278,7 +286,9 @@ def set_option(path, key, value):
       { files: { "s.json": "{\"theme\": \"dark\", \"volume\": 9, \"language\": \"ta\"}" }, call: "load_settings('s.json')", expect: "{'theme': 'dark', 'volume': 9, 'language': 'ta'}", label: "Loads a settings file" },
       { files: null, call: "load_settings('s.json')", expect: "{'theme': 'light', 'volume': 5, 'language': 'en'}", label: "Missing file: defaults" },
       { files: { "s.json": "{'theme': 'dark'}" }, call: "load_settings('s.json')", expect: "{'theme': 'light', 'volume': 5, 'language': 'en'}", label: "Broken JSON: defaults" },
-      { files: null, setup: "save_settings({'theme': 'dark', 'volume': 3}, 'out.json')", call: "load_settings('out.json')", expect: "{'theme': 'dark', 'volume': 3}", fileOut: { "out.json": "{\n  \"theme\": \"dark\",\n  \"volume\": 3\n}" }, label: "Saves pretty JSON" },
+      { files: null, setup: "save_settings({'theme': 'dark', 'volume': 3}, 'out.json')", call: "load_settings('out.json')", expect: "{'theme': 'dark', 'volume': 3}", fileOut: { "out.json": "{\n  \"theme\": \"dark\",\n  \"volume\": 3\n}" }, fileLoose: true, label: "Saves pretty JSON" },
+      { files: null, setup: "save_settings({'motto': \"don't panic\"}, 'q.json')", call: "load_settings('q.json')", expect: "{'motto': \"don't panic\"}", label: "Text with an apostrophe survives saving" },
+      { files: null, setup: "set_option('a.json', 'volume', 1)\nset_option('b.json', 'theme', 'dark')", call: "DEFAULTS", expect: "{'theme': 'light', 'volume': 5, 'language': 'en'}", label: "<code>DEFAULTS</code> is never changed (return a copy)" },
       { files: null, call: "set_option('s.json', 'volume', 8)", expect: "{'theme': 'light', 'volume': 8, 'language': 'en'}", label: "<code>set_option</code> with no file yet" },
       { files: { "s.json": "{\"theme\": \"dark\", \"volume\": 9, \"language\": \"ta\"}" }, setup: "set_option('s.json', 'theme', 'light')", call: "load_settings('s.json')['theme']", expect: "'light'", label: "<code>set_option</code> really saves" }
     ],
@@ -384,7 +394,7 @@ data = r.json()
 print(data["name"], "is number", data["id"])
 print("Type:", data["types"][0]["type"]["name"])` },
     { h: "Status codes tell you what happened",
-      p: "<b>200</b> means OK. <b>404</b> means not found. <b>400</b> means your request was wrong. <b>500</b> means the server broke. Always check before you trust the body. <code>r.ok</code> is True for codes below 400, and <code>r.raise_for_status()</code> raises an error for bad ones.",
+      p: "<b>200</b> means OK. <b>201</b> means created: your POST made something new. <b>404</b> means not found. <b>400</b> means your request was wrong. <b>500</b> means the server broke. Always check before you trust the body. <code>r.ok</code> is True for codes below 400, and <code>r.raise_for_status()</code> raises an error for bad ones.",
       code: `import requests
 
 for name in ["eevee", "agumon"]:
@@ -493,7 +503,7 @@ def current_temp(lat, lon):
 
 print(current_temp(28.6, 77.2))
 print(current_temp(None, None))`,
-    tests: [{ call: "current_temp(28.6, 77.2)", expect: "19.2" }, { call: "current_temp(12.97, 77.59)", expect: "26.3" }, { call: "current_temp(None, None)", expect: "None", label: "Missing coordinates: the API says 400" }],
+    tests: [{ call: "current_temp(28.6, 77.2)", expect: "19.2" }, { call: "current_temp(12.97, 77.59)", expect: "26.3" }, { call: "current_temp(None, None)", expect: "None", label: "Missing coordinates: the API says 400" }, { call: "current_temp('north', 'south')", expect: "None", label: "Coordinates that aren't numbers: the API says 400" }],
     hints: ["Print <code>r.status_code</code> for the bad call. Only read <code>[\"current\"]</code> when the request was OK: <code>if not r.ok: return None</code>."],
     fix: `import requests
 
@@ -524,7 +534,7 @@ print(current_temp(28.6, 77.2))`,
       p: "Companies keep their data in <b>databases</b>. A database holds <b>tables</b>, like spreadsheets: each row is a record and each column is a field. <b>SQL</b> is the language for asking questions of them, and it's one of the most requested skills in job ads. Press Run: this asks for every row of the <code>products</code> table.",
       code: `SELECT * FROM products;` },
     { h: "Pick columns, filter rows",
-      p: "List the columns you want after <code>SELECT</code>. <code>WHERE</code> keeps only the rows that match. Text goes in <b>single quotes</b>. Combine conditions with <code>AND</code> and <code>OR</code>. SQL keywords don't care about capitals, but writing them in CAPITALS makes queries easy to read.",
+      p: "List the columns you want after <code>SELECT</code>. <code>WHERE</code> keeps only the rows that match. Text goes in <b>single quotes</b>: <code>'snacks'</code>. (Double quotes are for column names in SQL. SQLite sometimes lets <code>&quot;snacks&quot;</code> slide, but other databases won't.) Combine conditions with <code>AND</code> and <code>OR</code>. SQL keywords don't care about capitals, but writing them in CAPITALS makes queries easy to read.",
       code: `SELECT name, price
 FROM products
 WHERE category = 'snacks' AND price < 60;` },
@@ -599,7 +609,7 @@ ORDER BY price;`,
        ROUND(AVG(price), 1) AS average
 FROM products;` },
     { h: "GROUP BY: one answer per group",
-      p: "<code>GROUP BY category</code> splits the rows into one group per category, then the aggregates run on each group separately. Every column in SELECT must be either in GROUP BY or inside an aggregate.",
+      p: "<code>GROUP BY category</code> splits the rows into one group per category, then the aggregates run on each group separately. Every column in SELECT must be either in GROUP BY or inside an aggregate. (SQLite won't stop you if you break this rule: it quietly picks a value from one of the group's rows, which can look right by luck. Most other databases refuse to run it.)",
       code: `SELECT category, COUNT(*) AS items, SUM(stock) AS total_stock
 FROM products
 GROUP BY category
@@ -628,6 +638,7 @@ ORDER BY items DESC;` },
     kind: "sql",
     brief: "Write one query that gives, for each <code>category</code>: the number of products as <code>items</code>, and the average price rounded to 1 decimal place as <code>avg_price</code>. Only include categories with <b>at least 3</b> products. Sort by category A–Z.",
     sample: "category | items | avg_price\n---------+-------+----------\ndrinks   | 4     | 103.8\nsnacks   | 4     | 56.3",
+    must: [["order\\s+by", "Add <code>ORDER BY category</code>. Without it the order isn't guaranteed: it only looks sorted here by luck."]],
     db: W4_SHOP,
     starter: `-- One row per category with at least 3 products
 SELECT
@@ -696,7 +707,7 @@ ORDER BY o.id;` },
       code: `SELECT c.name, COUNT(o.id) AS orders, COALESCE(SUM(o.amount), 0) AS spent
 FROM customers c
 LEFT JOIN orders o ON o.customer_id = c.id
-GROUP BY c.id
+GROUP BY c.id, c.name
 ORDER BY c.name;` },
     { h: "Forgetting ON is a classic bug",
       p: "Without an ON condition, every customer is paired with every order: 4 customers × 6 orders = 24 rows of nonsense. If a join returns far too many rows, check the ON.",
@@ -724,19 +735,19 @@ SELECT
     tests: [{ label: "On the desert shop" }, { label: "On a second shop", db: W4_ORDERS2 }],
     hints: [
       "Start from customers so everyone is kept: <code>FROM customers c LEFT JOIN orders o ON o.customer_id = c.id</code>.",
-      "Group by customer (<code>GROUP BY c.id</code>) and add up <code>SUM(o.amount)</code>. Wrap it in <code>COALESCE(..., 0)</code> for people with no orders.",
+      "Group by customer (<code>GROUP BY c.id, c.name</code>: the id keeps two people with the same name apart) and add up <code>SUM(o.amount)</code>. Wrap it in <code>COALESCE(..., 0)</code> for people with no orders.",
       "Sort with two rules: <code>ORDER BY spent DESC, c.name</code>."
     ],
     solution: `SELECT c.name, COALESCE(SUM(o.amount), 0) AS spent
 FROM customers c
 LEFT JOIN orders o ON o.customer_id = c.id
-GROUP BY c.id
+GROUP BY c.id, c.name
 ORDER BY spent DESC, c.name;`,
     wrong: ["SELECT c.name, SUM(o.amount) AS spent FROM customers c JOIN orders o ON o.customer_id = c.id GROUP BY c.id ORDER BY spent DESC, c.name", "SELECT c.name, COALESCE(SUM(o.amount), 0) AS spent FROM customers c LEFT JOIN orders o ON o.customer_id = c.id GROUP BY c.id ORDER BY spent DESC"]
   },
   bug: {
     kind: "sql",
-    brief: "This should count each customer's orders. Asha has 3, but it says much more, and so does everyone else. Fix the join.",
+    brief: "This should count the orders of each customer who has ordered something. Asha has 3, but it says much more, and so does everyone else. Fix the join.",
     db: W4_ORDERS,
     code: `SELECT c.name, COUNT(*) AS orders
 FROM customers c, orders o
@@ -747,12 +758,12 @@ ORDER BY c.name;`,
     solution: `SELECT c.name, COUNT(*) AS orders
 FROM customers c
 JOIN orders o ON o.customer_id = c.id
-GROUP BY c.name
+GROUP BY c.id, c.name
 ORDER BY c.name;`,
     fix: `SELECT c.name, COUNT(*) AS orders
 FROM customers c
 JOIN orders o ON o.customer_id = c.id
-GROUP BY c.name
+GROUP BY c.id, c.name
 ORDER BY c.name;`,
     lesson: "Too many rows after a join almost always means a missing or wrong ON condition."
   },
@@ -787,7 +798,7 @@ rows = conn.execute("SELECT title FROM books WHERE author = ? ORDER BY year", (a
 print([r[0] for r in rows])
 conn.close()` },
     { h: "Changes need commit()",
-      p: "INSERT, UPDATE and DELETE change data inside a <b>transaction</b>. Nothing is saved until you call <code>conn.commit()</code>. If the program ends first, the changes are thrown away. <code>cursor.lastrowid</code> gives the id of the row you just inserted.",
+      p: "INSERT, UPDATE and DELETE change data inside a <b>transaction</b>. Nothing is saved until you call <code>conn.commit()</code>. If the program ends first, the changes are thrown away. <code>cursor.lastrowid</code> gives the id of the row you just inserted. Reading results: <code>.fetchone()</code> gives the next row as a tuple, or <code>None</code> when there are no rows left, so <code>.fetchone()[0]</code> is the first column of the first row. <code>.fetchall()</code> gives every row as a list of tuples.",
       code: `import sqlite3
 
 conn = sqlite3.connect("library.db")
@@ -845,9 +856,10 @@ def count_books():
       { call: "count_books()", expect: "6" },
       { call: "add_book('The White Tiger', 'Aravind Adiga', 2008)", expect: "7", dbCheck: { file: "library.db", sql: "SELECT title, author, year FROM books WHERE id = 7", rows: [["The White Tiger", "Aravind Adiga", 2008]], msg: "The new book isn't saved in the database. Did you <code>commit()</code>?" }, label: "<code>add_book</code> saves the book" },
       { setup: "add_book('Godaan', 'Premchand', 1936)", call: "count_books()", expect: "7", label: "<code>count_books</code> sees new books" },
-      { call: "books_by(\"x' OR '1'='1\")", expect: "[]", label: "Safe against SQL injection" }
+      { call: "books_by(\"x' OR '1'='1\")", expect: "[]", label: "Safe against SQL injection" },
+      { setup: "import sqlite3\nc = sqlite3.connect('library.db')\nc.execute('DELETE FROM books WHERE id = 2')\nc.commit()\nc.close()", call: "add_book('Train to Pakistan', 'Khushwant Singh', 1956)", expect: "7", label: "<code>add_book</code> returns the real new id, even after a book was deleted" }
     ],
-    must: [["\\?", "Use <code>?</code> placeholders for values."]],
+    must: [["\\?|:[A-Za-z_]\\w*", "Use <code>?</code> placeholders (or named ones like <code>:title</code>) for values."]],
     mustNot: [["execute\\(\\s*f[\"']", "Don't build SQL with f-strings. Use <code>?</code> placeholders."]],
     mustNotAll: true,
     hints: [
@@ -916,7 +928,9 @@ print(login("asha' --", "anything"))`,
       { call: "login('asha', 'chai123')", expect: "True" },
       { call: "login('asha', 'wrong')", expect: "False" },
       { call: "login(\"asha' --\", 'anything')", expect: "False", label: "The injection attack fails" },
-      { call: "login(\"x' OR '1'='1\", \"x' OR '1'='1\")", expect: "False", label: "Another injection attack fails" }
+      { call: "login(\"x' OR '1'='1\", \"x' OR '1'='1\")", expect: "False", label: "Another injection attack fails" },
+      { call: "login('asha', \"' OR '1'='1\")", expect: "False", label: "An attack typed into the password box fails" },
+      { call: "login('ravi', 'monsoon9')", expect: "True", label: "Ravi can still log in" }
     ],
     hints: ["Replace each <code>'{...}'</code> with <code>?</code>, and pass <code>(username, password)</code> as the second argument to <code>execute</code>."],
     fix: `import sqlite3
@@ -928,7 +942,9 @@ def login(username, password):
     return row is not None
 
 print(login("asha", "chai123"))`,
-    lesson: "Placeholders stop SQL injection. (Real apps also never store plain passwords: they store a hash. You'll meet that in World 5.)"
+    mustNot: [["execute\\(\\s*f[\"']", "Don't build SQL with f-strings, even after cleaning the text. Use <code>?</code> placeholders."]],
+    mustNotAll: true,
+    lesson: "Placeholders stop SQL injection. One more rule real apps follow: never store plain passwords. They store a <b>hash</b>, a one-way scrambled fingerprint made with a library like <code>bcrypt</code>, so even a stolen database doesn't reveal anyone's password."
   },
   explain: "Explain SQL injection to a friend who doesn't code. How do <code>?</code> placeholders stop it?",
   cards: [
@@ -952,7 +968,7 @@ connect()              -> open habits.db, create tables if missing
 add_habit(name)        -> ValueError if it already exists
 check_in(name, day)    -> ValueError if there's no such habit
 streak(name, today)    -> days in a row, ending today
-main()                 -> commands: add, done, streak, list, quit` },
+main()                 -> commands: add, done, streak, quit` },
     { h: "CREATE TABLE IF NOT EXISTS",
       p: "Apps create their tables the first time they run. <code>IF NOT EXISTS</code> makes it safe to run every time. <code>UNIQUE</code> makes the database refuse duplicates by raising <code>sqlite3.IntegrityError</code>, and <code>INSERT OR IGNORE</code> quietly skips a duplicate instead.",
       code: `import sqlite3
@@ -967,7 +983,7 @@ except sqlite3.IntegrityError as e:
 conn.execute("INSERT OR IGNORE INTO habits (name) VALUES (?)", ("read",))
 print(conn.execute("SELECT COUNT(*) FROM habits").fetchone()[0], "habit")` },
     { h: "Dates: count back day by day",
-      p: "The <code>datetime</code> module understands calendars. Turn <code>\"2026-10-23\"</code> into a <code>date</code>, then subtract <code>timedelta(days=1)</code> to step back one day, even across months. <code>str(d)</code> turns it back into text like the database stores.",
+      p: "The <code>datetime</code> module understands calendars. Turn <code>\"2026-10-23\"</code> into a <code>date</code>, then subtract <code>timedelta(days=1)</code> to step back one day, even across months. <code>str(d)</code> turns it back into text like the database stores. (In regular Python, <code>datetime.date.fromisoformat(\"2026-10-23\")</code> does the first step in one go. This game's in-browser Python doesn't have it, so the lesson splits the text instead.)",
       code: `import datetime
 
 def to_date(text):
@@ -982,7 +998,7 @@ for _ in range(3):
   think: [
     { type: "mcq", q: "A habit was done on Oct 21, 22 and 23. Today is Oct 23. What's the streak?", options: ["1", "2", "3", "0"], answer: 2,
       why: "Count back from today while each day has a check-in: 23 yes, 22 yes, 21 yes, 20 no. That's 3." },
-    { type: "mcq", q: "Today is Oct 23 and the last check-in was Oct 22. With our rule (the streak must end today), what's the streak?", options: ["0", "1", "2", "It depends on Oct 21"], answer: 0,
+    { type: "mcq", q: "Today is Oct 23. The habit was done on Oct 21 and Oct 22, but not yet today. Our rule: a streak only counts if it includes today. What's the streak?", options: ["0", "1", "2", "It depends on Oct 20"], answer: 0,
       why: "Our rule counts back from today, and today has no check-in, so the streak is 0. Real apps often allow until the end of the day; deciding rules like this is part of building software." },
     { type: "fill", q: "Fill the blanks so this counts the streak.", code: `import datetime
 
@@ -994,8 +1010,8 @@ def streak(days, today):
         day = day - datetime.___(days=1)
     return count
 
-print(streak({"2026-10-21", "2026-10-22", "2026-10-23"}, datetime.date(2026, 10, 23)))`, answers: ["in", "timedelta"], expect: ["3"],
-      why: "Keep counting while the day is in the set of check-ins, stepping back one day each lap." }
+print(streak(["2026-10-21", "2026-10-22", "2026-10-23"], datetime.date(2026, 10, 23)))`, answers: ["in", "timedelta"], expect: ["3"],
+      why: "Keep counting while the day is in the list of check-ins, stepping back one day each lap." }
   ],
   code: {
     brief: "Build the habit tracker in <code>habits.db</code>. Write:<br>• <code>connect()</code>: returns a connection to <code>habits.db</code>, creating both tables if they don't exist (see Learn for the columns).<br>• <code>add_habit(name)</code>: adds a habit. If it already exists, raise <code>ValueError(\"Habit already exists\")</code>.<br>• <code>check_in(name, day)</code>: records that the habit was done on <code>day</code> (text like <code>\"2026-10-23\"</code>). Doing it twice on the same day counts once. If there's no such habit, raise <code>ValueError</code>.<br>• <code>streak(name, today)</code>: the number of days in a row with a check-in, counting back from <code>today</code> (a text date). 0 if today has none.<br>• <code>main()</code>: first ask <code>Today? </code>, then read commands with <code>&gt; </code>:<br>&nbsp;&nbsp;<code>add read</code> → <code>Added: read</code> or <code>Already tracking: read</code><br>&nbsp;&nbsp;<code>done read</code> → <code>Done: read</code> or <code>No habit called: read</code><br>&nbsp;&nbsp;<code>streak read</code> → <code>read: 3 day streak</code><br>&nbsp;&nbsp;<code>quit</code> → <code>Keep going!</code><br>Print nothing else.",
@@ -1030,7 +1046,12 @@ if __name__ == "__main__":
     main()
 `,
     tests: [
-      { setup: "add_habit('read')", call: "connect().execute('SELECT name FROM habits').fetchall()", expect: "[('read',)]", label: "<code>add_habit</code> saves a habit" },
+      { setup: "add_habit('read')", call: "[tuple(r) for r in connect().execute('SELECT name FROM habits').fetchall()]", expect: "[('read',)]", label: "<code>add_habit</code> saves a habit",
+        dbCheck: { file: "habits.db", sql: "SELECT name FROM habits", rows: [["read"]], msg: "The habit isn't saved in <code>habits.db</code>. Did you <code>commit()</code>?" } },
+      { setup: "add_habit('read')\ncheck_in('read', '2026-10-23')", call: "streak('read', '2026-10-23')", expect: "1", label: "<code>check_in</code> saves to the database",
+        dbCheck: { file: "habits.db", sql: "SELECT h.name, c.day FROM checkins c JOIN habits h ON h.id = c.habit_id", rows: [["read", "2026-10-23"]], msg: "The check-in isn't saved in the <code>checkins</code> table (columns <code>habit_id</code> and <code>day</code>). Did you <code>commit()</code>?" } },
+      { db: { "habits.db": "CREATE TABLE habits (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL); CREATE TABLE checkins (habit_id INTEGER, day TEXT, UNIQUE(habit_id, day)); INSERT INTO habits (name) VALUES ('gym'), ('read'); INSERT INTO checkins VALUES (1, '2026-10-21'), (1, '2026-10-22'), (1, '2026-10-23'), (2, '2026-10-20');" },
+        call: "(streak('gym', '2026-10-23'), streak('read', '2026-10-23'))", expect: "(3, 0)", label: "Works with a database that already has data (connect() must not wipe it)" },
       { setup: "add_habit('read')", call: "add_habit('read')", raises: "ValueError", label: "Adding a habit twice raises ValueError" },
       { call: "check_in('swim', '2026-10-23')", raises: "ValueError", label: "Checking in an unknown habit raises ValueError" },
       { setup: "add_habit('read')\nfor d in ['2026-10-21', '2026-10-22', '2026-10-23', '2026-10-23']:\n    check_in('read', d)", call: "streak('read', '2026-10-23')", expect: "3", label: "Three days in a row" },
@@ -1039,13 +1060,13 @@ if __name__ == "__main__":
       { setup: "add_habit('read')\ncheck_in('read', '2026-10-23')\ncheck_in('read', '2026-10-23')", call: "connect().execute('SELECT COUNT(*) FROM checkins').fetchone()[0]", expect: "1", label: "Same day twice counts once" },
       { in: ["2026-10-23", "add read", "add read", "done read", "done swim", "streak read", "quit"], out: ["Added: read", "Already tracking: read", "Done: read", "No habit called: swim", "read: 1 day streak", "Keep going!"], only: true, inOrder: true, label: "Plays a full session" }
     ],
-    must: [["import\\s+sqlite3", "Store the data with <code>sqlite3</code>."], ["CREATE TABLE IF NOT EXISTS", "Create the tables with <code>CREATE TABLE IF NOT EXISTS</code>."], ["def\\s+main\\s*\\(", "Put the command loop in <code>main()</code>."]],
+    must: [["import\\s+sqlite3", "Store the data with <code>sqlite3</code>."], ["create\\s+table\\s+if\\s+not\\s+exists", "Create the tables with <code>CREATE TABLE IF NOT EXISTS</code>, so running again keeps the data.", "i"], ["def\\s+main\\s*\\(", "Put the command loop in <code>main()</code>."]],
     mustNot: [["execute\\(\\s*f[\"']", "Use <code>?</code> placeholders, not f-strings, in SQL."]],
     mustNotAll: true,
     hints: [
       "<code>connect()</code>: connect, run both CREATE TABLE IF NOT EXISTS statements, and return the connection. Every other function starts with <code>conn = connect()</code>.",
       "<code>add_habit</code>: try the INSERT and <code>commit()</code>; <code>except sqlite3.IntegrityError: raise ValueError(\"Habit already exists\")</code>. <code>check_in</code>: look up the habit's id first, raise ValueError if it's None, then <code>INSERT OR IGNORE</code> into checkins and commit.",
-      "<code>streak</code>: fetch all the habit's days into a set, then count back from <code>today</code> with <code>timedelta(days=1)</code> while <code>str(day) in days</code>. In main, split each command with <code>cmd, name = line.split(\" \", 1)</code>."
+      "<code>streak</code>: fetch all the habit's days into a list, then count back from <code>today</code> with <code>timedelta(days=1)</code> while <code>str(day) in days</code>. In main, split each command with <code>cmd, name = line.split(\" \", 1)</code>."
     ],
     solution: `import sqlite3
 import datetime
@@ -1155,7 +1176,8 @@ def all_habits():
 if __name__ == "__main__":
     add_habit("read")
     print(all_habits())`,
-    tests: [{ setup: "add_habit('read')\nadd_habit('walk')", call: "all_habits()", expect: "['read', 'walk']" }],
+    tests: [{ setup: "add_habit('read')\nadd_habit('walk')", call: "all_habits()", expect: "['read', 'walk']",
+      dbCheck: { file: "habits.db", sql: "SELECT name FROM habits ORDER BY id", rows: [["read"], ["walk"]], msg: "The habits still aren't saved in <code>habits.db</code>." } }],
     hints: ["The INSERT runs inside a transaction. What has to happen before <code>close()</code> for it to be saved?"],
     fix: `import sqlite3
 

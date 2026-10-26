@@ -32,7 +32,7 @@ function renderProfile(v) {
 
         <hr class="sep">
         <h3 class="sub">Sync with your other version</h3>
-        <p class="muted" style="font-size:13.5px">The claude.ai game and the desktop game save separately. Copy your save code here, then paste it into Profile on the other version. Progress is combined, so nothing from either side is lost.</p>
+        <p class="muted" style="font-size:13.5px">Playing on another device or browser too? Copy your save code here, then paste it into Profile there. Progress is combined, so nothing from either side is lost.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn sm" id="copyCode">Copy my save code</button><span class="muted" id="copyMsg" style="font-size:13px"></span></div>
         <textarea id="codeOut" class="code-box" readonly hidden aria-label="Your save code"></textarea>
         <label class="sr" for="codeIn">Paste a save code</label>
@@ -44,7 +44,7 @@ function renderProfile(v) {
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn" id="pOut">${S.mode === "cloud" ? "Back to title screen" : "Switch player"}</button>
         </div>
-        <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete this save file"}</button></div>
+        <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete profile"}</button></div>
       </div>
     </div>
   </div>`;
@@ -127,10 +127,20 @@ function renderProfile(v) {
   $("#pOut").addEventListener("click", logOut);
   $("#pReset").addEventListener("click", () => {
     const cloud = S.mode === "cloud";
-    $("#danger").innerHTML = `<div class="notice">${cloud ? "This erases your XP, stars and streak." : "This deletes save file " + S.slot + " for good: XP, stars, streak and PIN."} It can't be undone.
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn sm" id="rNo">Keep it</button><button class="btn sm" id="rYes" style="background:var(--danger);color:#fff;border-color:var(--danger)">${cloud ? "Erase everything" : "Delete file"}</button></div></div>`;
+    $("#danger").innerHTML = `<div class="notice">${cloud ? "This erases your XP, stars and streak." : `This deletes <b>${esc(h.name)}</b> for good, on this device${netConfigured() ? " and online" : ""}: XP, stars, streak, PIN${netConfigured() ? ", guild spot, play data and feedback" : ""}.`} It can't be undone.
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn sm" id="rNo">Keep it</button><button class="btn sm" id="rYes" style="background:var(--danger);color:#fff;border-color:var(--danger)">${cloud ? "Erase everything" : "Delete " + esc(h.name)}</button></div><p class="fb-err" id="rErr" hidden></p></div>`;
     $("#rNo").addEventListener("click", () => renderProfile(v));
-    $("#rYes").addEventListener("click", () => {
+    $("#rYes").addEventListener("click", async () => {
+      if (!cloud) {
+        const yes = $("#rYes");
+        yes.disabled = true; yes.textContent = "Deleting…";
+        if (!(await netDeleteMe(S.slot))) {
+          yes.disabled = false; yes.textContent = "Try again";
+          $("#rErr").textContent = "Couldn't delete the online copy just now, so nothing was deleted. Check your internet and try again.";
+          $("#rErr").hidden = false;
+          return;
+        }
+      }
       const ns = draftNS();
       try { Object.keys(localStorage).filter((k) => k.startsWith(ns)).forEach((k) => localStorage.removeItem(k)); } catch (_) {}
       if (cloud) {

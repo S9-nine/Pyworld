@@ -88,7 +88,7 @@ p { margin: 0; }
 .sync[data-s="saving"]::before { background: var(--sun); }
 .sync[data-s="local"]::before { background: var(--muted); }
 .sync[data-s="error"]::before { background: var(--danger); }
-.hero-chip { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px 4px 4px; box-shadow: var(--shadow); }
+.hero-chip { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 4px 14px 4px 4px; box-shadow: var(--shadow); }
 .hero-chip .meta { display: grid; gap: 2px; text-align: left; min-width: 0; }
 .hero-chip .nm { font-weight: 600; font-size: 13px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
 .hero-chip .rk { font-size: 11px; color: var(--muted); line-height: 1.1; }
@@ -656,6 +656,60 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .modal textarea#fbMsg { width: 100%; min-height: 110px; }
 .fb-err { color: var(--danger); font-size: 13px; margin: 0; }
 .fb-err[hidden] { display: none; }
+
+/* Welcome: a small version of the player's hero in the corner, moving like that character */
+.modal.welcome { position: relative; }
+.wl-actor { position: absolute; top: 14px; right: 18px; width: 92px; height: 60px; display: grid; place-items: center; pointer-events: none; }
+.wl-actor .act { width: 100%; height: 100%; overflow: visible; }
+.wl-title { padding-right: 90px; }
+.modal.welcome .eyebrow { padding-right: 90px; }
+.wl-steps { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 12px; }
+.wl-steps li { display: flex; gap: 12px; align-items: center; font-size: 14.5px; }
+.wl-steps .pix-icon { flex: 0 0 auto; }
+.act-body { transform-box: fill-box; transform-origin: 50% 100%; }
+.act-fly .act-body { animation: act-fly 1.4s ease-in-out infinite; }
+.act-wing { transform-box: fill-box; }
+.act-wing-l { transform-origin: 100% 80%; animation: act-flap-l .32s ease-in-out infinite alternate; }
+.act-wing-r { transform-origin: 0% 80%; animation: act-flap-r .32s ease-in-out infinite alternate; }
+.act-fire { transform-box: fill-box; opacity: 0; animation: act-fire 2.6s ease-out infinite; }
+.act-float .act-body, .act-drift .act-body { animation: act-float 2.4s ease-in-out infinite; }
+.act-drift .act-body { animation-duration: 3.4s; }
+.act-spark { opacity: 0; animation: act-twinkle 1.8s steps(1) infinite; }
+.act-ghost .act-body { animation: act-float 2.6s ease-in-out infinite, act-fade 2.6s ease-in-out infinite; }
+.act-squish .act-body { animation: act-squish 1.1s ease-in-out infinite; }
+.act-hover .act-body { animation: act-float 1.6s ease-in-out infinite; }
+.act-blink { animation: act-twinkle 1s steps(1) infinite; }
+.act-hop .act-body { animation: act-hop 1.5s ease-in-out infinite; }
+@keyframes act-fly { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.2px); } }
+@keyframes act-flap-l { from { transform: rotate(-14deg); } to { transform: rotate(28deg); } }
+@keyframes act-flap-r { from { transform: rotate(14deg); } to { transform: rotate(-28deg); } }
+@keyframes act-fire { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 6% { opacity: 1; } 34% { opacity: 0; transform: translate(-6px, 2.5px) scale(1.4); } 100% { opacity: 0; transform: translate(-6px, 2.5px) scale(1.4); } }
+@keyframes act-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes act-fade { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes act-twinkle { 0%, 60% { opacity: 0; } 61%, 85% { opacity: 1; } }
+@keyframes act-squish { 0%, 100% { transform: scale(1, 1); } 45% { transform: scale(1.12, .86); } 70% { transform: scale(.94, 1.08) translateY(-1px); } }
+@keyframes act-hop { 0%, 60%, 100% { transform: translateY(0) scale(1, 1); } 66% { transform: translateY(0) scale(1.08, .9); } 80% { transform: translateY(-3px) scale(.96, 1.05); } 92% { transform: translateY(0) scale(1.04, .96); } }
+@media (max-width: 420px) { .wl-actor { width: 72px; height: 48px; right: 12px; } .wl-title, .modal.welcome .eyebrow { padding-right: 70px; } }
+@media (prefers-reduced-motion: reduce) { .act-body, .act-wing, .act-fire, .act-spark, .act-blink { animation: none !important; } .act-fire { opacity: 0; } .act-spark { opacity: 1; } }
+
+/* Phone map: a round window onto your island that opens into a draggable full map */
+.map-mini { display: none; }
+.map-full { position: fixed; inset: 0; z-index: 70; display: grid; grid-template-rows: auto 1fr; background: var(--water); transition: clip-path .42s cubic-bezier(.4, 0, .2, 1); }
+.map-full-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; padding-top: max(10px, env(safe-area-inset-top, 0px)); background: var(--surface); border-bottom: 1px solid var(--line); color: var(--ink); }
+.map-full-bar .muted { flex: 1; font-size: 12px; }
+.map-full-tools { display: flex; gap: 6px; }
+.map-full-tools .btn { min-width: 36px; justify-content: center; }
+.map-full-view { position: relative; overflow: hidden; touch-action: none; cursor: grab; }
+.map-full-view:active { cursor: grabbing; }
+.map-full-pan { position: absolute; left: 0; top: 0; width: 1000px; height: 520px; transform-origin: 0 0; }
+.map-full-pan svg { display: block; width: 1000px; height: 520px; }
+@media (max-width: 640px) {
+  .map-card .map-scroll, .map-card .map-legend { display: none; }
+  .map-mini { display: block; position: relative; width: 100%; height: 210px; padding: 0; border: 0; background: var(--water); cursor: pointer; overflow: hidden; border-radius: inherit; }
+  .map-mini-view, .map-mini-view svg { display: block; width: 100%; height: 100%; }
+  .map-expand { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); box-shadow: 0 4px 12px rgb(0 0 0 / .3); }
+}
+@media (prefers-reduced-motion: reduce) { .map-full { transition: none; } }
 
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
@@ -4187,7 +4241,8 @@ INSERT INTO products VALUES
  (5, 'Chakli', 'snacks', 60, 33),
  (6, 'Nimbu Pani', 'drinks', 25, 50),
  (7, 'Namak Pare', 'snacks', 59, 8),
- (8, 'Thandai', 'drinks', 110, NULL);`;
+ (8, 'Thandai', 'drinks', 110, NULL),
+ (9, 'Kachori', 'snacks', 52, 14);`;
 const W4_ORDERS = `CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, city TEXT);
 INSERT INTO customers VALUES (1, 'Asha', 'Pune'), (2, 'Ravi', 'Delhi'), (3, 'Meera', 'Kochi'), (4, 'Om', 'Pune');
 CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, amount INTEGER, day TEXT);
@@ -4264,7 +4319,7 @@ print(data["users"]["name"])`, options: ["\"name\" is misspelled", "data[\"users
       why: "<code>data[\"users\"]</code> is a list of users. Pick one first: <code>data[\"users\"][0][\"name\"]</code>, or loop over them." }
   ],
   code: {
-    brief: "A chai stall's orders arrive as a list of dictionaries like <code>{\"customer\": \"Asha\", \"item\": \"chai\", \"qty\": 2, \"price\": 15}</code>. Write three functions that <b>return</b> answers:<br>• <code>revenue(orders)</code>: total money, adding qty × price for every order.<br>• <code>items_sold(orders)</code>: a dictionary of item → total qty, items in the order they first appear.<br>• <code>leaderboard(orders)</code>: a list of <code>(customer, spent)</code> tuples, highest spender first. If two customers spent the same, sort them A–Z by name.",
+    brief: "A chai stall's orders arrive as a list of dictionaries like <code>{\"customer\": \"Asha\", \"item\": \"chai\", \"qty\": 2, \"price\": 15}</code>. Write three functions that <b>return</b> answers:<br>• <code>revenue(orders)</code>: total money, adding qty × price for every order.<br>• <code>items_sold(orders)</code>: a dictionary of item → total qty.<br>• <code>leaderboard(orders)</code>: a list of <code>(customer, spent)</code> tuples, highest spender first. If two customers spent the same, sort them A–Z by name.",
     sample: ">>> leaderboard(orders)\n[('Ravi', 120), ('Om', 90), ('Asha', 70)]",
     starter: `def revenue(orders):
     pass
@@ -4296,6 +4351,13 @@ print(leaderboard(orders))
       { call: "leaderboard([])", expect: "[]" }
     ],
     must: [["def\\s+leaderboard", "Define <code>leaderboard</code>."]],
+    // Hidden random orders, compared with the model answer. dict() and list() make a Counter,
+    // defaultdict or list of lists count as the same answer.
+    fuzz: { n: 12, what: "random orders", gen: (r, i) => {
+      const o = Array.from({ length: r.int(0, 6) }, () => ({ customer: r.pick(["Asha", "Ravi", "Om", "Meera"]), item: r.pick(["chai", "lassi", "samosa"]), qty: r.int(1, 4), price: r.pick([10, 15, 20, 40]) }));
+      const lit = JSON.stringify(o);
+      return { call: ["revenue(" + lit + ")", "dict(items_sold(" + lit + "))", "[tuple(x) for x in leaderboard(" + lit + ")]"][i % 3] };
+    } },
     hints: [
       "Each function is a World 2 pattern on a list of dictionaries: a total, a dictionary count, and a sort.",
       "<code>leaderboard</code>: first build a dictionary of customer → total spent. Then sort its <code>.items()</code>.",
@@ -4436,7 +4498,9 @@ def set_option(path, key, value):
       { files: { "s.json": "{\"theme\": \"dark\", \"volume\": 9, \"language\": \"ta\"}" }, call: "load_settings('s.json')", expect: "{'theme': 'dark', 'volume': 9, 'language': 'ta'}", label: "Loads a settings file" },
       { files: null, call: "load_settings('s.json')", expect: "{'theme': 'light', 'volume': 5, 'language': 'en'}", label: "Missing file: defaults" },
       { files: { "s.json": "{'theme': 'dark'}" }, call: "load_settings('s.json')", expect: "{'theme': 'light', 'volume': 5, 'language': 'en'}", label: "Broken JSON: defaults" },
-      { files: null, setup: "save_settings({'theme': 'dark', 'volume': 3}, 'out.json')", call: "load_settings('out.json')", expect: "{'theme': 'dark', 'volume': 3}", fileOut: { "out.json": "{\n  \"theme\": \"dark\",\n  \"volume\": 3\n}" }, label: "Saves pretty JSON" },
+      { files: null, setup: "save_settings({'theme': 'dark', 'volume': 3}, 'out.json')", call: "load_settings('out.json')", expect: "{'theme': 'dark', 'volume': 3}", fileOut: { "out.json": "{\n  \"theme\": \"dark\",\n  \"volume\": 3\n}" }, fileLoose: true, label: "Saves pretty JSON" },
+      { files: null, setup: "save_settings({'motto': \"don't panic\"}, 'q.json')", call: "load_settings('q.json')", expect: "{'motto': \"don't panic\"}", label: "Text with an apostrophe survives saving" },
+      { files: null, setup: "set_option('a.json', 'volume', 1)\nset_option('b.json', 'theme', 'dark')", call: "DEFAULTS", expect: "{'theme': 'light', 'volume': 5, 'language': 'en'}", label: "<code>DEFAULTS</code> is never changed (return a copy)" },
       { files: null, call: "set_option('s.json', 'volume', 8)", expect: "{'theme': 'light', 'volume': 8, 'language': 'en'}", label: "<code>set_option</code> with no file yet" },
       { files: { "s.json": "{\"theme\": \"dark\", \"volume\": 9, \"language\": \"ta\"}" }, setup: "set_option('s.json', 'theme', 'light')", call: "load_settings('s.json')['theme']", expect: "'light'", label: "<code>set_option</code> really saves" }
     ],
@@ -4542,7 +4606,7 @@ data = r.json()
 print(data["name"], "is number", data["id"])
 print("Type:", data["types"][0]["type"]["name"])` },
     { h: "Status codes tell you what happened",
-      p: "<b>200</b> means OK. <b>404</b> means not found. <b>400</b> means your request was wrong. <b>500</b> means the server broke. Always check before you trust the body. <code>r.ok</code> is True for codes below 400, and <code>r.raise_for_status()</code> raises an error for bad ones.",
+      p: "<b>200</b> means OK. <b>201</b> means created: your POST made something new. <b>404</b> means not found. <b>400</b> means your request was wrong. <b>500</b> means the server broke. Always check before you trust the body. <code>r.ok</code> is True for codes below 400, and <code>r.raise_for_status()</code> raises an error for bad ones.",
       code: `import requests
 
 for name in ["eevee", "agumon"]:
@@ -4651,7 +4715,7 @@ def current_temp(lat, lon):
 
 print(current_temp(28.6, 77.2))
 print(current_temp(None, None))`,
-    tests: [{ call: "current_temp(28.6, 77.2)", expect: "19.2" }, { call: "current_temp(12.97, 77.59)", expect: "26.3" }, { call: "current_temp(None, None)", expect: "None", label: "Missing coordinates: the API says 400" }],
+    tests: [{ call: "current_temp(28.6, 77.2)", expect: "19.2" }, { call: "current_temp(12.97, 77.59)", expect: "26.3" }, { call: "current_temp(None, None)", expect: "None", label: "Missing coordinates: the API says 400" }, { call: "current_temp('north', 'south')", expect: "None", label: "Coordinates that aren't numbers: the API says 400" }],
     hints: ["Print <code>r.status_code</code> for the bad call. Only read <code>[\"current\"]</code> when the request was OK: <code>if not r.ok: return None</code>."],
     fix: `import requests
 
@@ -4682,7 +4746,7 @@ print(current_temp(28.6, 77.2))`,
       p: "Companies keep their data in <b>databases</b>. A database holds <b>tables</b>, like spreadsheets: each row is a record and each column is a field. <b>SQL</b> is the language for asking questions of them, and it's one of the most requested skills in job ads. Press Run: this asks for every row of the <code>products</code> table.",
       code: `SELECT * FROM products;` },
     { h: "Pick columns, filter rows",
-      p: "List the columns you want after <code>SELECT</code>. <code>WHERE</code> keeps only the rows that match. Text goes in <b>single quotes</b>. Combine conditions with <code>AND</code> and <code>OR</code>. SQL keywords don't care about capitals, but writing them in CAPITALS makes queries easy to read.",
+      p: "List the columns you want after <code>SELECT</code>. <code>WHERE</code> keeps only the rows that match. Text goes in <b>single quotes</b>: <code>'snacks'</code>. (Double quotes are for column names in SQL. SQLite sometimes lets <code>&quot;snacks&quot;</code> slide, but other databases won't.) Combine conditions with <code>AND</code> and <code>OR</code>. SQL keywords don't care about capitals, but writing them in CAPITALS makes queries easy to read.",
       code: `SELECT name, price
 FROM products
 WHERE category = 'snacks' AND price < 60;` },
@@ -4757,7 +4821,7 @@ ORDER BY price;`,
        ROUND(AVG(price), 1) AS average
 FROM products;` },
     { h: "GROUP BY: one answer per group",
-      p: "<code>GROUP BY category</code> splits the rows into one group per category, then the aggregates run on each group separately. Every column in SELECT must be either in GROUP BY or inside an aggregate.",
+      p: "<code>GROUP BY category</code> splits the rows into one group per category, then the aggregates run on each group separately. Every column in SELECT must be either in GROUP BY or inside an aggregate. (SQLite won't stop you if you break this rule: it quietly picks a value from one of the group's rows, which can look right by luck. Most other databases refuse to run it.)",
       code: `SELECT category, COUNT(*) AS items, SUM(stock) AS total_stock
 FROM products
 GROUP BY category
@@ -4786,6 +4850,7 @@ ORDER BY items DESC;` },
     kind: "sql",
     brief: "Write one query that gives, for each <code>category</code>: the number of products as <code>items</code>, and the average price rounded to 1 decimal place as <code>avg_price</code>. Only include categories with <b>at least 3</b> products. Sort by category A–Z.",
     sample: "category | items | avg_price\n---------+-------+----------\ndrinks   | 4     | 103.8\nsnacks   | 4     | 56.3",
+    must: [["order\\s+by", "Add <code>ORDER BY category</code>. Without it the order isn't guaranteed: it only looks sorted here by luck."]],
     db: W4_SHOP,
     starter: `-- One row per category with at least 3 products
 SELECT
@@ -4854,7 +4919,7 @@ ORDER BY o.id;` },
       code: `SELECT c.name, COUNT(o.id) AS orders, COALESCE(SUM(o.amount), 0) AS spent
 FROM customers c
 LEFT JOIN orders o ON o.customer_id = c.id
-GROUP BY c.id
+GROUP BY c.id, c.name
 ORDER BY c.name;` },
     { h: "Forgetting ON is a classic bug",
       p: "Without an ON condition, every customer is paired with every order: 4 customers × 6 orders = 24 rows of nonsense. If a join returns far too many rows, check the ON.",
@@ -4882,19 +4947,19 @@ SELECT
     tests: [{ label: "On the desert shop" }, { label: "On a second shop", db: W4_ORDERS2 }],
     hints: [
       "Start from customers so everyone is kept: <code>FROM customers c LEFT JOIN orders o ON o.customer_id = c.id</code>.",
-      "Group by customer (<code>GROUP BY c.id</code>) and add up <code>SUM(o.amount)</code>. Wrap it in <code>COALESCE(..., 0)</code> for people with no orders.",
+      "Group by customer (<code>GROUP BY c.id, c.name</code>: the id keeps two people with the same name apart) and add up <code>SUM(o.amount)</code>. Wrap it in <code>COALESCE(..., 0)</code> for people with no orders.",
       "Sort with two rules: <code>ORDER BY spent DESC, c.name</code>."
     ],
     solution: `SELECT c.name, COALESCE(SUM(o.amount), 0) AS spent
 FROM customers c
 LEFT JOIN orders o ON o.customer_id = c.id
-GROUP BY c.id
+GROUP BY c.id, c.name
 ORDER BY spent DESC, c.name;`,
     wrong: ["SELECT c.name, SUM(o.amount) AS spent FROM customers c JOIN orders o ON o.customer_id = c.id GROUP BY c.id ORDER BY spent DESC, c.name", "SELECT c.name, COALESCE(SUM(o.amount), 0) AS spent FROM customers c LEFT JOIN orders o ON o.customer_id = c.id GROUP BY c.id ORDER BY spent DESC"]
   },
   bug: {
     kind: "sql",
-    brief: "This should count each customer's orders. Asha has 3, but it says much more, and so does everyone else. Fix the join.",
+    brief: "This should count the orders of each customer who has ordered something. Asha has 3, but it says much more, and so does everyone else. Fix the join.",
     db: W4_ORDERS,
     code: `SELECT c.name, COUNT(*) AS orders
 FROM customers c, orders o
@@ -4905,12 +4970,12 @@ ORDER BY c.name;`,
     solution: `SELECT c.name, COUNT(*) AS orders
 FROM customers c
 JOIN orders o ON o.customer_id = c.id
-GROUP BY c.name
+GROUP BY c.id, c.name
 ORDER BY c.name;`,
     fix: `SELECT c.name, COUNT(*) AS orders
 FROM customers c
 JOIN orders o ON o.customer_id = c.id
-GROUP BY c.name
+GROUP BY c.id, c.name
 ORDER BY c.name;`,
     lesson: "Too many rows after a join almost always means a missing or wrong ON condition."
   },
@@ -4945,7 +5010,7 @@ rows = conn.execute("SELECT title FROM books WHERE author = ? ORDER BY year", (a
 print([r[0] for r in rows])
 conn.close()` },
     { h: "Changes need commit()",
-      p: "INSERT, UPDATE and DELETE change data inside a <b>transaction</b>. Nothing is saved until you call <code>conn.commit()</code>. If the program ends first, the changes are thrown away. <code>cursor.lastrowid</code> gives the id of the row you just inserted.",
+      p: "INSERT, UPDATE and DELETE change data inside a <b>transaction</b>. Nothing is saved until you call <code>conn.commit()</code>. If the program ends first, the changes are thrown away. <code>cursor.lastrowid</code> gives the id of the row you just inserted. Reading results: <code>.fetchone()</code> gives the next row as a tuple, or <code>None</code> when there are no rows left, so <code>.fetchone()[0]</code> is the first column of the first row. <code>.fetchall()</code> gives every row as a list of tuples.",
       code: `import sqlite3
 
 conn = sqlite3.connect("library.db")
@@ -5003,9 +5068,10 @@ def count_books():
       { call: "count_books()", expect: "6" },
       { call: "add_book('The White Tiger', 'Aravind Adiga', 2008)", expect: "7", dbCheck: { file: "library.db", sql: "SELECT title, author, year FROM books WHERE id = 7", rows: [["The White Tiger", "Aravind Adiga", 2008]], msg: "The new book isn't saved in the database. Did you <code>commit()</code>?" }, label: "<code>add_book</code> saves the book" },
       { setup: "add_book('Godaan', 'Premchand', 1936)", call: "count_books()", expect: "7", label: "<code>count_books</code> sees new books" },
-      { call: "books_by(\"x' OR '1'='1\")", expect: "[]", label: "Safe against SQL injection" }
+      { call: "books_by(\"x' OR '1'='1\")", expect: "[]", label: "Safe against SQL injection" },
+      { setup: "import sqlite3\nc = sqlite3.connect('library.db')\nc.execute('DELETE FROM books WHERE id = 2')\nc.commit()\nc.close()", call: "add_book('Train to Pakistan', 'Khushwant Singh', 1956)", expect: "7", label: "<code>add_book</code> returns the real new id, even after a book was deleted" }
     ],
-    must: [["\\?", "Use <code>?</code> placeholders for values."]],
+    must: [["\\?|:[A-Za-z_]\\w*", "Use <code>?</code> placeholders (or named ones like <code>:title</code>) for values."]],
     mustNot: [["execute\\(\\s*f[\"']", "Don't build SQL with f-strings. Use <code>?</code> placeholders."]],
     mustNotAll: true,
     hints: [
@@ -5074,7 +5140,9 @@ print(login("asha' --", "anything"))`,
       { call: "login('asha', 'chai123')", expect: "True" },
       { call: "login('asha', 'wrong')", expect: "False" },
       { call: "login(\"asha' --\", 'anything')", expect: "False", label: "The injection attack fails" },
-      { call: "login(\"x' OR '1'='1\", \"x' OR '1'='1\")", expect: "False", label: "Another injection attack fails" }
+      { call: "login(\"x' OR '1'='1\", \"x' OR '1'='1\")", expect: "False", label: "Another injection attack fails" },
+      { call: "login('asha', \"' OR '1'='1\")", expect: "False", label: "An attack typed into the password box fails" },
+      { call: "login('ravi', 'monsoon9')", expect: "True", label: "Ravi can still log in" }
     ],
     hints: ["Replace each <code>'{...}'</code> with <code>?</code>, and pass <code>(username, password)</code> as the second argument to <code>execute</code>."],
     fix: `import sqlite3
@@ -5086,7 +5154,9 @@ def login(username, password):
     return row is not None
 
 print(login("asha", "chai123"))`,
-    lesson: "Placeholders stop SQL injection. (Real apps also never store plain passwords: they store a hash. You'll meet that in World 5.)"
+    mustNot: [["execute\\(\\s*f[\"']", "Don't build SQL with f-strings, even after cleaning the text. Use <code>?</code> placeholders."]],
+    mustNotAll: true,
+    lesson: "Placeholders stop SQL injection. One more rule real apps follow: never store plain passwords. They store a <b>hash</b>, a one-way scrambled fingerprint made with a library like <code>bcrypt</code>, so even a stolen database doesn't reveal anyone's password."
   },
   explain: "Explain SQL injection to a friend who doesn't code. How do <code>?</code> placeholders stop it?",
   cards: [
@@ -5110,7 +5180,7 @@ connect()              -> open habits.db, create tables if missing
 add_habit(name)        -> ValueError if it already exists
 check_in(name, day)    -> ValueError if there's no such habit
 streak(name, today)    -> days in a row, ending today
-main()                 -> commands: add, done, streak, list, quit` },
+main()                 -> commands: add, done, streak, quit` },
     { h: "CREATE TABLE IF NOT EXISTS",
       p: "Apps create their tables the first time they run. <code>IF NOT EXISTS</code> makes it safe to run every time. <code>UNIQUE</code> makes the database refuse duplicates by raising <code>sqlite3.IntegrityError</code>, and <code>INSERT OR IGNORE</code> quietly skips a duplicate instead.",
       code: `import sqlite3
@@ -5125,7 +5195,7 @@ except sqlite3.IntegrityError as e:
 conn.execute("INSERT OR IGNORE INTO habits (name) VALUES (?)", ("read",))
 print(conn.execute("SELECT COUNT(*) FROM habits").fetchone()[0], "habit")` },
     { h: "Dates: count back day by day",
-      p: "The <code>datetime</code> module understands calendars. Turn <code>\"2026-10-23\"</code> into a <code>date</code>, then subtract <code>timedelta(days=1)</code> to step back one day, even across months. <code>str(d)</code> turns it back into text like the database stores.",
+      p: "The <code>datetime</code> module understands calendars. Turn <code>\"2026-10-23\"</code> into a <code>date</code>, then subtract <code>timedelta(days=1)</code> to step back one day, even across months. <code>str(d)</code> turns it back into text like the database stores. (In regular Python, <code>datetime.date.fromisoformat(\"2026-10-23\")</code> does the first step in one go. This game's in-browser Python doesn't have it, so the lesson splits the text instead.)",
       code: `import datetime
 
 def to_date(text):
@@ -5140,7 +5210,7 @@ for _ in range(3):
   think: [
     { type: "mcq", q: "A habit was done on Oct 21, 22 and 23. Today is Oct 23. What's the streak?", options: ["1", "2", "3", "0"], answer: 2,
       why: "Count back from today while each day has a check-in: 23 yes, 22 yes, 21 yes, 20 no. That's 3." },
-    { type: "mcq", q: "Today is Oct 23 and the last check-in was Oct 22. With our rule (the streak must end today), what's the streak?", options: ["0", "1", "2", "It depends on Oct 21"], answer: 0,
+    { type: "mcq", q: "Today is Oct 23. The habit was done on Oct 21 and Oct 22, but not yet today. Our rule: a streak only counts if it includes today. What's the streak?", options: ["0", "1", "2", "It depends on Oct 20"], answer: 0,
       why: "Our rule counts back from today, and today has no check-in, so the streak is 0. Real apps often allow until the end of the day; deciding rules like this is part of building software." },
     { type: "fill", q: "Fill the blanks so this counts the streak.", code: `import datetime
 
@@ -5152,8 +5222,8 @@ def streak(days, today):
         day = day - datetime.___(days=1)
     return count
 
-print(streak({"2026-10-21", "2026-10-22", "2026-10-23"}, datetime.date(2026, 10, 23)))`, answers: ["in", "timedelta"], expect: ["3"],
-      why: "Keep counting while the day is in the set of check-ins, stepping back one day each lap." }
+print(streak(["2026-10-21", "2026-10-22", "2026-10-23"], datetime.date(2026, 10, 23)))`, answers: ["in", "timedelta"], expect: ["3"],
+      why: "Keep counting while the day is in the list of check-ins, stepping back one day each lap." }
   ],
   code: {
     brief: "Build the habit tracker in <code>habits.db</code>. Write:<br>• <code>connect()</code>: returns a connection to <code>habits.db</code>, creating both tables if they don't exist (see Learn for the columns).<br>• <code>add_habit(name)</code>: adds a habit. If it already exists, raise <code>ValueError(\"Habit already exists\")</code>.<br>• <code>check_in(name, day)</code>: records that the habit was done on <code>day</code> (text like <code>\"2026-10-23\"</code>). Doing it twice on the same day counts once. If there's no such habit, raise <code>ValueError</code>.<br>• <code>streak(name, today)</code>: the number of days in a row with a check-in, counting back from <code>today</code> (a text date). 0 if today has none.<br>• <code>main()</code>: first ask <code>Today? </code>, then read commands with <code>&gt; </code>:<br>&nbsp;&nbsp;<code>add read</code> → <code>Added: read</code> or <code>Already tracking: read</code><br>&nbsp;&nbsp;<code>done read</code> → <code>Done: read</code> or <code>No habit called: read</code><br>&nbsp;&nbsp;<code>streak read</code> → <code>read: 3 day streak</code><br>&nbsp;&nbsp;<code>quit</code> → <code>Keep going!</code><br>Print nothing else.",
@@ -5188,7 +5258,12 @@ if __name__ == "__main__":
     main()
 `,
     tests: [
-      { setup: "add_habit('read')", call: "connect().execute('SELECT name FROM habits').fetchall()", expect: "[('read',)]", label: "<code>add_habit</code> saves a habit" },
+      { setup: "add_habit('read')", call: "[tuple(r) for r in connect().execute('SELECT name FROM habits').fetchall()]", expect: "[('read',)]", label: "<code>add_habit</code> saves a habit",
+        dbCheck: { file: "habits.db", sql: "SELECT name FROM habits", rows: [["read"]], msg: "The habit isn't saved in <code>habits.db</code>. Did you <code>commit()</code>?" } },
+      { setup: "add_habit('read')\ncheck_in('read', '2026-10-23')", call: "streak('read', '2026-10-23')", expect: "1", label: "<code>check_in</code> saves to the database",
+        dbCheck: { file: "habits.db", sql: "SELECT h.name, c.day FROM checkins c JOIN habits h ON h.id = c.habit_id", rows: [["read", "2026-10-23"]], msg: "The check-in isn't saved in the <code>checkins</code> table (columns <code>habit_id</code> and <code>day</code>). Did you <code>commit()</code>?" } },
+      { db: { "habits.db": "CREATE TABLE habits (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL); CREATE TABLE checkins (habit_id INTEGER, day TEXT, UNIQUE(habit_id, day)); INSERT INTO habits (name) VALUES ('gym'), ('read'); INSERT INTO checkins VALUES (1, '2026-10-21'), (1, '2026-10-22'), (1, '2026-10-23'), (2, '2026-10-20');" },
+        call: "(streak('gym', '2026-10-23'), streak('read', '2026-10-23'))", expect: "(3, 0)", label: "Works with a database that already has data (connect() must not wipe it)" },
       { setup: "add_habit('read')", call: "add_habit('read')", raises: "ValueError", label: "Adding a habit twice raises ValueError" },
       { call: "check_in('swim', '2026-10-23')", raises: "ValueError", label: "Checking in an unknown habit raises ValueError" },
       { setup: "add_habit('read')\nfor d in ['2026-10-21', '2026-10-22', '2026-10-23', '2026-10-23']:\n    check_in('read', d)", call: "streak('read', '2026-10-23')", expect: "3", label: "Three days in a row" },
@@ -5197,13 +5272,13 @@ if __name__ == "__main__":
       { setup: "add_habit('read')\ncheck_in('read', '2026-10-23')\ncheck_in('read', '2026-10-23')", call: "connect().execute('SELECT COUNT(*) FROM checkins').fetchone()[0]", expect: "1", label: "Same day twice counts once" },
       { in: ["2026-10-23", "add read", "add read", "done read", "done swim", "streak read", "quit"], out: ["Added: read", "Already tracking: read", "Done: read", "No habit called: swim", "read: 1 day streak", "Keep going!"], only: true, inOrder: true, label: "Plays a full session" }
     ],
-    must: [["import\\s+sqlite3", "Store the data with <code>sqlite3</code>."], ["CREATE TABLE IF NOT EXISTS", "Create the tables with <code>CREATE TABLE IF NOT EXISTS</code>."], ["def\\s+main\\s*\\(", "Put the command loop in <code>main()</code>."]],
+    must: [["import\\s+sqlite3", "Store the data with <code>sqlite3</code>."], ["create\\s+table\\s+if\\s+not\\s+exists", "Create the tables with <code>CREATE TABLE IF NOT EXISTS</code>, so running again keeps the data.", "i"], ["def\\s+main\\s*\\(", "Put the command loop in <code>main()</code>."]],
     mustNot: [["execute\\(\\s*f[\"']", "Use <code>?</code> placeholders, not f-strings, in SQL."]],
     mustNotAll: true,
     hints: [
       "<code>connect()</code>: connect, run both CREATE TABLE IF NOT EXISTS statements, and return the connection. Every other function starts with <code>conn = connect()</code>.",
       "<code>add_habit</code>: try the INSERT and <code>commit()</code>; <code>except sqlite3.IntegrityError: raise ValueError(\"Habit already exists\")</code>. <code>check_in</code>: look up the habit's id first, raise ValueError if it's None, then <code>INSERT OR IGNORE</code> into checkins and commit.",
-      "<code>streak</code>: fetch all the habit's days into a set, then count back from <code>today</code> with <code>timedelta(days=1)</code> while <code>str(day) in days</code>. In main, split each command with <code>cmd, name = line.split(\" \", 1)</code>."
+      "<code>streak</code>: fetch all the habit's days into a list, then count back from <code>today</code> with <code>timedelta(days=1)</code> while <code>str(day) in days</code>. In main, split each command with <code>cmd, name = line.split(\" \", 1)</code>."
     ],
     solution: `import sqlite3
 import datetime
@@ -5313,7 +5388,8 @@ def all_habits():
 if __name__ == "__main__":
     add_habit("read")
     print(all_habits())`,
-    tests: [{ setup: "add_habit('read')\nadd_habit('walk')", call: "all_habits()", expect: "['read', 'walk']" }],
+    tests: [{ setup: "add_habit('read')\nadd_habit('walk')", call: "all_habits()", expect: "['read', 'walk']",
+      dbCheck: { file: "habits.db", sql: "SELECT name FROM habits ORDER BY id", rows: [["read"], ["walk"]], msg: "The habits still aren't saved in <code>habits.db</code>." } }],
     hints: ["The INSERT runs inside a transaction. What has to happen before <code>close()</code> for it to be saved?"],
     fix: `import sqlite3
 
@@ -12140,7 +12216,11 @@ class HTTPError(RequestException):
 class Timeout(RequestException):
     pass
 
-class JSONDecodeError(_json.JSONDecodeError):
+class InvalidJSONError(RequestException):
+    pass
+
+# Like real requests: catchable as requests's own error or as json's.
+class JSONDecodeError(InvalidJSONError, _json.JSONDecodeError):
     pass
 
 class exceptions:
@@ -12149,6 +12229,7 @@ class exceptions:
     HTTPError = HTTPError
     Timeout = Timeout
     JSONDecodeError = JSONDecodeError
+    InvalidJSONError = InvalidJSONError
 
 _REASONS = {200: "OK", 201: "Created", 204: "No Content", 400: "Bad Request", 401: "Unauthorized",
             403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 429: "Too Many Requests",
@@ -12711,9 +12792,19 @@ class Cursor:
     def close(self):
         pass
 
+# Open connections. All connections to one practice database share a single copy, so a new
+# connection must not see another's uncommitted changes: opening it discards them, the way a
+# forgotten commit() loses work in real programs.
+_LIVE = []
+
 class Connection:
     def __init__(self, name):
         self._name = _cqsql.open(name)
+        for other in _LIVE:
+            if other._name == self._name and other.in_transaction and not other._closed:
+                _cqsql.run(other._name, "ROLLBACK", [])
+                other.in_transaction = False
+        _LIVE.append(self)
         self.row_factory = None
         self.in_transaction = False
         self._closed = False
@@ -12835,7 +12926,7 @@ function cqPokemon(key) {
   };
 }
 const CQ_API_DEFAULT = [
-  { url: /^https:\/\/pokeapi\.co\/api\/v2\/pokemon\/([^/?]+)\/?$/, fn: (m) => { const p = cqPokemon(m[1].toLowerCase()); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
+  { url: /^https:\/\/pokeapi\.co\/api\/v2\/pokemon\/([^/?]+)\/?$/, fn: (m) => { const p = cqPokemon(m[1]); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
   { url: /^https:\/\/api\.open-meteo\.com\/v1\/forecast$/, fn: (m, q) => {
     if (q.latitude == null || q.longitude == null || isNaN(+q.latitude) || isNaN(+q.longitude)) return { status: 400, json: { error: true, reason: "Parameter 'latitude' and 'longitude' must have the same number of elements" } };
     const lat = +q.latitude, lon = +q.longitude;
@@ -13048,6 +13139,39 @@ function pixelSvg(i, size) {
     _pixCache[idx] = rects;
   }
   return `<svg viewBox="0 0 12 12" ${size ? `width="${size}" height="${size}"` : ""} shape-rendering="crispEdges" aria-hidden="true">${_pixCache[idx]}</svg>`;
+}
+
+/* Small pixel icons for the interface. Each is drawn as fills only; a dark outline is added around
+   the shape automatically, so every icon matches the heroes' pixel style. */
+const PIX_ICON_PAL = { P: "#f4e4c1", Q: "#d9c49a", r: "#b13e53", o: "#ef7d57", y: "#ffcd75", w: "#f4f4f4", G: "#94b0c2", d: "#566c86", B: "#8b5a2b", b: "#3b5dc9", n: "#29366f", c: "#73eff7", g: "#38b764", k: "#1a1c2c" };
+const PIX_ICONS = {
+  map: [
+    "PPPPPPPPPP", "PQQQQQQQQP", "PQrQQQQQQP", "PQQQrQQQQP", "PQQQQQrQQP",
+    "PQQQQQQQQP", "PQQQQQrQrP", "PQQQQQQrQP", "PQQQQQrQrP", "PPPPPPPPPP"],
+  sword: [
+    ".........ww", "........wGw", ".......wGw.", "......wGw..", ".....wGw...",
+    "..y.wGw....", "...yGw.....", "...By......", "..B..y.....", ".y........."],
+  flame: [
+    "....o.....", "....oo....", "...ooo..o.", "...oyoo.o.", "..ooyyooo.",
+    "..oyyyyyo.", ".ooyywyyoo", ".oyywwwyyo", ".oyywwwyyo", "..oyyyyyo.", "...ooooo.."],
+  shield: [
+    "bbbbbbbbbb", "bccbbbbbbb", "bcbbbbbbbb", "byybbbbyyb", "bbyybbyybb",
+    "bbbyyyybbb", "bbbbyybbbb", ".bbbbbbbb.", "..bbbbbb..", "...bbbb...", "....bb...."]
+};
+function pixIcon(name, size = 22) {
+  const rows = PIX_ICONS[name];
+  if (!rows) return "";
+  const h = rows.length + 2, w = Math.max(...rows.map((r) => r.length)) + 2;
+  const grid = Array.from({ length: h }, (_, y) => Array.from({ length: w }, (_, x) => (rows[y - 1] || "")[x - 1] || "."));
+  const filled = (x, y) => grid[y] && grid[y][x] && grid[y][x] !== "." && grid[y][x] !== "k";
+  // Outline: every empty cell next to a filled one (up, down, left, right) becomes dark.
+  const out = grid.map((row, y) => row.map((ch, x) => ch === "." && (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1)) ? "k" : ch).join(""));
+  let rects = "";
+  out.forEach((row, y) => {
+    let x = 0;
+    while (x < row.length) { const ch = row[x]; let n = 1; while (row[x + n] === ch) n++; if (ch !== "." && PIX_ICON_PAL[ch]) rects += `<rect x="${x}" y="${y}" width="${n}" height="1" fill="${PIX_ICON_PAL[ch]}"/>`; x += n; }
+  });
+  return `<svg class="pix-icon" viewBox="0 0 ${w} ${h}" width="${size}" height="${size * h / w}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
 }
 
 /* Python runner (Skulpt) and test checker. */
@@ -13281,6 +13405,8 @@ function sqlFriendly(m) {
   if (/UNIQUE constraint/.test(m)) return "That value must be unique, and it already exists in the table.";
   if (/NOT NULL constraint/.test(m)) return "A required column was left empty.";
   if (/bindings/.test(m)) return "The number of <code>?</code> placeholders doesn't match the number of values you passed. A single value still needs a tuple: <code>(value,)</code>.";
+  if (/misuse of aggregate/i.test(m)) return "COUNT, SUM, AVG, MIN and MAX can't go in WHERE, because WHERE checks one row at a time, before any grouping. To filter on a group's total, use <code>HAVING</code> after <code>GROUP BY</code>.";
+  if (/ambiguous column/i.test(m)) return "Two of your tables have a column with that name, so SQL doesn't know which one you mean. Put the table's name or alias in front: <code>c.name</code> or <code>o.id</code>.";
   if (/aggregate|GROUP BY/i.test(m)) return "When you use COUNT, SUM or AVG with other columns, those other columns need to be in GROUP BY.";
   return "Read the database's message carefully: it names the part it didn't understand.";
 }
@@ -13401,15 +13527,19 @@ function testLabel(t) {
 }
 
 function codeChecks(task, code) {
-  const stripped = code.replace(/#.*$/gm, "");
-  for (const [re, msg] of task.must || []) {
-    if (!new RegExp(re, "m").test(stripped)) return msg;
+  // SQL: skip -- comments and ignore case (keywords can be written any way). Python: skip # comments.
+  // A rule can add its own regex flags as a third item, e.g. ["create\\s+table", "…", "i"].
+  const sql = task.kind === "sql";
+  const stripped = sql ? code.replace(/--.*$/gm, "") : code.replace(/#.*$/gm, "");
+  const flags = (extra) => "m" + (sql ? "i" : "") + (extra && !(sql && extra === "i") ? extra : "");
+  for (const [re, msg, f] of task.must || []) {
+    if (!new RegExp(re, flags(f)).test(stripped)) return msg;
   }
-  for (const [re, msg] of task.mustNot || []) {
+  for (const [re, msg, f] of task.mustNot || []) {
     // Pure-number patterns (like "45") only count on lines that print, assign or return, so the number can still appear elsewhere.
     const numeric = /^[\d.\\]+$/.test(re);
     const codeOnly = task.mustNotAll || !numeric ? stripped : stripped.split("\n").filter((l) => /print\(|=|return/.test(l)).join("\n");
-    if (new RegExp(re, "m").test(codeOnly)) return msg;
+    if (new RegExp(re, flags(f)).test(codeOnly)) return msg;
   }
   return "";
 }
@@ -13521,7 +13651,9 @@ async function checkOne(task, t, code) {
   if (res.pass && t.silent && lines.length) fail("This function should <b>return</b> its answer, not print it. Remove the <code>print()</code> inside the function.");
   for (const [name, want] of Object.entries(t.fileOut || {})) {
     if (!res.pass) break;
-    const got = r.files[name];
+    // fileLoose: ignore spaces at the ends of lines and blank lines at the end of the file.
+    const loose = (x) => String(x).split("\n").map((l) => l.replace(/\s+$/, "")).join("\n").replace(/\n+$/, "");
+    const got = t.fileLoose && r.files[name] !== undefined && loose(r.files[name]) === loose(want) ? want : r.files[name];
     if (got === undefined) fail("The file <code>" + escapeHtml(name) + "</code> wasn't created.");
     else if (got + "\n" === want) fail("<code>" + escapeHtml(name) + "</code> is nearly right: the last line needs <code>\\n</code> at the end.");
     else if (got !== want) {
@@ -13644,7 +13776,8 @@ async function runSqlTests(task, code) {
     const cmp = (a, b) => {
       if (!a) return "Your SQL didn't return any rows to check. End with a SELECT.";
       if (a.cols.length !== b.cols.length) return "Expected " + b.cols.length + " column" + (b.cols.length > 1 ? "s" : "") + " (" + escapeHtml(b.cols.join(", ")) + ") but got " + a.cols.length + ".";
-      const key = (r) => JSON.stringify(r.map((v) => typeof v === "number" ? +(+v).toFixed(6) : v));
+      // Numbers compare by value, and a number stored as text ('56.3') counts as that number.
+      const key = (r) => JSON.stringify(r.map((v) => typeof v === "number" || (typeof v === "string" && /^-?\d+(\.\d+)?$/.test(v.trim())) ? +(+v).toFixed(6) : v));
       const ordered = task.ordered != null ? task.ordered : /order\s+by/i.test(task.solution);
       const A = a.rows.map(key), B = b.rows.map(key);
       if (A.length !== B.length) return "Expected " + B.length + " row" + (B.length === 1 ? "" : "s") + " but got " + A.length + ".";
@@ -14147,7 +14280,7 @@ function renderHome(v) {
         <span style="flex:1;min-width:0"><span class="eyebrow">${levelClear(nx.id) ? "Replay" : stageDone(nx.id, "learn") ? "Continue" : "Next level"}</span><br><b style="font-size:17px">${esc(nx.title)}</b> <span class="muted">· ${esc(nx.concept)}</span></span>
         <span class="btn primary sm">${ICON.play} ${STAGES.find((s) => s.id === nextStageOf(nx.id)).label}</span>
       </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>Every world cleared!</b><br><span class="muted">You've finished the whole quest. Replay levels for 3 stars, and keep the Take it home quests going.</span></span></div>`}
-      <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div></div>
+      <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div>${miniMapHtml()}</div>
       <div class="card loop">
         <div class="panel-h"><h2>Today's quest loop</h2><span class="muted" style="font-size:13px">about 3–4 hours</span></div>
         ${loopHtml(nx, due)}
@@ -14161,7 +14294,7 @@ function renderHome(v) {
       <div class="card side-card">
         <div class="panel-h"><h2>Guild board</h2><button class="btn ghost sm" data-go="guild">See all</button></div>
         <div class="board">${players().slice(0, 6).map(boardRow).join("")}</div>
-        ${players().length < 2 ? `<p class="muted" style="font-size:13px;margin-top:10px">Playing solo for now. See <b>How to play</b> to add your sister or friends.</p>` : ""}
+        ${players().length < 2 ? `<p class="muted" style="font-size:13px;margin-top:10px">${netOn() ? "Playing solo for now. Open <b>Guild</b> to start one and share the code, or join your friends with theirs." : "Playing solo for now. Send friends the game's link so they can start their own quest."}</p>` : ""}
       </div>
       <div class="card side-card">
         <div class="panel-h"><h2>Job-ready meter</h2></div>
@@ -14172,7 +14305,8 @@ function renderHome(v) {
   </div>`;
   const cb = $("#contBtn"); if (cb) cb.addEventListener("click", () => go({ name: "level", id: nx.id, stage: nextStageOf(nx.id) }));
   $$("[data-go]", v).forEach((b) => b.addEventListener("click", () => go({ name: b.dataset.go })));
-  bindMap(v);
+  bindMap($(".map-scroll", v));
+  const mini = $(".map-mini", v); if (mini) mini.addEventListener("click", () => openBigMap(mini));
   $$("[data-loop]", v).forEach((b) => b.addEventListener("click", () => {
     const [kind, arg] = b.dataset.loop.split("|");
     if (kind === "review") go({ name: "review" });
@@ -14270,6 +14404,75 @@ function mapSvg() {
     <path d="${route}" fill="none" stroke="var(--route)" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round" opacity=".8"/>
     <g transform="translate(60 70)" opacity=".7"><circle r="30" fill="none" stroke="var(--route)" stroke-width="2"/><path d="M0,-40 L7,0 L0,40 L-7,0Z" fill="var(--route)"/><path d="M-40,0 L0,6 L40,0 L0,-6Z" fill="var(--route)" opacity=".5"/><text y="-46" text-anchor="middle" font-family="var(--font-display)" font-size="14" fill="var(--route)">N</text></g>
     ${nodes}</svg>`;
+}
+/* ───────── Phone map ─────────
+   On small screens the map card shows a preview of the area around the player's island, filling the
+   card, with a small expand button. Opening it grows the full map out of the card; it can be dragged
+   and zoomed, and shrinks back into the card when closed. Desktop keeps the normal map. */
+function currentWorld() { return WORLDS.find((w) => w.id === (S.hero ? placeOf(S.hero).world : 1)) || WORLDS[0]; }
+function miniMapHtml() {
+  const w = currentWorld(), vx = Math.max(0, Math.min(1000 - 440, w.x - 160)), vy = Math.max(0, Math.min(520 - 250, w.y - 150));
+  return `<button class="map-mini" type="button" aria-label="Open the full world map. You're in ${esc(w.name)}.">
+      <span class="map-mini-view" aria-hidden="true">${mapSvg().replace('viewBox="0 0 1000 520"', `viewBox="${vx} ${vy} 440 250" preserveAspectRatio="xMidYMid slice"`).replace(/ tabindex="0" role="button"/g, "")}</span>
+      <span class="map-expand" aria-hidden="true"><svg viewBox="0 0 10 10" width="16" height="16" shape-rendering="crispEdges"><path d="M0 0h4v1.5H1.5V4H0zM6 0h4v4H8.5V1.5H6zM0 6h1.5v2.5H4V10H0zM8.5 6H10v4H6V8.5h2.5z" fill="currentColor"/></svg></span>
+    </button>`;
+}
+function openBigMap(fromEl) {
+  const r = fromEl.getBoundingClientRect();
+  const from = `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px round 12px)`;
+  const ov = document.createElement("div");
+  ov.className = "map-full";
+  ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "World map");
+  ov.innerHTML = `<div class="map-full-bar"><b>World map</b><span class="muted">Drag to explore · tap an island</span>
+      <span class="map-full-tools"><button type="button" class="btn sm" data-z="-1" aria-label="Zoom out">−</button><button type="button" class="btn sm" data-z="1" aria-label="Zoom in">+</button><button type="button" class="btn sm" data-close aria-label="Close the map">✕</button></span></div>
+    <div class="map-full-view"><div class="map-full-pan">${mapSvg()}</div></div>`;
+  document.body.appendChild(ov);
+  const view = $(".map-full-view", ov), pan = $(".map-full-pan", ov);
+  // Grow out of the map card (and later shrink back into it) with a rectangular clip.
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  ov.style.clipPath = from;
+  requestAnimationFrame(() => requestAnimationFrame(() => { ov.classList.add("open"); ov.style.clipPath = "inset(0px 0px 0px 0px round 0px)"; }));
+  // Pan and zoom: the map is drawn 1000×520 and moved with a transform, kept inside the view.
+  let scale = Math.max(view.clientHeight / 520, 0.9), x = 0, y = 0;
+  const w = currentWorld();
+  const clamp = () => {
+    const mw = 1000 * scale, mh = 520 * scale, vw = view.clientWidth, vh = view.clientHeight;
+    x = mw <= vw ? (vw - mw) / 2 : Math.min(0, Math.max(vw - mw, x));
+    y = mh <= vh ? (vh - mh) / 2 : Math.min(0, Math.max(vh - mh, y));
+    pan.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+  };
+  const centerOn = (px, py) => { x = view.clientWidth / 2 - px * scale; y = view.clientHeight / 2 - py * scale; clamp(); };
+  centerOn(w.x, w.y);
+  let drag = null, moved = false;
+  view.addEventListener("pointerdown", (e) => { drag = { sx: e.clientX, sy: e.clientY, x, y }; moved = false; view.setPointerCapture(e.pointerId); });
+  view.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    x = drag.x + dx; y = drag.y + dy; clamp();
+  });
+  view.addEventListener("pointerup", () => { drag = null; });
+  view.addEventListener("click", (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  $$("[data-z]", ov).forEach((b) => b.addEventListener("click", () => {
+    const mx = (view.clientWidth / 2 - x) / scale, my = (view.clientHeight / 2 - y) / scale;
+    scale = Math.min(2.4, Math.max(0.5, scale * (b.dataset.z > 0 ? 1.3 : 1 / 1.3)));
+    centerOn(mx, my);
+  }));
+  const close = (instant) => {
+    document.removeEventListener("keydown", onKey);
+    if (instant || still) return ov.remove();
+    ov.style.clipPath = from;
+    ov.classList.remove("open");
+    setTimeout(() => ov.remove(), 420);
+    fromEl.focus({ preventScroll: true });
+  };
+  const onKey = (e) => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  $("[data-close]", ov).addEventListener("click", () => close());
+  // Tapping an island opens it, closing the map straight away.
+  bindMap(pan);
+  $$(".world-node", pan).forEach((g) => g.addEventListener("click", () => close(true)));
+  $("[data-close]", ov).focus({ preventScroll: true });
 }
 function bindMap(root) {
   $$(".world-node", root).forEach((g) => {
@@ -15305,6 +15508,13 @@ function renderGuild(v) {
   </div></div>`;
 }
 function inviteHtml() {
+  if (S.mode !== "cloud") return `<h3 style="margin-top:0">Play with friends</h3>
+    <ol>
+      ${netConfigured() ? `<li>Send your friends the game's link. Each of them creates their own hero.</li>
+      <li>One of you opens <b>Guild</b>, starts a guild and shares its 6-letter code.</li>
+      <li>Everyone else types the code into <b>Guild</b>, and you all appear on the same leaderboard.</li>` : `<li>Send your friends the game's link. Each of them creates their own hero on their own device.</li>`}
+    </ol>
+    <p><b>Sharing one computer?</b> The title screen has 3 save files. Each player picks their own and can lock it with a PIN.</p>`;
   return `<h3 style="margin-top:0">Add another player</h3>
     <ol>
       <li>The person who owns this game opens the <b>Share</b> menu at the top of this page.</li>
@@ -15336,6 +15546,51 @@ function openGuide() {
       ${inviteHtml()}
     </div>
     <div class="row"><button class="btn primary" data-close>Let's go</button></div>`);
+}
+
+/* ───────── Welcome ─────────
+   A small version of the player's own hero sits in the corner, moving the way that character
+   would: a dragon flies with flapping wings and puffs of fire, a ghost floats, a slime squishes,
+   a robot hovers with a blinking antenna, and so on. Still with reduced motion. */
+const ACTOR = {
+  Dragon: "fly", Ghost: "ghost", Wizard: "float", Astronaut: "drift", Slime: "squish", Robot: "hover", Frog: "hop"
+};
+function heroActorSvg(i) {
+  const sp = SPRITES[((i | 0) % SPRITES.length + SPRITES.length) % SPRITES.length];
+  const kind = ACTOR[sp.name] || "hop";
+  const pal = Object.assign({}, PIX_BASE, sp.pal);
+  let back = "", front = "", vb = "-3 -4 18 17";
+  if (sp.name === "Dragon") {
+    // Bat-like wings at the body's sides, flapping; little fire puffs from the mouth.
+    const wing = ["k.......", "kk......", "kdk.....", "kldkk...", "klllldkk", "klklllld", ".k.k.kkk"];
+    const mirror = wing.map((r) => [...r].reverse().join(""));
+    back = `<g class="act-wing act-wing-l">${PX.sprite(wing, -7, 1, 1, pal)}</g><g class="act-wing act-wing-r">${PX.sprite(mirror, 12, 1, 1, pal)}</g>`;
+    front = [["#ffcd75", 0], ["#ef7d57", 0.18], ["#b13e53", 0.36]].map(([c, d]) => `<rect class="act-fire" x="3.4" y="7.2" width="1.4" height="1.4" fill="${c}" style="animation-delay:${d}s"/>`).join("");
+    vb = "-9 -4 30 17";
+  } else if (kind === "float" || kind === "drift") {
+    front = [[-1.5, 2, 0, "#ffcd75"], [13, 4, 0.5, "#73eff7"], [12, -1.5, 1, "#ffcd75"], [-2.5, 6, 1.4, "#73eff7"]].map(([x, y, d, c]) => `<rect class="act-spark" style="animation-delay:${d}s" x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`).join("");
+  } else if (sp.name === "Robot") {
+    front = `<rect class="act-blink" x="6" y="1" width="1" height="1" fill="#ef7d57"/>`;
+  }
+  return `<svg class="act act-${kind}" viewBox="${vb}" shape-rendering="crispEdges" aria-hidden="true"><g class="act-body">${back}${PX.sprite(sp.rows, 0, 0, 1, pal)}${front}</g></svg>`;
+}
+function openWelcome() {
+  const h = S.hero;
+  if (!h) return;
+  const name = esc(h.name || "hero");
+  openModal(`<div class="wl-actor">${heroActorSvg(h.pix)}</div>
+    <p class="eyebrow">Welcome to Code Quest</p>
+    <h2 class="wl-title">Your adventure starts now, ${name}!</h2>
+    <p>In 8 weeks you'll go from your very first <code>print()</code> to acing a coding interview, one island at a time. No experience needed: just curiosity and a little practice every day.</p>
+    <ul class="wl-steps">
+      <li>${pixIcon("map")}<span><b>Follow the map.</b> Start on the glowing island in the bottom-left, Basics Village.</span></li>
+      <li>${pixIcon("sword")}<span><b>Five stages per level:</b> Learn, Think, the Forge, Bug Hunt and Tavern Talk.</span></li>
+      <li>${pixIcon("flame")}<span><b>Come back every day.</b> Keep your streak alive and earn XP, stars and ranks.</span></li>
+      ${netConfigured() && S.mode === "local" ? `<li>${pixIcon("shield")}<span><b>Bring your friends.</b> Join their guild with a code, or start your own.</span></li>` : ""}
+    </ul>
+    <div class="row"><button class="btn ghost" id="wlGuide">How to play</button><button class="btn primary" data-close>Let's go! ▸</button></div>`, {
+    onOpen: (bg) => { $(".modal", bg).classList.add("welcome"); $("#wlGuide", bg).addEventListener("click", () => { closeModal(); openGuide(); }); }
+  });
 }
 /* ───────── Boot ───────── */
 async function boot(hot) {
@@ -15370,7 +15625,7 @@ async function boot(hot) {
   if (S.mode === "cloud") setSync("ok", "Saved");
   else {
     setSync("local", "Saved on this device");
-    if (!netConfigured()) showBanner("Playing offline: your progress saves in this browser. Open the claude.ai version while signed in to join the shared Guild board.");
+    if (!netConfigured()) showBanner("Playing offline: your progress saves in this browser on this device.");
   }
   render();
 }
@@ -15427,6 +15682,13 @@ async function netStart() {
       NET.slot = slot; NET.uid = null; S.others = {};
     }
     let { data: { session } } = await NET.sb.auth.getSession();
+    // A saved login can outlive its user (for example after old test players are deleted in the
+    // dashboard). Check it with the server, and start a fresh anonymous login if it's gone; the
+    // browser save is merged back up below, so no progress is lost.
+    if (session) {
+      const { error: gone } = await NET.sb.auth.getUser();
+      if (gone) { await NET.sb.auth.signOut({ scope: "local" }); session = null; }
+    }
     if (!session) {
       const r = await NET.sb.auth.signInAnonymously();
       if (r.error) throw r.error;
@@ -15460,6 +15722,26 @@ async function netPush() {
     last_played: /^\d{4}-\d{2}-\d{2}$/.test(h.last || "") ? h.last : null, updated_at: now
   });
   if (r2.error) throw r2.error;
+}
+
+/* "Delete profile": erase this slot's online copy, then forget its login so a new hero in the same
+   slot starts clean instead of pulling the old progress back in. Returns false if the server
+   couldn't be reached, so nothing is deleted halfway. */
+async function netDeleteMe(slot) {
+  const loginKey = "cq.net.slot" + slot;
+  let hasLogin = false;
+  try { hasLogin = !!localStorage.getItem(loginKey); } catch (_) {}
+  if (netConfigured() && hasLogin) {
+    clearTimeout(NET.saveTimer); clearTimeout(NET.timer); NET.queue = [];
+    if (NET.slot !== slot || !NET.uid) await netStart();
+    if (!NET.uid) return false;
+    const { error } = await NET.sb.rpc("delete_me");
+    if (error) { console.warn("Delete profile:", error.message); return false; }
+    await NET.sb.auth.signOut({ scope: "local" }).catch(() => {});
+  }
+  try { localStorage.removeItem(loginKey); } catch (_) {}
+  if (NET.slot === slot) { NET.sb = null; NET.slot = null; NET.uid = null; S.others = {}; }
+  return true;
 }
 
 /* save() calls this after every local save; uploads are batched to one every couple of seconds. */
@@ -15526,8 +15808,9 @@ async function renderNetGuild(v) {
     $("#gJoin").addEventListener("click", async () => {
       const code = $("#gCode").value.trim();
       if (!/^[A-Za-z0-9]{6}$/.test(code)) return err("#gJoinErr", "Enter the 6-character code your friend shared.");
-      const { error } = await NET.sb.rpc("join_guild", { p_code: code });
+      const { data, error } = await NET.sb.rpc("join_guild", { p_code: code });
       if (error) return err("#gJoinErr", netGuildMsg(error));
+      if (!data || !data.length) return err("#gJoinErr", "No guild with that code. Check it and try again.");
       toast("Welcome to the guild!"); renderNetGuild(v);
     });
     $("#gMake").addEventListener("click", async () => {
@@ -15581,8 +15864,11 @@ function openFeedback() {
         const text = msg.value.trim();
         if (!text) { errEl.textContent = "Write a few words first."; errEl.hidden = false; msg.focus(); return; }
         if (!netOn() || (!NET.uid && !(await netStart()))) { errEl.textContent = "Feedback needs an internet connection. Copy your message and try again later."; errEl.hidden = false; return; }
+        const send = $("#fbSend", bg);
+        send.disabled = true;
         const { error } = await NET.sb.from("feedback").insert({ level: r.name === "level" ? r.id : null, stage: r.stage || r.name, rating: rating || null, message: text.slice(0, 2000) });
-        if (error) { errEl.textContent = "Couldn't send it. Try again in a minute."; errEl.hidden = false; return; }
+        send.disabled = false;
+        if (error) { errEl.textContent = /feedback/i.test(error.message || "") ? error.message : "Couldn't send it. Try again in a minute."; errEl.hidden = false; return; }
         closeModal(); toast("Thanks! Your feedback was sent.");
       });
     }
@@ -15852,13 +16138,13 @@ function createHero(ui, opt) {
     const pin = pinEl ? pinEl.value : "";
     if (pin && pin.length !== 4) { err.textContent = "A PIN needs exactly 4 digits, or leave it empty."; pinEl.focus(); return; }
     const hero = blankHero(name.slice(0, 16), pick.pix, pick.color);
-    if (opt.cloud) { S.cloudHero = hero; enterGame(hero); setTimeout(openGuide, 400); return; }
+    if (opt.cloud) { S.cloudHero = hero; enterGame(hero); setTimeout(openWelcome, 400); return; }
     S.slot = opt.slot;
     if (pin) lsSet(pinKey(opt.slot), await hashPin(opt.slot, pin));
     else lsSet(pinKey(opt.slot), null);
     lsSet(slotKey(opt.slot), hero);
     enterSlot(opt.slot);
-    setTimeout(openGuide, 400);
+    setTimeout(openWelcome, 400);
   });
 }
 
@@ -15948,7 +16234,7 @@ function renderProfile(v) {
 
         <hr class="sep">
         <h3 class="sub">Sync with your other version</h3>
-        <p class="muted" style="font-size:13.5px">The claude.ai game and the desktop game save separately. Copy your save code here, then paste it into Profile on the other version. Progress is combined, so nothing from either side is lost.</p>
+        <p class="muted" style="font-size:13.5px">Playing on another device or browser too? Copy your save code here, then paste it into Profile there. Progress is combined, so nothing from either side is lost.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn sm" id="copyCode">Copy my save code</button><span class="muted" id="copyMsg" style="font-size:13px"></span></div>
         <textarea id="codeOut" class="code-box" readonly hidden aria-label="Your save code"></textarea>
         <label class="sr" for="codeIn">Paste a save code</label>
@@ -15960,7 +16246,7 @@ function renderProfile(v) {
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn" id="pOut">${S.mode === "cloud" ? "Back to title screen" : "Switch player"}</button>
         </div>
-        <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete this save file"}</button></div>
+        <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete profile"}</button></div>
       </div>
     </div>
   </div>`;
@@ -16043,10 +16329,20 @@ function renderProfile(v) {
   $("#pOut").addEventListener("click", logOut);
   $("#pReset").addEventListener("click", () => {
     const cloud = S.mode === "cloud";
-    $("#danger").innerHTML = `<div class="notice">${cloud ? "This erases your XP, stars and streak." : "This deletes save file " + S.slot + " for good: XP, stars, streak and PIN."} It can't be undone.
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn sm" id="rNo">Keep it</button><button class="btn sm" id="rYes" style="background:var(--danger);color:#fff;border-color:var(--danger)">${cloud ? "Erase everything" : "Delete file"}</button></div></div>`;
+    $("#danger").innerHTML = `<div class="notice">${cloud ? "This erases your XP, stars and streak." : `This deletes <b>${esc(h.name)}</b> for good, on this device${netConfigured() ? " and online" : ""}: XP, stars, streak, PIN${netConfigured() ? ", guild spot, play data and feedback" : ""}.`} It can't be undone.
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn sm" id="rNo">Keep it</button><button class="btn sm" id="rYes" style="background:var(--danger);color:#fff;border-color:var(--danger)">${cloud ? "Erase everything" : "Delete " + esc(h.name)}</button></div><p class="fb-err" id="rErr" hidden></p></div>`;
     $("#rNo").addEventListener("click", () => renderProfile(v));
-    $("#rYes").addEventListener("click", () => {
+    $("#rYes").addEventListener("click", async () => {
+      if (!cloud) {
+        const yes = $("#rYes");
+        yes.disabled = true; yes.textContent = "Deleting…";
+        if (!(await netDeleteMe(S.slot))) {
+          yes.disabled = false; yes.textContent = "Try again";
+          $("#rErr").textContent = "Couldn't delete the online copy just now, so nothing was deleted. Check your internet and try again.";
+          $("#rErr").hidden = false;
+          return;
+        }
+      }
       const ns = draftNS();
       try { Object.keys(localStorage).filter((k) => k.startsWith(ns)).forEach((k) => localStorage.removeItem(k)); } catch (_) {}
       if (cloud) {

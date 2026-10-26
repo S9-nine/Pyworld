@@ -28,6 +28,13 @@ async function netStart() {
       NET.slot = slot; NET.uid = null; S.others = {};
     }
     let { data: { session } } = await NET.sb.auth.getSession();
+    // A saved login can outlive its user (for example after old test players are deleted in the
+    // dashboard). Check it with the server, and start a fresh anonymous login if it's gone; the
+    // browser save is merged back up below, so no progress is lost.
+    if (session) {
+      const { error: gone } = await NET.sb.auth.getUser();
+      if (gone) { await NET.sb.auth.signOut({ scope: "local" }); session = null; }
+    }
     if (!session) {
       const r = await NET.sb.auth.signInAnonymously();
       if (r.error) throw r.error;
@@ -61,6 +68,26 @@ async function netPush() {
     last_played: /^\d{4}-\d{2}-\d{2}$/.test(h.last || "") ? h.last : null, updated_at: now
   });
   if (r2.error) throw r2.error;
+}
+
+/* "Delete profile": erase this slot's online copy, then forget its login so a new hero in the same
+   slot starts clean instead of pulling the old progress back in. Returns false if the server
+   couldn't be reached, so nothing is deleted halfway. */
+async function netDeleteMe(slot) {
+  const loginKey = "cq.net.slot" + slot;
+  let hasLogin = false;
+  try { hasLogin = !!localStorage.getItem(loginKey); } catch (_) {}
+  if (netConfigured() && hasLogin) {
+    clearTimeout(NET.saveTimer); clearTimeout(NET.timer); NET.queue = [];
+    if (NET.slot !== slot || !NET.uid) await netStart();
+    if (!NET.uid) return false;
+    const { error } = await NET.sb.rpc("delete_me");
+    if (error) { console.warn("Delete profile:", error.message); return false; }
+    await NET.sb.auth.signOut({ scope: "local" }).catch(() => {});
+  }
+  try { localStorage.removeItem(loginKey); } catch (_) {}
+  if (NET.slot === slot) { NET.sb = null; NET.slot = null; NET.uid = null; S.others = {}; }
+  return true;
 }
 
 /* save() calls this after every local save; uploads are batched to one every couple of seconds. */
@@ -127,8 +154,9 @@ async function renderNetGuild(v) {
     $("#gJoin").addEventListener("click", async () => {
       const code = $("#gCode").value.trim();
       if (!/^[A-Za-z0-9]{6}$/.test(code)) return err("#gJoinErr", "Enter the 6-character code your friend shared.");
-      const { error } = await NET.sb.rpc("join_guild", { p_code: code });
+      const { data, error } = await NET.sb.rpc("join_guild", { p_code: code });
       if (error) return err("#gJoinErr", netGuildMsg(error));
+      if (!data || !data.length) return err("#gJoinErr", "No guild with that code. Check it and try again.");
       toast("Welcome to the guild!"); renderNetGuild(v);
     });
     $("#gMake").addEventListener("click", async () => {
@@ -182,8 +210,11 @@ function openFeedback() {
         const text = msg.value.trim();
         if (!text) { errEl.textContent = "Write a few words first."; errEl.hidden = false; msg.focus(); return; }
         if (!netOn() || (!NET.uid && !(await netStart()))) { errEl.textContent = "Feedback needs an internet connection. Copy your message and try again later."; errEl.hidden = false; return; }
+        const send = $("#fbSend", bg);
+        send.disabled = true;
         const { error } = await NET.sb.from("feedback").insert({ level: r.name === "level" ? r.id : null, stage: r.stage || r.name, rating: rating || null, message: text.slice(0, 2000) });
-        if (error) { errEl.textContent = "Couldn't send it. Try again in a minute."; errEl.hidden = false; return; }
+        send.disabled = false;
+        if (error) { errEl.textContent = /feedback/i.test(error.message || "") ? error.message : "Couldn't send it. Try again in a minute."; errEl.hidden = false; return; }
         closeModal(); toast("Thanks! Your feedback was sent.");
       });
     }

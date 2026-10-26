@@ -75,3 +75,36 @@ function pixelSvg(i, size) {
   }
   return `<svg viewBox="0 0 12 12" ${size ? `width="${size}" height="${size}"` : ""} shape-rendering="crispEdges" aria-hidden="true">${_pixCache[idx]}</svg>`;
 }
+
+/* Small pixel icons for the interface. Each is drawn as fills only; a dark outline is added around
+   the shape automatically, so every icon matches the heroes' pixel style. */
+const PIX_ICON_PAL = { P: "#f4e4c1", Q: "#d9c49a", r: "#b13e53", o: "#ef7d57", y: "#ffcd75", w: "#f4f4f4", G: "#94b0c2", d: "#566c86", B: "#8b5a2b", b: "#3b5dc9", n: "#29366f", c: "#73eff7", g: "#38b764", k: "#1a1c2c" };
+const PIX_ICONS = {
+  map: [
+    "PPPPPPPPPP", "PQQQQQQQQP", "PQrQQQQQQP", "PQQQrQQQQP", "PQQQQQrQQP",
+    "PQQQQQQQQP", "PQQQQQrQrP", "PQQQQQQrQP", "PQQQQQrQrP", "PPPPPPPPPP"],
+  sword: [
+    ".........ww", "........wGw", ".......wGw.", "......wGw..", ".....wGw...",
+    "..y.wGw....", "...yGw.....", "...By......", "..B..y.....", ".y........."],
+  flame: [
+    "....o.....", "....oo....", "...ooo..o.", "...oyoo.o.", "..ooyyooo.",
+    "..oyyyyyo.", ".ooyywyyoo", ".oyywwwyyo", ".oyywwwyyo", "..oyyyyyo.", "...ooooo.."],
+  shield: [
+    "bbbbbbbbbb", "bccbbbbbbb", "bcbbbbbbbb", "byybbbbyyb", "bbyybbyybb",
+    "bbbyyyybbb", "bbbbyybbbb", ".bbbbbbbb.", "..bbbbbb..", "...bbbb...", "....bb...."]
+};
+function pixIcon(name, size = 22) {
+  const rows = PIX_ICONS[name];
+  if (!rows) return "";
+  const h = rows.length + 2, w = Math.max(...rows.map((r) => r.length)) + 2;
+  const grid = Array.from({ length: h }, (_, y) => Array.from({ length: w }, (_, x) => (rows[y - 1] || "")[x - 1] || "."));
+  const filled = (x, y) => grid[y] && grid[y][x] && grid[y][x] !== "." && grid[y][x] !== "k";
+  // Outline: every empty cell next to a filled one (up, down, left, right) becomes dark.
+  const out = grid.map((row, y) => row.map((ch, x) => ch === "." && (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1)) ? "k" : ch).join(""));
+  let rects = "";
+  out.forEach((row, y) => {
+    let x = 0;
+    while (x < row.length) { const ch = row[x]; let n = 1; while (row[x + n] === ch) n++; if (ch !== "." && PIX_ICON_PAL[ch]) rects += `<rect x="${x}" y="${y}" width="${n}" height="1" fill="${PIX_ICON_PAL[ch]}"/>`; x += n; }
+  });
+  return `<svg class="pix-icon" viewBox="0 0 ${w} ${h}" width="${size}" height="${size * h / w}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+}

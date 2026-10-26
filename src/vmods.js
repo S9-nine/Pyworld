@@ -431,7 +431,11 @@ class HTTPError(RequestException):
 class Timeout(RequestException):
     pass
 
-class JSONDecodeError(_json.JSONDecodeError):
+class InvalidJSONError(RequestException):
+    pass
+
+# Like real requests: catchable as requests's own error or as json's.
+class JSONDecodeError(InvalidJSONError, _json.JSONDecodeError):
     pass
 
 class exceptions:
@@ -440,6 +444,7 @@ class exceptions:
     HTTPError = HTTPError
     Timeout = Timeout
     JSONDecodeError = JSONDecodeError
+    InvalidJSONError = InvalidJSONError
 
 _REASONS = {200: "OK", 201: "Created", 204: "No Content", 400: "Bad Request", 401: "Unauthorized",
             403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 429: "Too Many Requests",
@@ -1002,9 +1007,19 @@ class Cursor:
     def close(self):
         pass
 
+# Open connections. All connections to one practice database share a single copy, so a new
+# connection must not see another's uncommitted changes: opening it discards them, the way a
+# forgotten commit() loses work in real programs.
+_LIVE = []
+
 class Connection:
     def __init__(self, name):
         self._name = _cqsql.open(name)
+        for other in _LIVE:
+            if other._name == self._name and other.in_transaction and not other._closed:
+                _cqsql.run(other._name, "ROLLBACK", [])
+                other.in_transaction = False
+        _LIVE.append(self)
         self.row_factory = None
         self.in_transaction = False
         self._closed = False
@@ -1126,7 +1141,7 @@ function cqPokemon(key) {
   };
 }
 const CQ_API_DEFAULT = [
-  { url: /^https:\/\/pokeapi\.co\/api\/v2\/pokemon\/([^/?]+)\/?$/, fn: (m) => { const p = cqPokemon(m[1].toLowerCase()); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
+  { url: /^https:\/\/pokeapi\.co\/api\/v2\/pokemon\/([^/?]+)\/?$/, fn: (m) => { const p = cqPokemon(m[1]); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
   { url: /^https:\/\/api\.open-meteo\.com\/v1\/forecast$/, fn: (m, q) => {
     if (q.latitude == null || q.longitude == null || isNaN(+q.latitude) || isNaN(+q.longitude)) return { status: 400, json: { error: true, reason: "Parameter 'latitude' and 'longitude' must have the same number of elements" } };
     const lat = +q.latitude, lon = +q.longitude;

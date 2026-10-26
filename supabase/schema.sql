@@ -1,6 +1,7 @@
 -- Code Quest backend (Supabase / Postgres).
 -- Run once: Supabase dashboard → SQL Editor → New query → paste this whole file → Run.
 -- Safe to run again: it only creates what's missing.
+-- Then run hardening.sql the same way (size limits and anti-spam).
 --
 -- Who can see what (Row Level Security is on for every table):
 --   profiles, saves      each player reads and writes only their own row

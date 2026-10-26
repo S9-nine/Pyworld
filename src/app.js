@@ -395,7 +395,7 @@ function renderHome(v) {
         <span style="flex:1;min-width:0"><span class="eyebrow">${levelClear(nx.id) ? "Replay" : stageDone(nx.id, "learn") ? "Continue" : "Next level"}</span><br><b style="font-size:17px">${esc(nx.title)}</b> <span class="muted">· ${esc(nx.concept)}</span></span>
         <span class="btn primary sm">${ICON.play} ${STAGES.find((s) => s.id === nextStageOf(nx.id)).label}</span>
       </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>Every world cleared!</b><br><span class="muted">You've finished the whole quest. Replay levels for 3 stars, and keep the Take it home quests going.</span></span></div>`}
-      <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div></div>
+      <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div>${miniMapHtml()}</div>
       <div class="card loop">
         <div class="panel-h"><h2>Today's quest loop</h2><span class="muted" style="font-size:13px">about 3–4 hours</span></div>
         ${loopHtml(nx, due)}
@@ -409,7 +409,7 @@ function renderHome(v) {
       <div class="card side-card">
         <div class="panel-h"><h2>Guild board</h2><button class="btn ghost sm" data-go="guild">See all</button></div>
         <div class="board">${players().slice(0, 6).map(boardRow).join("")}</div>
-        ${players().length < 2 ? `<p class="muted" style="font-size:13px;margin-top:10px">Playing solo for now. See <b>How to play</b> to add your sister or friends.</p>` : ""}
+        ${players().length < 2 ? `<p class="muted" style="font-size:13px;margin-top:10px">${netOn() ? "Playing solo for now. Open <b>Guild</b> to start one and share the code, or join your friends with theirs." : "Playing solo for now. Send friends the game's link so they can start their own quest."}</p>` : ""}
       </div>
       <div class="card side-card">
         <div class="panel-h"><h2>Job-ready meter</h2></div>
@@ -420,7 +420,8 @@ function renderHome(v) {
   </div>`;
   const cb = $("#contBtn"); if (cb) cb.addEventListener("click", () => go({ name: "level", id: nx.id, stage: nextStageOf(nx.id) }));
   $$("[data-go]", v).forEach((b) => b.addEventListener("click", () => go({ name: b.dataset.go })));
-  bindMap(v);
+  bindMap($(".map-scroll", v));
+  const mini = $(".map-mini", v); if (mini) mini.addEventListener("click", () => openBigMap(mini));
   $$("[data-loop]", v).forEach((b) => b.addEventListener("click", () => {
     const [kind, arg] = b.dataset.loop.split("|");
     if (kind === "review") go({ name: "review" });
@@ -518,6 +519,75 @@ function mapSvg() {
     <path d="${route}" fill="none" stroke="var(--route)" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round" opacity=".8"/>
     <g transform="translate(60 70)" opacity=".7"><circle r="30" fill="none" stroke="var(--route)" stroke-width="2"/><path d="M0,-40 L7,0 L0,40 L-7,0Z" fill="var(--route)"/><path d="M-40,0 L0,6 L40,0 L0,-6Z" fill="var(--route)" opacity=".5"/><text y="-46" text-anchor="middle" font-family="var(--font-display)" font-size="14" fill="var(--route)">N</text></g>
     ${nodes}</svg>`;
+}
+/* ───────── Phone map ─────────
+   On small screens the map card shows a preview of the area around the player's island, filling the
+   card, with a small expand button. Opening it grows the full map out of the card; it can be dragged
+   and zoomed, and shrinks back into the card when closed. Desktop keeps the normal map. */
+function currentWorld() { return WORLDS.find((w) => w.id === (S.hero ? placeOf(S.hero).world : 1)) || WORLDS[0]; }
+function miniMapHtml() {
+  const w = currentWorld(), vx = Math.max(0, Math.min(1000 - 440, w.x - 160)), vy = Math.max(0, Math.min(520 - 250, w.y - 150));
+  return `<button class="map-mini" type="button" aria-label="Open the full world map. You're in ${esc(w.name)}.">
+      <span class="map-mini-view" aria-hidden="true">${mapSvg().replace('viewBox="0 0 1000 520"', `viewBox="${vx} ${vy} 440 250" preserveAspectRatio="xMidYMid slice"`).replace(/ tabindex="0" role="button"/g, "")}</span>
+      <span class="map-expand" aria-hidden="true"><svg viewBox="0 0 10 10" width="16" height="16" shape-rendering="crispEdges"><path d="M0 0h4v1.5H1.5V4H0zM6 0h4v4H8.5V1.5H6zM0 6h1.5v2.5H4V10H0zM8.5 6H10v4H6V8.5h2.5z" fill="currentColor"/></svg></span>
+    </button>`;
+}
+function openBigMap(fromEl) {
+  const r = fromEl.getBoundingClientRect();
+  const from = `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px round 12px)`;
+  const ov = document.createElement("div");
+  ov.className = "map-full";
+  ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "World map");
+  ov.innerHTML = `<div class="map-full-bar"><b>World map</b><span class="muted">Drag to explore · tap an island</span>
+      <span class="map-full-tools"><button type="button" class="btn sm" data-z="-1" aria-label="Zoom out">−</button><button type="button" class="btn sm" data-z="1" aria-label="Zoom in">+</button><button type="button" class="btn sm" data-close aria-label="Close the map">✕</button></span></div>
+    <div class="map-full-view"><div class="map-full-pan">${mapSvg()}</div></div>`;
+  document.body.appendChild(ov);
+  const view = $(".map-full-view", ov), pan = $(".map-full-pan", ov);
+  // Grow out of the map card (and later shrink back into it) with a rectangular clip.
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  ov.style.clipPath = from;
+  requestAnimationFrame(() => requestAnimationFrame(() => { ov.classList.add("open"); ov.style.clipPath = "inset(0px 0px 0px 0px round 0px)"; }));
+  // Pan and zoom: the map is drawn 1000×520 and moved with a transform, kept inside the view.
+  let scale = Math.max(view.clientHeight / 520, 0.9), x = 0, y = 0;
+  const w = currentWorld();
+  const clamp = () => {
+    const mw = 1000 * scale, mh = 520 * scale, vw = view.clientWidth, vh = view.clientHeight;
+    x = mw <= vw ? (vw - mw) / 2 : Math.min(0, Math.max(vw - mw, x));
+    y = mh <= vh ? (vh - mh) / 2 : Math.min(0, Math.max(vh - mh, y));
+    pan.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+  };
+  const centerOn = (px, py) => { x = view.clientWidth / 2 - px * scale; y = view.clientHeight / 2 - py * scale; clamp(); };
+  centerOn(w.x, w.y);
+  let drag = null, moved = false;
+  view.addEventListener("pointerdown", (e) => { drag = { sx: e.clientX, sy: e.clientY, x, y }; moved = false; view.setPointerCapture(e.pointerId); });
+  view.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    x = drag.x + dx; y = drag.y + dy; clamp();
+  });
+  view.addEventListener("pointerup", () => { drag = null; });
+  view.addEventListener("click", (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  $$("[data-z]", ov).forEach((b) => b.addEventListener("click", () => {
+    const mx = (view.clientWidth / 2 - x) / scale, my = (view.clientHeight / 2 - y) / scale;
+    scale = Math.min(2.4, Math.max(0.5, scale * (b.dataset.z > 0 ? 1.3 : 1 / 1.3)));
+    centerOn(mx, my);
+  }));
+  const close = (instant) => {
+    document.removeEventListener("keydown", onKey);
+    if (instant || still) return ov.remove();
+    ov.style.clipPath = from;
+    ov.classList.remove("open");
+    setTimeout(() => ov.remove(), 420);
+    fromEl.focus({ preventScroll: true });
+  };
+  const onKey = (e) => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  $("[data-close]", ov).addEventListener("click", () => close());
+  // Tapping an island opens it, closing the map straight away.
+  bindMap(pan);
+  $$(".world-node", pan).forEach((g) => g.addEventListener("click", () => close(true)));
+  $("[data-close]", ov).focus({ preventScroll: true });
 }
 function bindMap(root) {
   $$(".world-node", root).forEach((g) => {
@@ -1553,6 +1623,13 @@ function renderGuild(v) {
   </div></div>`;
 }
 function inviteHtml() {
+  if (S.mode !== "cloud") return `<h3 style="margin-top:0">Play with friends</h3>
+    <ol>
+      ${netConfigured() ? `<li>Send your friends the game's link. Each of them creates their own hero.</li>
+      <li>One of you opens <b>Guild</b>, starts a guild and shares its 6-letter code.</li>
+      <li>Everyone else types the code into <b>Guild</b>, and you all appear on the same leaderboard.</li>` : `<li>Send your friends the game's link. Each of them creates their own hero on their own device.</li>`}
+    </ol>
+    <p><b>Sharing one computer?</b> The title screen has 3 save files. Each player picks their own and can lock it with a PIN.</p>`;
   return `<h3 style="margin-top:0">Add another player</h3>
     <ol>
       <li>The person who owns this game opens the <b>Share</b> menu at the top of this page.</li>
@@ -1584,6 +1661,51 @@ function openGuide() {
       ${inviteHtml()}
     </div>
     <div class="row"><button class="btn primary" data-close>Let's go</button></div>`);
+}
+
+/* ───────── Welcome ─────────
+   A small version of the player's own hero sits in the corner, moving the way that character
+   would: a dragon flies with flapping wings and puffs of fire, a ghost floats, a slime squishes,
+   a robot hovers with a blinking antenna, and so on. Still with reduced motion. */
+const ACTOR = {
+  Dragon: "fly", Ghost: "ghost", Wizard: "float", Astronaut: "drift", Slime: "squish", Robot: "hover", Frog: "hop"
+};
+function heroActorSvg(i) {
+  const sp = SPRITES[((i | 0) % SPRITES.length + SPRITES.length) % SPRITES.length];
+  const kind = ACTOR[sp.name] || "hop";
+  const pal = Object.assign({}, PIX_BASE, sp.pal);
+  let back = "", front = "", vb = "-3 -4 18 17";
+  if (sp.name === "Dragon") {
+    // Bat-like wings at the body's sides, flapping; little fire puffs from the mouth.
+    const wing = ["k.......", "kk......", "kdk.....", "kldkk...", "klllldkk", "klklllld", ".k.k.kkk"];
+    const mirror = wing.map((r) => [...r].reverse().join(""));
+    back = `<g class="act-wing act-wing-l">${PX.sprite(wing, -7, 1, 1, pal)}</g><g class="act-wing act-wing-r">${PX.sprite(mirror, 12, 1, 1, pal)}</g>`;
+    front = [["#ffcd75", 0], ["#ef7d57", 0.18], ["#b13e53", 0.36]].map(([c, d]) => `<rect class="act-fire" x="3.4" y="7.2" width="1.4" height="1.4" fill="${c}" style="animation-delay:${d}s"/>`).join("");
+    vb = "-9 -4 30 17";
+  } else if (kind === "float" || kind === "drift") {
+    front = [[-1.5, 2, 0, "#ffcd75"], [13, 4, 0.5, "#73eff7"], [12, -1.5, 1, "#ffcd75"], [-2.5, 6, 1.4, "#73eff7"]].map(([x, y, d, c]) => `<rect class="act-spark" style="animation-delay:${d}s" x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`).join("");
+  } else if (sp.name === "Robot") {
+    front = `<rect class="act-blink" x="6" y="1" width="1" height="1" fill="#ef7d57"/>`;
+  }
+  return `<svg class="act act-${kind}" viewBox="${vb}" shape-rendering="crispEdges" aria-hidden="true"><g class="act-body">${back}${PX.sprite(sp.rows, 0, 0, 1, pal)}${front}</g></svg>`;
+}
+function openWelcome() {
+  const h = S.hero;
+  if (!h) return;
+  const name = esc(h.name || "hero");
+  openModal(`<div class="wl-actor">${heroActorSvg(h.pix)}</div>
+    <p class="eyebrow">Welcome to Code Quest</p>
+    <h2 class="wl-title">Your adventure starts now, ${name}!</h2>
+    <p>In 8 weeks you'll go from your very first <code>print()</code> to acing a coding interview, one island at a time. No experience needed: just curiosity and a little practice every day.</p>
+    <ul class="wl-steps">
+      <li>${pixIcon("map")}<span><b>Follow the map.</b> Start on the glowing island in the bottom-left, Basics Village.</span></li>
+      <li>${pixIcon("sword")}<span><b>Five stages per level:</b> Learn, Think, the Forge, Bug Hunt and Tavern Talk.</span></li>
+      <li>${pixIcon("flame")}<span><b>Come back every day.</b> Keep your streak alive and earn XP, stars and ranks.</span></li>
+      ${netConfigured() && S.mode === "local" ? `<li>${pixIcon("shield")}<span><b>Bring your friends.</b> Join their guild with a code, or start your own.</span></li>` : ""}
+    </ul>
+    <div class="row"><button class="btn ghost" id="wlGuide">How to play</button><button class="btn primary" data-close>Let's go! ▸</button></div>`, {
+    onOpen: (bg) => { $(".modal", bg).classList.add("welcome"); $("#wlGuide", bg).addEventListener("click", () => { closeModal(); openGuide(); }); }
+  });
 }
 /* ───────── Boot ───────── */
 async function boot(hot) {
@@ -1618,7 +1740,7 @@ async function boot(hot) {
   if (S.mode === "cloud") setSync("ok", "Saved");
   else {
     setSync("local", "Saved on this device");
-    if (!netConfigured()) showBanner("Playing offline: your progress saves in this browser. Open the claude.ai version while signed in to join the shared Guild board.");
+    if (!netConfigured()) showBanner("Playing offline: your progress saves in this browser on this device.");
   }
   render();
 }

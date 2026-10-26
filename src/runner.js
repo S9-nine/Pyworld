@@ -229,6 +229,8 @@ function sqlFriendly(m) {
   if (/UNIQUE constraint/.test(m)) return "That value must be unique, and it already exists in the table.";
   if (/NOT NULL constraint/.test(m)) return "A required column was left empty.";
   if (/bindings/.test(m)) return "The number of <code>?</code> placeholders doesn't match the number of values you passed. A single value still needs a tuple: <code>(value,)</code>.";
+  if (/misuse of aggregate/i.test(m)) return "COUNT, SUM, AVG, MIN and MAX can't go in WHERE, because WHERE checks one row at a time, before any grouping. To filter on a group's total, use <code>HAVING</code> after <code>GROUP BY</code>.";
+  if (/ambiguous column/i.test(m)) return "Two of your tables have a column with that name, so SQL doesn't know which one you mean. Put the table's name or alias in front: <code>c.name</code> or <code>o.id</code>.";
   if (/aggregate|GROUP BY/i.test(m)) return "When you use COUNT, SUM or AVG with other columns, those other columns need to be in GROUP BY.";
   return "Read the database's message carefully: it names the part it didn't understand.";
 }
@@ -349,15 +351,19 @@ function testLabel(t) {
 }
 
 function codeChecks(task, code) {
-  const stripped = code.replace(/#.*$/gm, "");
-  for (const [re, msg] of task.must || []) {
-    if (!new RegExp(re, "m").test(stripped)) return msg;
+  // SQL: skip -- comments and ignore case (keywords can be written any way). Python: skip # comments.
+  // A rule can add its own regex flags as a third item, e.g. ["create\\s+table", "…", "i"].
+  const sql = task.kind === "sql";
+  const stripped = sql ? code.replace(/--.*$/gm, "") : code.replace(/#.*$/gm, "");
+  const flags = (extra) => "m" + (sql ? "i" : "") + (extra && !(sql && extra === "i") ? extra : "");
+  for (const [re, msg, f] of task.must || []) {
+    if (!new RegExp(re, flags(f)).test(stripped)) return msg;
   }
-  for (const [re, msg] of task.mustNot || []) {
+  for (const [re, msg, f] of task.mustNot || []) {
     // Pure-number patterns (like "45") only count on lines that print, assign or return, so the number can still appear elsewhere.
     const numeric = /^[\d.\\]+$/.test(re);
     const codeOnly = task.mustNotAll || !numeric ? stripped : stripped.split("\n").filter((l) => /print\(|=|return/.test(l)).join("\n");
-    if (new RegExp(re, "m").test(codeOnly)) return msg;
+    if (new RegExp(re, flags(f)).test(codeOnly)) return msg;
   }
   return "";
 }
@@ -469,7 +475,9 @@ async function checkOne(task, t, code) {
   if (res.pass && t.silent && lines.length) fail("This function should <b>return</b> its answer, not print it. Remove the <code>print()</code> inside the function.");
   for (const [name, want] of Object.entries(t.fileOut || {})) {
     if (!res.pass) break;
-    const got = r.files[name];
+    // fileLoose: ignore spaces at the ends of lines and blank lines at the end of the file.
+    const loose = (x) => String(x).split("\n").map((l) => l.replace(/\s+$/, "")).join("\n").replace(/\n+$/, "");
+    const got = t.fileLoose && r.files[name] !== undefined && loose(r.files[name]) === loose(want) ? want : r.files[name];
     if (got === undefined) fail("The file <code>" + escapeHtml(name) + "</code> wasn't created.");
     else if (got + "\n" === want) fail("<code>" + escapeHtml(name) + "</code> is nearly right: the last line needs <code>\\n</code> at the end.");
     else if (got !== want) {
@@ -592,7 +600,8 @@ async function runSqlTests(task, code) {
     const cmp = (a, b) => {
       if (!a) return "Your SQL didn't return any rows to check. End with a SELECT.";
       if (a.cols.length !== b.cols.length) return "Expected " + b.cols.length + " column" + (b.cols.length > 1 ? "s" : "") + " (" + escapeHtml(b.cols.join(", ")) + ") but got " + a.cols.length + ".";
-      const key = (r) => JSON.stringify(r.map((v) => typeof v === "number" ? +(+v).toFixed(6) : v));
+      // Numbers compare by value, and a number stored as text ('56.3') counts as that number.
+      const key = (r) => JSON.stringify(r.map((v) => typeof v === "number" || (typeof v === "string" && /^-?\d+(\.\d+)?$/.test(v.trim())) ? +(+v).toFixed(6) : v));
       const ordered = task.ordered != null ? task.ordered : /order\s+by/i.test(task.solution);
       const A = a.rows.map(key), B = b.rows.map(key);
       if (A.length !== B.length) return "Expected " + B.length + " row" + (B.length === 1 ? "" : "s") + " but got " + A.length + ".";

@@ -261,13 +261,13 @@ function createHero(ui, opt) {
     const pin = pinEl ? pinEl.value : "";
     if (pin && pin.length !== 4) { err.textContent = "A PIN needs exactly 4 digits, or leave it empty."; pinEl.focus(); return; }
     const hero = blankHero(name.slice(0, 16), pick.pix, pick.color);
-    if (opt.cloud) { S.cloudHero = hero; enterGame(hero); setTimeout(openGuide, 400); return; }
+    if (opt.cloud) { S.cloudHero = hero; enterGame(hero); setTimeout(openWelcome, 400); return; }
     S.slot = opt.slot;
     if (pin) lsSet(pinKey(opt.slot), await hashPin(opt.slot, pin));
     else lsSet(pinKey(opt.slot), null);
     lsSet(slotKey(opt.slot), hero);
     enterSlot(opt.slot);
-    setTimeout(openGuide, 400);
+    setTimeout(openWelcome, 400);
   });
 }
 
