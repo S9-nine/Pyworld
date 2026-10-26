@@ -146,7 +146,7 @@ function titleStep(step, arg) {
   if (step === "start") {
     ui.innerHTML = `${logoHtml}
       <button class="press" id="pressStart">Press start</button>
-      <p class="tiny">${S.mode === "cloud" ? "Signed in with your Claude account" : "Saves stay in this browser"} · v1.1</p>`;
+      <p class="tiny">${S.mode === "cloud" ? "Signed in with your Claude account" : netConfigured() ? "Saves back up online" : "Saves stay in this browser"} · v1.2</p>`;
     const go1 = () => titleStep("files");
     $("#pressStart").addEventListener("click", go1);
     $("#pressStart").focus();
@@ -213,6 +213,7 @@ function enterGame(hero) {
   recompute();
   save();
   go({ name: "map" });
+  netStart().then((ok) => { if (ok && S.hero) { save(); render(); } });
 }
 
 function createHero(ui, opt) {

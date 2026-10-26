@@ -168,6 +168,7 @@ function decodeSave(text) {
    Name, character and colour stay as they are on this version. */
 function mergeInto(h, o) {
   h.xp = Math.max(h.xp, o.xp);
+  h.spent = Math.max(h.spent | 0, o.spent | 0);
   h.best = Math.max(h.best, o.best);
   if ((o.last || "") > (h.last || "")) { h.last = o.last; h.streak = o.streak; }
   else if (o.last === h.last) h.streak = Math.max(h.streak, o.streak);

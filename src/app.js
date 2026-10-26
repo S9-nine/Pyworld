@@ -76,7 +76,7 @@ function cleanHero(d) {
   const h = blankHero(String(d.name || "Hero").slice(0, 24), pix, clampInt(d.color, 0, 5));
   h.motto = typeof d.motto === "string" ? d.motto.slice(0, 40) : "";
   h.role = clampInt(d.role, 0, 5);
-  for (const k of ["xp", "streak", "best", "stars", "done"]) h[k] = clampInt(d[k], 0, 1e7);
+  for (const k of ["xp", "streak", "best", "stars", "done", "spent"]) h[k] = clampInt(d[k], 0, 1e7);
   for (const k of ["last", "cur", "created"]) if (typeof d[k] === "string") h[k] = d[k].slice(0, 12);
   for (const k of ["days", "lv", "cards", "home", "ext"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
   return h;
@@ -93,7 +93,7 @@ function save() {
     setSync("saving", "Saving…");
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flush, 600);
-  } else setSync("local", "Saved on this device");
+  } else { setSync("local", "Saved on this device"); netSave(); }
 }
 async function flush() {
   if (S.mode !== "cloud" || !S.ref) return;
@@ -339,10 +339,11 @@ function renderNav() {
     <button data-nav="review" ${cur === "review" ? 'aria-current="page"' : ""}>Memory Dungeon ${due ? `<span class="badge">${due}</span>` : ""}</button>
     <button data-nav="guild" ${cur === "guild" ? 'aria-current="page"' : ""}>Guild</button>
     <button data-nav="profile" ${cur === "profile" ? 'aria-current="page"' : ""}>Profile</button>
-    <button data-nav="guide">How to play</button>`;
+    <button data-nav="guide">How to play</button>
+    ${netConfigured() && S.mode === "local" ? '<button data-nav="feedback">Feedback</button>' : ""}`;
   $$("[data-nav]", nav).forEach((b) => b.addEventListener("click", () => {
     const n = b.dataset.nav;
-    if (n === "guide") openGuide(); else go({ name: n });
+    if (n === "guide") openGuide(); else if (n === "feedback") openFeedback(); else go({ name: n });
   }));
 }
 function renderChip() {
@@ -1090,6 +1091,7 @@ function stageThink(host, L) {
       done: !!s.t[qi], was: s.t[qi], nav,
       checkBtn: (label, fn) => { nav.innerHTML = `<button class="btn primary" id="qCheck">${label}</button>`; $("#qCheck").addEventListener("click", fn); },
       answered: (correct) => {
+        netLog("think", L.id, "think", correct, { q: qi, type: q.type });
         if (!s.t[qi]) { s.t[qi] = correct ? 1 : 2; addXP(correct ? XP.think : XP.thinkRetry, correct ? "Riddle solved" : "Learned from a miss"); }
         why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? praise("think") : "Not quite."}</b>${q.why}</div>`;
         heroReact(correct ? "hop" : "puzzled");
@@ -1194,7 +1196,7 @@ function challengeStage(host, L, kind) {
     if (S.sample) html += `<button class="btn sm" id="sageBtn">${ICON.sage} Ask the Sage</button>`;
     if (!isBug && !(s.c && s.c.ok) && (meta.h >= hints.length || meta.fails >= 4)) html += `<button class="btn sm ghost" id="revealBtn">Show a solution</button>`;
     row.innerHTML = html;
-    const hb = $("#hintBtn", host); if (hb) hb.addEventListener("click", () => { meta.h++; save(); drawHints(); });
+    const hb = $("#hintBtn", host); if (hb) hb.addEventListener("click", () => { meta.h++; save(); drawHints(); netLog("hint", L.id, kind, null, { n: meta.h }); });
     const sb = $("#sageBtn", host); if (sb) sb.addEventListener("click", () => askSage(sb));
     const rb = $("#revealBtn", host); if (rb) rb.addEventListener("click", () => {
       meta.rev = 1; save();
@@ -1265,6 +1267,10 @@ Give ONE short Socratic hint (at most 60 words) that points them toward the prob
     try { res = await runTests(task, ed.get()); }
     catch (e) { res = { pass: false, results: [], codeMsg: "The checker hit a problem: " + esc(String(e && e.message || e)) + ". Try again." }; }
     checkBtn.disabled = false; runBtn.disabled = false;
+    netLog("check", L.id, kind, res.pass, res.pass ? { hints: meta.h | 0 } : {
+      fails: (res.results || []).filter((x) => !x.pass).slice(0, 3).map((x) => stripTags(x.label || x.msg || "").slice(0, 120)),
+      error: ((res.results || []).find((x) => x.error) || {}).error ? res.results.find((x) => x.error).error.name : null,
+      note: res.codeMsg ? stripTags(res.codeMsg).slice(0, 200) : null, hints: meta.h | 0, code: ed.get().slice(0, 3000) });
     const box = $("#tests", host);
     $("#codeMsg", host).innerHTML = res.codeMsg ? `<div class="notice">${res.codeMsg}</div>` : "";
     if (res.results.length) {
@@ -1415,6 +1421,7 @@ function stageExplain(host, L) {
       return react("A fresh start! Rewrite it, then save.");
     }
     const chk = tick(false);
+    netLog("explain", L.id, "explain", chk.ok, { why: chk.kind, got: chk.got, need: chk.need, text: ta.value.trim().slice(0, 600) });
     if (!chk.ok) { react(chk.msg); ta.focus(); return; }
     const n = (ta.value.trim().match(/\S+/g) || []).length;
     const first = !s.e;
@@ -1532,6 +1539,7 @@ function runDeck(dz, keys, counts) {
 
 /* ───────── Guild ───────── */
 function renderGuild(v) {
+  if (netOn()) return renderNetGuild(v);
   const ps = players();
   v.innerHTML = `
   <div class="wrap"><div class="guild">
@@ -1610,7 +1618,7 @@ async function boot(hot) {
   if (S.mode === "cloud") setSync("ok", "Saved");
   else {
     setSync("local", "Saved on this device");
-    showBanner("Playing offline: your progress saves in this browser. Open the claude.ai version while signed in to join the shared Guild board.");
+    if (!netConfigured()) showBanner("Playing offline: your progress saves in this browser. Open the claude.ai version while signed in to join the shared Guild board.");
   }
   render();
 }
