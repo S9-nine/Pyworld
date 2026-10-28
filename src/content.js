@@ -85,6 +85,60 @@ print("Comments help future you")  # notes can go at the end too` },
       p: "Give <code>print()</code> several values separated by commas and it prints them on one line, with a space between each.",
       code: `print("Level", 1, "complete")` }
   ],
+  /* Learn cards (the new design, off for now: see FEATURES in app.js): read → guess what it prints →
+     run to find out → change it yourself.
+     guess.options are possible outputs ("ERROR" = it crashes); verify.js checks the marked one is
+     what the code really prints, and that each try.sample passes try.ok while the original doesn't. */
+  learnCards: [
+    { h: "Python follows your instructions",
+      p: "Python is like a friend who follows your notes <b>exactly</b>, one line at a time, from the top down. <code>print()</code> means \"show this on the screen\".",
+      more: "Think of a recipe. You do step 1, then step 2, never jumping ahead. Python reads your code the same way: line 1 first, then line 2. Each <code>print(...)</code> line puts one line of text on the screen, so two prints give you two lines.",
+      code: `print("Hello, world!")
+print("I am learning Python.")`,
+      guess: { options: ["Hello, world!\nI am learning Python.", "Hello, world! I am learning Python.", "I am learning Python.", "ERROR"], answer: 0,
+        why: "Each <code>print()</code> shows its own line, in order from top to bottom." },
+      try: { ask: "Change the second line so it says <code>My name is</code> and your name. Then run it.",
+        ok: (out) => /^my name is \S+/im.test(out), sample: `print("Hello, world!")
+print("My name is Asha")`, yes: "That's your first real program. Hello to you too!" } },
+    { h: "Text goes inside quotes",
+      p: "When you want Python to show words, wrap them in quotes. Quotes say <b>\"this is text, show it as it is\"</b>. Programmers call text a <b>string</b>.",
+      more: "Quotes are like a speech bubble in a comic. Whatever is inside the bubble gets said, word for word. The bubble itself isn't said out loud, so the quotes never appear on screen. <code>\"double\"</code> and <code>'single'</code> quotes both work.",
+      code: `print("Hi there")
+print('Bye for now')`,
+      guess: { options: ["Hi there\nBye for now", "\"Hi there\"\n'Bye for now'", "ERROR"], answer: 0,
+        why: "The quotes are not printed. They just tell Python \"this is text\"." },
+      try: { ask: "Break it on purpose: delete the quotes around <code>Hi there</code> and run it.",
+        ok: (out, code, err) => !!err, sample: `print(Hi there)
+print('Bye for now')`, yes: "An error! Without quotes, Python reads <code>Hi there</code> as code it doesn't know. Errors aren't failures: they're Python telling you what it needs. Put the quotes back." } },
+    { h: "Quotes or no quotes: text or maths",
+      p: "Quotes = show it as text. <b>No quotes</b> = Python treats it as maths and works out the answer.",
+      more: "Imagine writing <i>10 - 2</i> on a sticky note and handing it to a friend. With quotes, it's like saying \"read this note out loud\": they say \"10 minus 2\". Without quotes, it's like saying \"solve this\": they say \"8\".",
+      code: `print("10 - 2")
+print(10 - 2)`,
+      guess: { options: ["10 - 2\n8", "8\n8", "10 - 2\n10 - 2", "ERROR"], answer: 0,
+        why: "The first line is text, so it's shown as typed. The second has no quotes, so Python works out 10 − 2 = 8." },
+      try: { ask: "Make Python print the answer to 6 × 7. In Python, × is written <code>*</code>.",
+        ok: (out) => /^\s*42\s*$/m.test(out), sample: `print(6 * 7)`, yes: "42! Python is a very fast calculator. Add quotes around it and see what changes." } },
+    { h: "Comments are notes for humans",
+      p: "Anything after a <code>#</code> is a note for humans. Python skips it completely.",
+      more: "Comments are like pencil notes in the margin of a textbook. They help the reader, but they aren't part of the lesson itself. Programmers use them to explain <i>why</i> the code does something, so it still makes sense months later.",
+      code: `# This whole line is skipped
+print("Comments help future you")  # a note at the end`,
+      guess: { options: ["Comments help future you", "This whole line is skipped\nComments help future you", "Comments help future you  # a note at the end", "ERROR"], answer: 0,
+        why: "Python ignores both comments, so only the text inside <code>print()</code> appears." },
+      try: { ask: "Add your own comment on a new line, like <code># my first comment</code>, then run it. The output shouldn't change.",
+        ok: (out, code) => (code.match(/#/g) || []).length >= 3 && /Comments help future you/.test(out), sample: `# This whole line is skipped
+# my first comment
+print("Comments help future you")  # a note at the end`, yes: "Same output, better code. Real developers write comments like that every day." } },
+    { h: "Commas put things side by side",
+      p: "Put <b>commas</b> between things inside <code>print()</code> and they all show on one line, with a space between each.",
+      more: "Think of the commas as \"and then\": show \"Level\", and then 1, and then \"complete\". Python adds a space between each one for you. You can mix words and numbers this way, which is handy for things like scores.",
+      code: `print("Level", 1, "complete")`,
+      guess: { options: ["Level 1 complete", "Level1complete", "\"Level\", 1, \"complete\"", "ERROR"], answer: 0,
+        why: "Commas let one <code>print()</code> show several things. It adds one space between each." },
+      try: { ask: "Print your name and your age on one line using a comma, like <code>print(\"Asha\", 15)</code>.",
+        ok: (out, code) => /print\s*\([^)]*,[^)]*\)/.test(code) && /[A-Za-z].* \d|\d .*[A-Za-z]/.test(out), sample: `print("Asha", 15)`, yes: "Nice. Text and a number, side by side, in one line." } }
+  ],
   think: [
     { type: "mcq", q: "What does this program show?", code: `print("3 + 4")
 print(3 + 4)`,

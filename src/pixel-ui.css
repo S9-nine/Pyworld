@@ -269,6 +269,51 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .guild-forms .pinput { width: 100%; min-width: 0; box-sizing: border-box; }
 #gBody { display: grid; gap: 16px; min-width: 0; }
 .guild-forms h3 { margin: 0; }
+/* Learn cards: one idea at a time, guess → run → change */
+.lc-wrap { display: grid; gap: 12px; max-width: 760px; }
+.lc-dots { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.lc-dot { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: 700 13px var(--font-code); cursor: pointer; }
+.lc-dot.done { background: var(--grass-soft); color: var(--grass); border-color: var(--grass); }
+.lc-dot.on { outline: 2px solid var(--sun); outline-offset: 1px; color: var(--ink); }
+.lc-dot:disabled { opacity: .45; cursor: not-allowed; }
+.lc-count { font-size: 13px; margin-left: 6px; }
+.lc { display: grid; gap: 12px; }
+.lc h3, .lc p { margin: 0; }
+.lc-step { font-size: 15px; }
+.lc-guess .opts { margin-top: 8px; }
+.lc .opt .tx { min-width: 0; }
+.go-out { margin: 0; font: 14px/1.45 var(--font-code); white-space: pre-wrap; overflow-wrap: anywhere; }
+.go-err { font-weight: 600; color: var(--danger); }
+.lc .opt.mine:not(.wrong):not(.right) { outline: 2px solid var(--sun); outline-offset: -2px; }
+.lc .opt.wrong .l { background: var(--danger); color: #fff; border-color: var(--danger); }
+.lc-runnow { color: var(--ink); background: var(--sun-soft); border-radius: 10px; padding: 8px 12px; }
+.lc-verdict { border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.lc-verdict.ok { background: var(--grass-soft); }
+.lc-verdict.miss { background: var(--sun-soft); }
+.lc-try { border-top: 1px dashed var(--line); padding-top: 10px; }
+.lc-tryres { margin-top: 6px !important; color: var(--grass); font-weight: 600; min-height: 1em; }
+.lc-skip { font-size: 12.5px; }
+.lc [hidden] { display: none !important; }
+/* Profile: DEV switches for designs being tested */
+.dev-opts { margin-top: 18px; border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; }
+.dev-opts summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--muted); }
+.dev-opts[open] summary { margin-bottom: 8px; }
+.dev-opts p { font-size: 13px; margin: 0 0 8px; }
+.dev-tag { font: 700 10.5px var(--font-code); letter-spacing: .08em; color: var(--sun-ink); background: var(--sun); border-radius: 5px; padding: 2px 6px; margin-right: 4px; vertical-align: 1px; }
+.dev-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; font-size: 14px; cursor: pointer; border-top: 1px solid var(--line); }
+.dev-row input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--sun); flex: none; }
+.dev-row .muted { font-size: 12.5px; }
+.lc-more { font-size: 14.5px; }
+.lc-more summary { cursor: pointer; color: var(--muted); width: fit-content; }
+.lc-more summary:hover { color: var(--ink); }
+.lc-more[open] summary { margin-bottom: 6px; }
+.lc-more p { background: var(--surface-2); border-left: 3px solid var(--sun); border-radius: 0 10px 10px 0; padding: 10px 12px; }
+.lc-runnow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.btn.go:disabled { opacity: .5; cursor: not-allowed; }
+.btn.nudge { animation: nudge .5s ease-in-out 3; }
+@keyframes nudge { 50% { transform: translateY(-3px) scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .btn.nudge { animation: none; } }
+
 /* Guild tabs (up to 5 guilds) and chat */
 .g-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
 .g-tab { flex: none; font: 600 14px var(--font-ui, inherit); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

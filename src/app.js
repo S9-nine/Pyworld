@@ -1,5 +1,19 @@
 /* Code Quest — game app. */
 
+/* ───────── Design switches ─────────
+   New designs we're trying, kept in the code but off until we decide. Anyone can turn them on for
+   themselves (saved in this browser) by opening the game with ?try=learnCards,hiddenIdeas, and back
+   off with ?try=off. learnCards: Learn as one-idea "guess, run, change it" cards (levels with
+   learnCards). hiddenIdeas: Explain's key ideas stay hidden until said, with a hint button. */
+const FEATURES = { learnCards: false, hiddenIdeas: false };
+(() => {
+  try {
+    const q = new URLSearchParams(location.search).get("try");
+    if (q != null) localStorage.setItem("cq.try", q);
+    for (const k of (localStorage.getItem("cq.try") || "").split(",")) if (k in FEATURES) FEATURES[k] = true;
+  } catch (_) {}
+})();
+
 /* ───────── Constants & helpers ───────── */
 const HERO_COLORS = ["#DB4F3B", "#2A6FAD", "#23845A", "#8452C9", "#C9741E", "#BE3B78"];
 const ICON = {
@@ -923,7 +937,103 @@ function celebrate(L) {
     } });
 }
 
+/* ───────── Learn as cards: read → guess → run → change it ─────────
+   One idea per card. The player guesses what the code prints before running it (guessing first makes
+   you think instead of skim), runs it to find out, then makes a small change of their own. Levels whose
+   learn cards have a `guess` use this; the rest keep the scroll of examples below. */
+const GUESS_RIGHT = ["You called it!", "Spot on!", "Exactly right!", "Nailed it!"];
+function outputOption(o) { return o === "ERROR" ? `<span class="go-err">✖ An error</span>` : `<pre class="go-out">${esc(o)}</pre>`; }
+function stageLearnCards(host, L, cards) {
+  const s = lv(L.id), task = L.code || {};
+  const st = (s.lc = s.lc || {});          // per card: { g: guess picked, r: ran, t: changed it }
+  let at = Math.min(st.at | 0, cards.length - 1);
+  host.innerHTML = `
+    <div class="stage-intro"><h2>Scroll of Knowledge</h2><span class="muted">Guess, run, then try it yourself.</span></div>
+    <div class="lc-wrap"><div class="lc-dots" id="lcDots"></div><div id="lcCard"></div></div>
+    <div class="next-row" id="lcNext"></div>`;
+  const dots = $("#lcDots", host), box = $("#lcCard", host), nextRow = $("#lcNext", host);
+  const done = (i) => !!(st[i] && st[i].r);
+  const drawDots = () => {
+    dots.innerHTML = cards.map((c, i) => `<button class="lc-dot${i === at ? " on" : ""}${done(i) ? " done" : ""}" data-i="${i}" ${i > 0 && !done(i - 1) && !done(i) ? "disabled" : ""} aria-label="Card ${i + 1}${done(i) ? ", done" : ""}">${i + 1}</button>`).join("") +
+      `<span class="muted lc-count">Card ${at + 1} of ${cards.length}</span>`;
+    $$(".lc-dot", dots).forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
+  };
+  const show = (i) => {
+    at = i; st.at = i; save();
+    const c = cards[i], cs = (st[i] = st[i] || {}), lang = c.lang || task.kind || "python";
+    drawDots();
+    box.innerHTML = `<article class="card lcard lc">
+      <h3>${esc(c.h)}</h3><p>${c.p}</p>${c.more ? `<details class="lc-more"><summary>Didn't click? Explain it another way</summary><p>${c.more}</p></details>` : ""}${c.pic ? picHtml(c.pic, i) : ""}
+      <div class="bench mini"><div class="bench-bar"><span class="file"><i></i>${esc(c.file || exampleName(lang, i))}</span>
+        <button class="btn sm ghost" data-reset style="color:var(--code-muted)" hidden>${ICON.reset} Reset</button>
+        <button class="btn sm go" data-run hidden>${ICON.play} Run</button></div>
+        <div data-ed></div><div class="console" data-con hidden></div></div>
+      <div class="lc-guess" id="lcGuess"><p class="lc-step"><b>1. Guess first.</b> What will this print?</p>
+        <div class="opts">${c.guess.options.map((o, k) => `<button class="opt" data-o="${k}"><span class="l">${"ABCD"[k]}</span><span class="tx">${outputOption(o)}</span></button>`).join("")}</div></div>
+      <p class="lc-step lc-runnow" id="lcRunNow" hidden><b>2. Now run it</b> and see if you were right. <button class="btn sm go" type="button" id="lcRun2">${ICON.play} Run</button></p>
+      <div class="lc-verdict" id="lcVerdict" hidden></div>
+      <div class="lc-try" id="lcTry" hidden><p class="lc-step"><b>3. Your turn.</b> ${c.try.ask}</p><p class="lc-tryres" id="lcTryRes"></p></div>
+    </article>`;
+    const dk = draftNS() + L.id + ".learn" + i;   // edits are drafts in this browser, not part of the save
+    const ed = createEditor($("[data-ed]", box), lsGet(dk) || c.code, { lang, onChange: (v) => lsSet(dk, v) });
+    const conEl = $("[data-con]", box), con = createConsole(conEl), runBtn = $("[data-run]", box);
+    const guessEl = $("#lcGuess", box), runNow = $("#lcRunNow", box), verdict = $("#lcVerdict", box), tryEl = $("#lcTry", box), tryRes = $("#lcTryRes", box);
+    const lockGuess = (pick) => $$("[data-o]", guessEl).forEach((x) => { x.disabled = true; x.classList.toggle("mine", +x.dataset.o === pick); });
+    const reveal = () => {
+      const right = cs.g === c.guess.answer;
+      $$("[data-o]", guessEl).forEach((x) => { const k = +x.dataset.o; x.classList.toggle("right", k === c.guess.answer); x.classList.toggle("wrong", k === cs.g && !right); });
+      verdict.innerHTML = `<b>${right ? pickOne(GUESS_RIGHT) : "Not quite, and that's how learning works."}</b> ${c.guess.why}`;
+      verdict.className = "lc-verdict " + (right ? "ok" : "miss"); verdict.hidden = false;
+      runNow.hidden = true; tryEl.hidden = false;
+      if (cs.t) tryRes.innerHTML = `✓ ${c.try.yes}`;
+    };
+    const setNext = () => {
+      const last = i === cards.length - 1;
+      nextRow.innerHTML = !done(i) ? "" : last ? nextStageBtn(L, "learn")
+        : `<button class="btn primary" id="lcGo">Next card ${ICON.arrow || "→"}</button>${cs.t ? "" : `<span class="muted lc-skip">You can skip the "your turn" step, but it's where it sticks.</span>`}`;
+      const go2 = $("#lcGo", nextRow); if (go2) go2.addEventListener("click", () => { show(i + 1); box.scrollIntoView({ block: "start", behavior: "smooth" }); });
+      const fin = $("[data-next]", nextRow); if (fin) fin.addEventListener("click", () => {
+        if (!lv(L.id).l) { lv(L.id).l = 1; addXP(XP.learn, "Lesson done"); }
+        go({ name: "level", id: L.id, stage: "think" });
+      });
+    };
+    if (cs.g != null) { lockGuess(cs.g); if (cs.r) reveal(); else runNow.hidden = false; }
+    // Only what's needed now: Run appears after the guess, the output and Reset after the first run.
+    const resetBtn = $("[data-reset]", box);
+    runBtn.hidden = cs.g == null; runBtn.title = "Run (Ctrl+Enter)";
+    conEl.hidden = resetBtn.hidden = !cs.r;
+    $$("[data-o]", guessEl).forEach((b) => b.addEventListener("click", () => {
+      cs.g = +b.dataset.o; save(); lockGuess(cs.g);
+      runBtn.hidden = false; runNow.hidden = false;
+      runBtn.classList.add("nudge"); setTimeout(() => runBtn.classList.remove("nudge"), 1600);
+    }));
+    runBtn.addEventListener("click", async (e) => {
+      conEl.hidden = resetBtn.hidden = false;
+      const r = await runInBench(ed, con, runBtn, Object.assign(benchCtx(task), c.files ? { files: c.files } : {}, { keep: true }));
+      if (!r) return;
+      const code = ed.get();
+      if (!cs.r) {
+        cs.r = 1; save();
+        netLog("learn_guess", L.id, "learn", cs.g === c.guess.answer, { card: i, pick: cs.g });
+        reveal(); setNext(); drawDots();
+      } else if (!cs.t && code.trim() !== c.code.trim() && c.try.ok(r.out || "", code, r.error)) {
+        cs.t = 1; save();
+        tryRes.innerHTML = `✓ ${c.try.yes}`; sparkle(runBtn, "Nice!"); heroReact("hop"); setNext();
+      } else if (!cs.t) {
+        tryRes.innerHTML = code.trim() === c.code.trim() ? `<span class="muted">Change the code first, then run it again.</span>` : `<span class="muted">Not quite yet. Read the task again, change the code, and run it.</span>`;
+      }
+    });
+    $("#lcRun2", box).addEventListener("click", () => { runBtn.click(); $("[data-con]", box).scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+    $("[data-reset]", box).addEventListener("click", () => { ed.set(c.code); lsSet(dk, null); con.clear(); resetPractice(); });
+    $("[data-ed]", box).addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); if (!runBtn.hidden) runBtn.click(); } });
+    setNext();
+    $$("[data-pic]", box).forEach(wirePic);
+  };
+  show(at);
+}
+
 function stageLearn(host, L) {
+  if (FEATURES.learnCards && L.learnCards) return stageLearnCards(host, L, L.learnCards);
   const task = L.code || {};
   host.innerHTML = `
     <div class="stage-intro"><h2>Scroll of Knowledge</h2><span class="muted">Read, run, then change the code and run it again.</span></div>
@@ -1429,7 +1539,7 @@ function stageExplain(host, L) {
           <p class="inn-say" id="innSay" aria-live="polite">${locked ? "You've answered this one. Read what each idea means below." : "A sentence or two is plenty. Saying it out loud first helps."}</p>
         </div>
       </div>
-      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> <span class="xk">Idea ${i + 1}: <i>say it and it appears</i></span></li>`).join("")}</ul><button type="button" class="btn ghost sm" id="xHint">Stuck? Show a hint</button></div>` : ""}
+      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> <span class="xk">${FEATURES.hiddenIdeas ? `Idea ${i + 1}: <i>say it and it appears</i>` : esc(k)}</span></li>`).join("")}</ul>${FEATURES.hiddenIdeas ? `<button type="button" class="btn ghost sm" id="xHint">Stuck? Show a hint</button>` : ""}</div>` : ""}
       <div class="starters" id="starters"><span class="muted">Stuck? Start with:</span>${STARTERS.map((t) => `<button type="button" class="chip">${esc(t)}</button>`).join("")}</div>
       <label class="sr" for="expl">Your explanation</label>
       <textarea id="expl" placeholder="Type your answer here, in your own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
@@ -1449,9 +1559,9 @@ function stageExplain(host, L) {
     say.innerHTML = html;
     face.classList.remove("react"); void face.offsetWidth; face.classList.add("react");
   };
-  // Live ticks: count the key ideas as the player types, and notice each new one. Ideas stay hidden
-  // until the player says them (or asks for a hint), so there's nothing to copy, and nothing ticks
-  // until the answer reads like a real sentence (one word like "quotes" isn't an explanation).
+  // Live ticks: count the key ideas as the player types, and notice each new one. Nothing ticks until
+  // the answer reads like a real sentence (one word like "quotes" isn't an explanation). With
+  // FEATURES.hiddenIdeas on, ideas also stay hidden until said (or asked for with the hint button).
   let seen = new Set();
   const shown = new Set();
   const hintBtn = $("#xHint");
@@ -1461,7 +1571,7 @@ function stageExplain(host, L) {
     chk.hits = chk.hits.map((h) => real && h);
     $$("#xlist li", host).forEach((li, i) => {
       li.classList.toggle("hit", chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○";
-      $(".xk", li).innerHTML = locked || chk.hits[i] || shown.has(i) ? esc(keys[i][0]) : `Idea ${i + 1}: <i>say it and it appears</i>`;
+      $(".xk", li).innerHTML = !FEATURES.hiddenIdeas || locked || chk.hits[i] || shown.has(i) ? esc(keys[i][0]) : `Idea ${i + 1}: <i>say it and it appears</i>`;
     });
     if (hintBtn) hintBtn.hidden = locked || keys.every((_, i) => chk.hits[i] || shown.has(i));
     const c = $("#xcount"); if (c) c.textContent = `${chk.hits.filter(Boolean).length} of ${keys.length} · aim for ${need}`;

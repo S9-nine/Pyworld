@@ -25,7 +25,7 @@ const { loadGame } = require("./test-env.js");
     for (const k of Object.keys(L.skills || {})) if (!skillIds.has(k)) bad(L, "unknown skill " + k);
     for (const c of L.cards || []) if (!(c.answer >= 0 && c.answer < c.options.length) || c.options.length > 4) bad(L, "card answer out of range: " + c.q);
     // Lesson examples run (with a default answer for input()).
-    for (const [i, ex] of (L.learn || []).entries()) {
+    for (const [i, ex] of (L.learn || []).concat(L.learnCards || []).entries()) {   // both Learn designs
       if (ex.code == null) { ok(); continue; }   // a text-only card
       const lang = ex.lang || (L.code && L.code.kind);
       if (lang === "sql") {
@@ -39,6 +39,15 @@ const { loadGame } = require("./test-env.js");
       if (r.error && !ex.err) bad(L, "learn example " + (i + 1) + " errors: " + r.error.name + " " + r.error.msg + " line " + r.error.line);
       else if (!r.error && ex.err) bad(L, "learn example " + (i + 1) + " should show an error but runs fine");
       else ok();
+      // Learn cards: the marked guess is what the code really prints; the "your turn" sample passes.
+      if (ex.guess) {
+        const want = ex.guess.options[ex.guess.answer], got = r.error ? "ERROR" : (r.out || "").replace(/\n+$/, "");
+        if (got !== want) bad(L, `learn card ${i + 1} guess answer is ${JSON.stringify(want)} but the code prints ${JSON.stringify(got)}`); else ok();
+        if (new Set(ex.guess.options).size !== ex.guess.options.length || ex.guess.options.length > 4) bad(L, `learn card ${i + 1} guess options repeat or are too many`); else ok();
+        if (!ex.try || !ex.try.sample) { bad(L, `learn card ${i + 1} needs a "your turn" step with a sample`); continue; }
+        const t = await runPython(ex.try.sample, { inputs: ["5"], limit: 4000, seed: 1 });
+        if (ex.try.sample.trim() === ex.code.trim() || !ex.try.ok(t.out || "", ex.try.sample, t.error)) bad(L, `learn card ${i + 1} "your turn" sample doesn't pass its own check`); else ok();
+      }
     }
     // Think questions.
     for (const [i, q] of (L.think || []).entries()) {

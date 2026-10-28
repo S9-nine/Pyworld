@@ -664,6 +664,51 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .guild-forms .pinput { width: 100%; min-width: 0; box-sizing: border-box; }
 #gBody { display: grid; gap: 16px; min-width: 0; }
 .guild-forms h3 { margin: 0; }
+/* Learn cards: one idea at a time, guess → run → change */
+.lc-wrap { display: grid; gap: 12px; max-width: 760px; }
+.lc-dots { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.lc-dot { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: 700 13px var(--font-code); cursor: pointer; }
+.lc-dot.done { background: var(--grass-soft); color: var(--grass); border-color: var(--grass); }
+.lc-dot.on { outline: 2px solid var(--sun); outline-offset: 1px; color: var(--ink); }
+.lc-dot:disabled { opacity: .45; cursor: not-allowed; }
+.lc-count { font-size: 13px; margin-left: 6px; }
+.lc { display: grid; gap: 12px; }
+.lc h3, .lc p { margin: 0; }
+.lc-step { font-size: 15px; }
+.lc-guess .opts { margin-top: 8px; }
+.lc .opt .tx { min-width: 0; }
+.go-out { margin: 0; font: 14px/1.45 var(--font-code); white-space: pre-wrap; overflow-wrap: anywhere; }
+.go-err { font-weight: 600; color: var(--danger); }
+.lc .opt.mine:not(.wrong):not(.right) { outline: 2px solid var(--sun); outline-offset: -2px; }
+.lc .opt.wrong .l { background: var(--danger); color: #fff; border-color: var(--danger); }
+.lc-runnow { color: var(--ink); background: var(--sun-soft); border-radius: 10px; padding: 8px 12px; }
+.lc-verdict { border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.lc-verdict.ok { background: var(--grass-soft); }
+.lc-verdict.miss { background: var(--sun-soft); }
+.lc-try { border-top: 1px dashed var(--line); padding-top: 10px; }
+.lc-tryres { margin-top: 6px !important; color: var(--grass); font-weight: 600; min-height: 1em; }
+.lc-skip { font-size: 12.5px; }
+.lc [hidden] { display: none !important; }
+/* Profile: DEV switches for designs being tested */
+.dev-opts { margin-top: 18px; border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; }
+.dev-opts summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--muted); }
+.dev-opts[open] summary { margin-bottom: 8px; }
+.dev-opts p { font-size: 13px; margin: 0 0 8px; }
+.dev-tag { font: 700 10.5px var(--font-code); letter-spacing: .08em; color: var(--sun-ink); background: var(--sun); border-radius: 5px; padding: 2px 6px; margin-right: 4px; vertical-align: 1px; }
+.dev-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; font-size: 14px; cursor: pointer; border-top: 1px solid var(--line); }
+.dev-row input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--sun); flex: none; }
+.dev-row .muted { font-size: 12.5px; }
+.lc-more { font-size: 14.5px; }
+.lc-more summary { cursor: pointer; color: var(--muted); width: fit-content; }
+.lc-more summary:hover { color: var(--ink); }
+.lc-more[open] summary { margin-bottom: 6px; }
+.lc-more p { background: var(--surface-2); border-left: 3px solid var(--sun); border-radius: 0 10px 10px 0; padding: 10px 12px; }
+.lc-runnow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.btn.go:disabled { opacity: .5; cursor: not-allowed; }
+.btn.nudge { animation: nudge .5s ease-in-out 3; }
+@keyframes nudge { 50% { transform: translateY(-3px) scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .btn.nudge { animation: none; } }
+
 /* Guild tabs (up to 5 guilds) and chat */
 .g-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
 .g-tab { flex: none; font: 600 14px var(--font-ui, inherit); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -873,6 +918,60 @@ print("Comments help future you")  # notes can go at the end too` },
     { h: "Commas join things with spaces",
       p: "Give <code>print()</code> several values separated by commas and it prints them on one line, with a space between each.",
       code: `print("Level", 1, "complete")` }
+  ],
+  /* Learn cards (the new design, off for now: see FEATURES in app.js): read → guess what it prints →
+     run to find out → change it yourself.
+     guess.options are possible outputs ("ERROR" = it crashes); verify.js checks the marked one is
+     what the code really prints, and that each try.sample passes try.ok while the original doesn't. */
+  learnCards: [
+    { h: "Python follows your instructions",
+      p: "Python is like a friend who follows your notes <b>exactly</b>, one line at a time, from the top down. <code>print()</code> means \"show this on the screen\".",
+      more: "Think of a recipe. You do step 1, then step 2, never jumping ahead. Python reads your code the same way: line 1 first, then line 2. Each <code>print(...)</code> line puts one line of text on the screen, so two prints give you two lines.",
+      code: `print("Hello, world!")
+print("I am learning Python.")`,
+      guess: { options: ["Hello, world!\nI am learning Python.", "Hello, world! I am learning Python.", "I am learning Python.", "ERROR"], answer: 0,
+        why: "Each <code>print()</code> shows its own line, in order from top to bottom." },
+      try: { ask: "Change the second line so it says <code>My name is</code> and your name. Then run it.",
+        ok: (out) => /^my name is \S+/im.test(out), sample: `print("Hello, world!")
+print("My name is Asha")`, yes: "That's your first real program. Hello to you too!" } },
+    { h: "Text goes inside quotes",
+      p: "When you want Python to show words, wrap them in quotes. Quotes say <b>\"this is text, show it as it is\"</b>. Programmers call text a <b>string</b>.",
+      more: "Quotes are like a speech bubble in a comic. Whatever is inside the bubble gets said, word for word. The bubble itself isn't said out loud, so the quotes never appear on screen. <code>\"double\"</code> and <code>'single'</code> quotes both work.",
+      code: `print("Hi there")
+print('Bye for now')`,
+      guess: { options: ["Hi there\nBye for now", "\"Hi there\"\n'Bye for now'", "ERROR"], answer: 0,
+        why: "The quotes are not printed. They just tell Python \"this is text\"." },
+      try: { ask: "Break it on purpose: delete the quotes around <code>Hi there</code> and run it.",
+        ok: (out, code, err) => !!err, sample: `print(Hi there)
+print('Bye for now')`, yes: "An error! Without quotes, Python reads <code>Hi there</code> as code it doesn't know. Errors aren't failures: they're Python telling you what it needs. Put the quotes back." } },
+    { h: "Quotes or no quotes: text or maths",
+      p: "Quotes = show it as text. <b>No quotes</b> = Python treats it as maths and works out the answer.",
+      more: "Imagine writing <i>10 - 2</i> on a sticky note and handing it to a friend. With quotes, it's like saying \"read this note out loud\": they say \"10 minus 2\". Without quotes, it's like saying \"solve this\": they say \"8\".",
+      code: `print("10 - 2")
+print(10 - 2)`,
+      guess: { options: ["10 - 2\n8", "8\n8", "10 - 2\n10 - 2", "ERROR"], answer: 0,
+        why: "The first line is text, so it's shown as typed. The second has no quotes, so Python works out 10 − 2 = 8." },
+      try: { ask: "Make Python print the answer to 6 × 7. In Python, × is written <code>*</code>.",
+        ok: (out) => /^\s*42\s*$/m.test(out), sample: `print(6 * 7)`, yes: "42! Python is a very fast calculator. Add quotes around it and see what changes." } },
+    { h: "Comments are notes for humans",
+      p: "Anything after a <code>#</code> is a note for humans. Python skips it completely.",
+      more: "Comments are like pencil notes in the margin of a textbook. They help the reader, but they aren't part of the lesson itself. Programmers use them to explain <i>why</i> the code does something, so it still makes sense months later.",
+      code: `# This whole line is skipped
+print("Comments help future you")  # a note at the end`,
+      guess: { options: ["Comments help future you", "This whole line is skipped\nComments help future you", "Comments help future you  # a note at the end", "ERROR"], answer: 0,
+        why: "Python ignores both comments, so only the text inside <code>print()</code> appears." },
+      try: { ask: "Add your own comment on a new line, like <code># my first comment</code>, then run it. The output shouldn't change.",
+        ok: (out, code) => (code.match(/#/g) || []).length >= 3 && /Comments help future you/.test(out), sample: `# This whole line is skipped
+# my first comment
+print("Comments help future you")  # a note at the end`, yes: "Same output, better code. Real developers write comments like that every day." } },
+    { h: "Commas put things side by side",
+      p: "Put <b>commas</b> between things inside <code>print()</code> and they all show on one line, with a space between each.",
+      more: "Think of the commas as \"and then\": show \"Level\", and then 1, and then \"complete\". Python adds a space between each one for you. You can mix words and numbers this way, which is handy for things like scores.",
+      code: `print("Level", 1, "complete")`,
+      guess: { options: ["Level 1 complete", "Level1complete", "\"Level\", 1, \"complete\"", "ERROR"], answer: 0,
+        why: "Commas let one <code>print()</code> show several things. It adds one space between each." },
+      try: { ask: "Print your name and your age on one line using a comma, like <code>print(\"Asha\", 15)</code>.",
+        ok: (out, code) => /print\s*\([^)]*,[^)]*\)/.test(code) && /[A-Za-z].* \d|\d .*[A-Za-z]/.test(out), sample: `print("Asha", 15)`, yes: "Nice. Text and a number, side by side, in one line." } }
   ],
   think: [
     { type: "mcq", q: "What does this program show?", code: `print("3 + 4")
@@ -13939,6 +14038,20 @@ function explainCheck(text, L) {
 
 /* Code Quest — game app. */
 
+/* ───────── Design switches ─────────
+   New designs we're trying, kept in the code but off until we decide. Anyone can turn them on for
+   themselves (saved in this browser) by opening the game with ?try=learnCards,hiddenIdeas, and back
+   off with ?try=off. learnCards: Learn as one-idea "guess, run, change it" cards (levels with
+   learnCards). hiddenIdeas: Explain's key ideas stay hidden until said, with a hint button. */
+const FEATURES = { learnCards: false, hiddenIdeas: false };
+(() => {
+  try {
+    const q = new URLSearchParams(location.search).get("try");
+    if (q != null) localStorage.setItem("cq.try", q);
+    for (const k of (localStorage.getItem("cq.try") || "").split(",")) if (k in FEATURES) FEATURES[k] = true;
+  } catch (_) {}
+})();
+
 /* ───────── Constants & helpers ───────── */
 const HERO_COLORS = ["#DB4F3B", "#2A6FAD", "#23845A", "#8452C9", "#C9741E", "#BE3B78"];
 const ICON = {
@@ -14862,7 +14975,103 @@ function celebrate(L) {
     } });
 }
 
+/* ───────── Learn as cards: read → guess → run → change it ─────────
+   One idea per card. The player guesses what the code prints before running it (guessing first makes
+   you think instead of skim), runs it to find out, then makes a small change of their own. Levels whose
+   learn cards have a `guess` use this; the rest keep the scroll of examples below. */
+const GUESS_RIGHT = ["You called it!", "Spot on!", "Exactly right!", "Nailed it!"];
+function outputOption(o) { return o === "ERROR" ? `<span class="go-err">✖ An error</span>` : `<pre class="go-out">${esc(o)}</pre>`; }
+function stageLearnCards(host, L, cards) {
+  const s = lv(L.id), task = L.code || {};
+  const st = (s.lc = s.lc || {});          // per card: { g: guess picked, r: ran, t: changed it }
+  let at = Math.min(st.at | 0, cards.length - 1);
+  host.innerHTML = `
+    <div class="stage-intro"><h2>Scroll of Knowledge</h2><span class="muted">Guess, run, then try it yourself.</span></div>
+    <div class="lc-wrap"><div class="lc-dots" id="lcDots"></div><div id="lcCard"></div></div>
+    <div class="next-row" id="lcNext"></div>`;
+  const dots = $("#lcDots", host), box = $("#lcCard", host), nextRow = $("#lcNext", host);
+  const done = (i) => !!(st[i] && st[i].r);
+  const drawDots = () => {
+    dots.innerHTML = cards.map((c, i) => `<button class="lc-dot${i === at ? " on" : ""}${done(i) ? " done" : ""}" data-i="${i}" ${i > 0 && !done(i - 1) && !done(i) ? "disabled" : ""} aria-label="Card ${i + 1}${done(i) ? ", done" : ""}">${i + 1}</button>`).join("") +
+      `<span class="muted lc-count">Card ${at + 1} of ${cards.length}</span>`;
+    $$(".lc-dot", dots).forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
+  };
+  const show = (i) => {
+    at = i; st.at = i; save();
+    const c = cards[i], cs = (st[i] = st[i] || {}), lang = c.lang || task.kind || "python";
+    drawDots();
+    box.innerHTML = `<article class="card lcard lc">
+      <h3>${esc(c.h)}</h3><p>${c.p}</p>${c.more ? `<details class="lc-more"><summary>Didn't click? Explain it another way</summary><p>${c.more}</p></details>` : ""}${c.pic ? picHtml(c.pic, i) : ""}
+      <div class="bench mini"><div class="bench-bar"><span class="file"><i></i>${esc(c.file || exampleName(lang, i))}</span>
+        <button class="btn sm ghost" data-reset style="color:var(--code-muted)" hidden>${ICON.reset} Reset</button>
+        <button class="btn sm go" data-run hidden>${ICON.play} Run</button></div>
+        <div data-ed></div><div class="console" data-con hidden></div></div>
+      <div class="lc-guess" id="lcGuess"><p class="lc-step"><b>1. Guess first.</b> What will this print?</p>
+        <div class="opts">${c.guess.options.map((o, k) => `<button class="opt" data-o="${k}"><span class="l">${"ABCD"[k]}</span><span class="tx">${outputOption(o)}</span></button>`).join("")}</div></div>
+      <p class="lc-step lc-runnow" id="lcRunNow" hidden><b>2. Now run it</b> and see if you were right. <button class="btn sm go" type="button" id="lcRun2">${ICON.play} Run</button></p>
+      <div class="lc-verdict" id="lcVerdict" hidden></div>
+      <div class="lc-try" id="lcTry" hidden><p class="lc-step"><b>3. Your turn.</b> ${c.try.ask}</p><p class="lc-tryres" id="lcTryRes"></p></div>
+    </article>`;
+    const dk = draftNS() + L.id + ".learn" + i;   // edits are drafts in this browser, not part of the save
+    const ed = createEditor($("[data-ed]", box), lsGet(dk) || c.code, { lang, onChange: (v) => lsSet(dk, v) });
+    const conEl = $("[data-con]", box), con = createConsole(conEl), runBtn = $("[data-run]", box);
+    const guessEl = $("#lcGuess", box), runNow = $("#lcRunNow", box), verdict = $("#lcVerdict", box), tryEl = $("#lcTry", box), tryRes = $("#lcTryRes", box);
+    const lockGuess = (pick) => $$("[data-o]", guessEl).forEach((x) => { x.disabled = true; x.classList.toggle("mine", +x.dataset.o === pick); });
+    const reveal = () => {
+      const right = cs.g === c.guess.answer;
+      $$("[data-o]", guessEl).forEach((x) => { const k = +x.dataset.o; x.classList.toggle("right", k === c.guess.answer); x.classList.toggle("wrong", k === cs.g && !right); });
+      verdict.innerHTML = `<b>${right ? pickOne(GUESS_RIGHT) : "Not quite, and that's how learning works."}</b> ${c.guess.why}`;
+      verdict.className = "lc-verdict " + (right ? "ok" : "miss"); verdict.hidden = false;
+      runNow.hidden = true; tryEl.hidden = false;
+      if (cs.t) tryRes.innerHTML = `✓ ${c.try.yes}`;
+    };
+    const setNext = () => {
+      const last = i === cards.length - 1;
+      nextRow.innerHTML = !done(i) ? "" : last ? nextStageBtn(L, "learn")
+        : `<button class="btn primary" id="lcGo">Next card ${ICON.arrow || "→"}</button>${cs.t ? "" : `<span class="muted lc-skip">You can skip the "your turn" step, but it's where it sticks.</span>`}`;
+      const go2 = $("#lcGo", nextRow); if (go2) go2.addEventListener("click", () => { show(i + 1); box.scrollIntoView({ block: "start", behavior: "smooth" }); });
+      const fin = $("[data-next]", nextRow); if (fin) fin.addEventListener("click", () => {
+        if (!lv(L.id).l) { lv(L.id).l = 1; addXP(XP.learn, "Lesson done"); }
+        go({ name: "level", id: L.id, stage: "think" });
+      });
+    };
+    if (cs.g != null) { lockGuess(cs.g); if (cs.r) reveal(); else runNow.hidden = false; }
+    // Only what's needed now: Run appears after the guess, the output and Reset after the first run.
+    const resetBtn = $("[data-reset]", box);
+    runBtn.hidden = cs.g == null; runBtn.title = "Run (Ctrl+Enter)";
+    conEl.hidden = resetBtn.hidden = !cs.r;
+    $$("[data-o]", guessEl).forEach((b) => b.addEventListener("click", () => {
+      cs.g = +b.dataset.o; save(); lockGuess(cs.g);
+      runBtn.hidden = false; runNow.hidden = false;
+      runBtn.classList.add("nudge"); setTimeout(() => runBtn.classList.remove("nudge"), 1600);
+    }));
+    runBtn.addEventListener("click", async (e) => {
+      conEl.hidden = resetBtn.hidden = false;
+      const r = await runInBench(ed, con, runBtn, Object.assign(benchCtx(task), c.files ? { files: c.files } : {}, { keep: true }));
+      if (!r) return;
+      const code = ed.get();
+      if (!cs.r) {
+        cs.r = 1; save();
+        netLog("learn_guess", L.id, "learn", cs.g === c.guess.answer, { card: i, pick: cs.g });
+        reveal(); setNext(); drawDots();
+      } else if (!cs.t && code.trim() !== c.code.trim() && c.try.ok(r.out || "", code, r.error)) {
+        cs.t = 1; save();
+        tryRes.innerHTML = `✓ ${c.try.yes}`; sparkle(runBtn, "Nice!"); heroReact("hop"); setNext();
+      } else if (!cs.t) {
+        tryRes.innerHTML = code.trim() === c.code.trim() ? `<span class="muted">Change the code first, then run it again.</span>` : `<span class="muted">Not quite yet. Read the task again, change the code, and run it.</span>`;
+      }
+    });
+    $("#lcRun2", box).addEventListener("click", () => { runBtn.click(); $("[data-con]", box).scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+    $("[data-reset]", box).addEventListener("click", () => { ed.set(c.code); lsSet(dk, null); con.clear(); resetPractice(); });
+    $("[data-ed]", box).addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); if (!runBtn.hidden) runBtn.click(); } });
+    setNext();
+    $$("[data-pic]", box).forEach(wirePic);
+  };
+  show(at);
+}
+
 function stageLearn(host, L) {
+  if (FEATURES.learnCards && L.learnCards) return stageLearnCards(host, L, L.learnCards);
   const task = L.code || {};
   host.innerHTML = `
     <div class="stage-intro"><h2>Scroll of Knowledge</h2><span class="muted">Read, run, then change the code and run it again.</span></div>
@@ -15368,7 +15577,7 @@ function stageExplain(host, L) {
           <p class="inn-say" id="innSay" aria-live="polite">${locked ? "You've answered this one. Read what each idea means below." : "A sentence or two is plenty. Saying it out loud first helps."}</p>
         </div>
       </div>
-      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> <span class="xk">Idea ${i + 1}: <i>say it and it appears</i></span></li>`).join("")}</ul><button type="button" class="btn ghost sm" id="xHint">Stuck? Show a hint</button></div>` : ""}
+      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> <span class="xk">${FEATURES.hiddenIdeas ? `Idea ${i + 1}: <i>say it and it appears</i>` : esc(k)}</span></li>`).join("")}</ul>${FEATURES.hiddenIdeas ? `<button type="button" class="btn ghost sm" id="xHint">Stuck? Show a hint</button>` : ""}</div>` : ""}
       <div class="starters" id="starters"><span class="muted">Stuck? Start with:</span>${STARTERS.map((t) => `<button type="button" class="chip">${esc(t)}</button>`).join("")}</div>
       <label class="sr" for="expl">Your explanation</label>
       <textarea id="expl" placeholder="Type your answer here, in your own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
@@ -15388,9 +15597,9 @@ function stageExplain(host, L) {
     say.innerHTML = html;
     face.classList.remove("react"); void face.offsetWidth; face.classList.add("react");
   };
-  // Live ticks: count the key ideas as the player types, and notice each new one. Ideas stay hidden
-  // until the player says them (or asks for a hint), so there's nothing to copy, and nothing ticks
-  // until the answer reads like a real sentence (one word like "quotes" isn't an explanation).
+  // Live ticks: count the key ideas as the player types, and notice each new one. Nothing ticks until
+  // the answer reads like a real sentence (one word like "quotes" isn't an explanation). With
+  // FEATURES.hiddenIdeas on, ideas also stay hidden until said (or asked for with the hint button).
   let seen = new Set();
   const shown = new Set();
   const hintBtn = $("#xHint");
@@ -15400,7 +15609,7 @@ function stageExplain(host, L) {
     chk.hits = chk.hits.map((h) => real && h);
     $$("#xlist li", host).forEach((li, i) => {
       li.classList.toggle("hit", chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○";
-      $(".xk", li).innerHTML = locked || chk.hits[i] || shown.has(i) ? esc(keys[i][0]) : `Idea ${i + 1}: <i>say it and it appears</i>`;
+      $(".xk", li).innerHTML = !FEATURES.hiddenIdeas || locked || chk.hits[i] || shown.has(i) ? esc(keys[i][0]) : `Idea ${i + 1}: <i>say it and it appears</i>`;
     });
     if (hintBtn) hintBtn.hidden = locked || keys.every((_, i) => chk.hits[i] || shown.has(i));
     const c = $("#xcount"); if (c) c.textContent = `${chk.hits.filter(Boolean).length} of ${keys.length} · aim for ${need}`;
@@ -16423,6 +16632,11 @@ function logOut() {
 
 const ROLES = ["Not sure yet", "Backend developer", "Data analyst", "Automation / QA engineer", "Full-stack developer", "AI / ML engineer"];
 
+/* The DEV switches on the Profile page: one row per design in FEATURES (app.js). */
+const DEV_SWITCHES = [
+  ["learnCards", "Learn as cards", "One idea at a time: guess what it prints, run it, then change it. Level 1-1 only so far."],
+  ["hiddenIdeas", "Hidden key ideas in Explain", "Key ideas stay hidden until you say them, with a hint button if you're stuck."]
+];
 function renderProfile(v) {
   const h = S.hero;
   const draft = { name: h.name, pix: h.pix, color: h.color, motto: h.motto || "", role: h.role | 0 };
@@ -16466,6 +16680,11 @@ function renderProfile(v) {
           <button class="btn" id="pOut">${S.mode === "cloud" ? "Back to title screen" : "Switch player"}</button>
         </div>
         <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete profile"}</button></div>
+
+        <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
+          <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
+          ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+        </details>
       </div>
     </div>
   </div>`;
@@ -16546,6 +16765,12 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  $$("[data-feat]", v).forEach((box) => box.addEventListener("change", () => {
+    FEATURES[box.dataset.feat] = box.checked;
+    const on = Object.keys(FEATURES).filter((k) => FEATURES[k]);
+    try { localStorage.setItem("cq.try", on.length ? on.join(",") : "off"); } catch (_) {}
+    toast(`${DEV_SWITCHES.find(([k]) => k === box.dataset.feat)[1]} is ${box.checked ? "on" : "off"}`);
+  }));
   $("#pReset").addEventListener("click", () => {
     const cloud = S.mode === "cloud";
     $("#danger").innerHTML = `<div class="notice">${cloud ? "This erases your XP, stars and streak." : `This deletes <b>${esc(h.name)}</b> for good, on this device${netConfigured() ? " and online" : ""}: XP, stars, streak, PIN${netConfigured() ? ", guild spot, play data and feedback" : ""}.`} It can't be undone.
@@ -16613,6 +16838,16 @@ function mergeInto(h, o) {
     if (Array.isArray(b.t)) { a.t = a.t || []; b.t.forEach((v, i) => { if (v && (!a.t[i] || v < a.t[i])) a.t[i] = v; }); }
     if (b.c && b.c.ok) a.c = { ok: 1, s: Math.max((a.c && a.c.ok && a.c.s) || 0, b.c.s || 1) };
     if (typeof b.e === "string" && b.e.length > (a.e || "").length) a.e = b.e;
+    if (b.lc && typeof b.lc === "object") {   // Learn cards: keep every guess, run and "your turn" done
+      a.lc = a.lc || {};
+      for (const [k, x] of Object.entries(b.lc)) {
+        if (k === "at") { a.lc.at = Math.max(a.lc.at | 0, x | 0); continue; }
+        const y = (a.lc[k] = a.lc[k] || {});
+        if (y.g == null && x.g != null) y.g = x.g;
+        if (x.r) y.r = 1;
+        if (x.t) y.t = 1;
+      }
+    }
   }
   for (const [k, c] of Object.entries(o.cards || {})) {
     const a = h.cards[k];

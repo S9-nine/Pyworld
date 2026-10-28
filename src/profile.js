@@ -2,6 +2,11 @@
 
 const ROLES = ["Not sure yet", "Backend developer", "Data analyst", "Automation / QA engineer", "Full-stack developer", "AI / ML engineer"];
 
+/* The DEV switches on the Profile page: one row per design in FEATURES (app.js). */
+const DEV_SWITCHES = [
+  ["learnCards", "Learn as cards", "One idea at a time: guess what it prints, run it, then change it. Level 1-1 only so far."],
+  ["hiddenIdeas", "Hidden key ideas in Explain", "Key ideas stay hidden until you say them, with a hint button if you're stuck."]
+];
 function renderProfile(v) {
   const h = S.hero;
   const draft = { name: h.name, pix: h.pix, color: h.color, motto: h.motto || "", role: h.role | 0 };
@@ -45,6 +50,11 @@ function renderProfile(v) {
           <button class="btn" id="pOut">${S.mode === "cloud" ? "Back to title screen" : "Switch player"}</button>
         </div>
         <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete profile"}</button></div>
+
+        <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
+          <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
+          ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+        </details>
       </div>
     </div>
   </div>`;
@@ -125,6 +135,12 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  $$("[data-feat]", v).forEach((box) => box.addEventListener("change", () => {
+    FEATURES[box.dataset.feat] = box.checked;
+    const on = Object.keys(FEATURES).filter((k) => FEATURES[k]);
+    try { localStorage.setItem("cq.try", on.length ? on.join(",") : "off"); } catch (_) {}
+    toast(`${DEV_SWITCHES.find(([k]) => k === box.dataset.feat)[1]} is ${box.checked ? "on" : "off"}`);
+  }));
   $("#pReset").addEventListener("click", () => {
     const cloud = S.mode === "cloud";
     $("#danger").innerHTML = `<div class="notice">${cloud ? "This erases your XP, stars and streak." : `This deletes <b>${esc(h.name)}</b> for good, on this device${netConfigured() ? " and online" : ""}: XP, stars, streak, PIN${netConfigured() ? ", guild spot, play data and feedback" : ""}.`} It can't be undone.
@@ -192,6 +208,16 @@ function mergeInto(h, o) {
     if (Array.isArray(b.t)) { a.t = a.t || []; b.t.forEach((v, i) => { if (v && (!a.t[i] || v < a.t[i])) a.t[i] = v; }); }
     if (b.c && b.c.ok) a.c = { ok: 1, s: Math.max((a.c && a.c.ok && a.c.s) || 0, b.c.s || 1) };
     if (typeof b.e === "string" && b.e.length > (a.e || "").length) a.e = b.e;
+    if (b.lc && typeof b.lc === "object") {   // Learn cards: keep every guess, run and "your turn" done
+      a.lc = a.lc || {};
+      for (const [k, x] of Object.entries(b.lc)) {
+        if (k === "at") { a.lc.at = Math.max(a.lc.at | 0, x | 0); continue; }
+        const y = (a.lc[k] = a.lc[k] || {});
+        if (y.g == null && x.g != null) y.g = x.g;
+        if (x.r) y.r = 1;
+        if (x.t) y.t = 1;
+      }
+    }
   }
   for (const [k, c] of Object.entries(o.cards || {})) {
     const a = h.cards[k];
