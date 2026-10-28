@@ -834,6 +834,93 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
   .lvl-bar-track i { transition: none; }
 }
 
+/* ───────── Boss Hack (design previews) ───────── */
+body.bh-on { overflow: hidden; }
+body.bh-on > .topbar, body.bh-on #view, body.bh-on .bh-banner { filter: grayscale(.75) brightness(.45); transition: filter .8s; }
+.bh { position: fixed; inset: 0; z-index: 80; overflow: hidden; color: #f4f4f4;
+  background: radial-gradient(ellipse at 50% 40%, rgb(60 0 10 / .15), rgb(8 0 4 / .78) 70%, rgb(0 0 0 / .92)); animation: bh-in .8s ease-out both; }
+@keyframes bh-in { from { opacity: 0; } }
+.bh-boss { width: 100%; height: 100%; overflow: visible; }
+.bh-eye { animation: bh-eye 1.2s steps(2) infinite; }
+@keyframes bh-eye { 50% { fill: #ffe0e0; } }
+.bh-offer { position: absolute; left: 50%; transform: translateX(-50%); width: min(460px, calc(100% - 32px)); text-align: center; display: grid; gap: 8px; }
+.bh-name { margin: 0; font-family: var(--font-display); font-size: 30px; color: #ff4a4a; text-shadow: 3px 3px 0 #1a1c2c; letter-spacing: .04em; }
+.bh-say { margin: 0; font-size: 17px; min-height: 2.6em; font-weight: 600; }
+.bh-deal { margin: 0; font-size: 14.5px; color: #c9b6c9; }
+.bh-btns { display: flex; gap: 10px; justify-content: center; margin-top: 6px; flex-wrap: wrap; }
+.bh .btn.bh-go { background: #ff4a4a; border-color: #ff4a4a; color: #1a0006; }
+.bh .btn.bh-later { background: transparent; color: #f4f4f4; border-color: #6b4a6b; }
+.bh-offer [hidden], .bh-btns[hidden] { display: none; }
+
+/* A · Pixel Swarm */
+.bh-swarm-host i { position: absolute; background: #ff4a4a; box-shadow: 0 0 6px rgb(255 60 60 / .7);
+  transition: transform 1.1s cubic-bezier(.25, .9, .3, 1), background .5s, box-shadow .5s; }
+.bh-swarm-host.formed i { box-shadow: none; }
+.bh-swarm-host.formed { filter: drop-shadow(0 0 18px rgb(255 50 50 / .55)); animation: bh-breathe 2.4s ease-in-out infinite; }
+@keyframes bh-breathe { 50% { filter: drop-shadow(0 0 30px rgb(255 50 50 / .8)); } }
+.bh-swarm-eyes { position: absolute; width: calc(var(--px) * 4); height: var(--px); }
+.bh-swarm-eyes::before, .bh-swarm-eyes::after { content: ""; position: absolute; top: 0; width: var(--px); height: var(--px); background: #ff4a4a; box-shadow: 0 0 14px 4px rgb(255 60 60 / .8); animation: bh-eye-glow 1.2s steps(2) infinite; }
+.bh-swarm-eyes::before { left: 0; } .bh-swarm-eyes::after { right: 0; }
+@keyframes bh-eye-glow { 50% { background: #ffe0e0; } }
+
+/* B · Glitch Breach */
+body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2) infinite; }
+@keyframes bh-shake { 0% { transform: translate(3px, -2px); } 50% { transform: translate(-4px, 2px); } 100% { transform: translate(2px, 3px); } }
+.bh-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgb(255 255 255 / .04) 0 1px, transparent 1px 3px); pointer-events: none; }
+.bh-slice { position: absolute; left: 0; right: 0; backdrop-filter: hue-rotate(160deg) saturate(3) brightness(1.4); background: rgb(255 40 60 / .12); animation: bh-slice .3s steps(3) 5 both; }
+@keyframes bh-slice { 0% { transform: translateX(-24px); opacity: 1; } 50% { transform: translateX(30px); } 100% { transform: translateX(0); opacity: 0; } }
+.bh-static i { position: absolute; background: #ff3b3b; opacity: 0; animation: bh-flick .45s steps(2) 4; }
+@keyframes bh-flick { 50% { opacity: .9; } }
+.bh-term { position: absolute; left: 50%; top: 50%; width: min(560px, calc(100% - 24px)); transform: translate(-50%, -50%); background: #070309; border: 2px solid #ff4a4a; box-shadow: 0 0 0 4px #1a1c2c, 0 0 40px rgb(255 50 50 / .45); animation: bh-slam .35s cubic-bezier(.2, 1.4, .4, 1) both; padding-bottom: 18px; }
+@keyframes bh-slam { from { transform: translate(-50%, -50%) scale(1.35); opacity: 0; filter: blur(6px); } }
+.bh-term-bar { display: flex; gap: 6px; align-items: center; padding: 7px 10px; background: #2a0a12; border-bottom: 1px solid #ff4a4a; font: 600 12px var(--font-code); color: #ff8a8a; }
+.bh-term-bar i { width: 10px; height: 10px; background: #ff4a4a; display: inline-block; }
+.bh-term-bar span { margin-left: 6px; }
+.bh-term-body { display: grid; grid-template-columns: 72px 1fr; gap: 14px; padding: 16px 16px 4px; align-items: start; }
+.bh-term-boss { width: 72px; height: 78px; }
+.bh-term-log { margin: 0; font: 14px/1.6 var(--font-code); color: #ff6b6b; white-space: pre-wrap; min-height: 4.8em; }
+.bh-term .bh-offer { position: static; transform: none; width: auto; padding: 4px 16px 0; }
+.bh-term .bh-name { font-size: 24px; }
+
+/* C · Corruption Spread */
+.bh-corrupt { background: none; }
+.bh-grid { position: absolute; inset: 0; display: grid; grid-auto-rows: 40px; }
+@media (max-width: 640px) { .bh-grid { grid-auto-rows: 30px; } }
+.bh-grid i { background: rgb(6 0 6 / .9); box-shadow: inset 0 0 0 1px rgb(255 60 60 / .35); transform: scale(0); animation: bh-tile .35s steps(3) both; }
+@keyframes bh-tile { to { transform: scale(1.02); } }
+.bh-portal { position: absolute; left: 50%; top: 34%; width: 200px; height: 200px; transform: translate(-50%, -50%); }
+.bh-ring { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgb(255 60 60 / .55), rgb(120 0 30 / .35) 55%, transparent 70%); box-shadow: 0 0 0 3px #ff4a4a, 0 0 50px 10px rgb(255 50 50 / .5); animation: bh-open .6s cubic-bezier(.2, 1.3, .4, 1) both, bh-spin 6s linear infinite; }
+@keyframes bh-open { from { transform: scale(0); } }
+@keyframes bh-spin { to { filter: hue-rotate(25deg); } }
+.bh-rise { position: absolute; left: 50%; bottom: 22px; width: 120px; height: 130px; transform: translateX(-50%); clip-path: inset(-40px -40px 0 -40px); }
+.bh-rise .bh-boss { animation: bh-rise 1s .4s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes bh-rise { from { transform: translateY(100%); } }
+.bh-corrupt .bh-offer { top: calc(34% + 120px); }
+
+/* Countdown banner */
+.bh-banner { background: repeating-linear-gradient(-45deg, #2a0710 0 14px, #1a040a 14px 28px); border-bottom: 2px solid #ff4a4a; color: #f4f4f4; }
+.bh-banner-in { display: flex; align-items: center; gap: 12px; padding-block: 8px; }
+.bh-mini { width: 30px; height: 32px; flex: none; }
+.bh-banner-txt { display: grid; flex: 1; min-width: 0; font-size: 13.5px; }
+.bh-banner-txt b { font-family: var(--font-display); font-size: 19px; color: #ff4a4a; letter-spacing: .06em; position: relative; width: fit-content; }
+.bh-banner-txt b::after { content: attr(data-glitch); position: absolute; left: 2px; top: 0; color: #4af0ff; opacity: 0; animation: bh-txt-glitch 3.2s steps(1) infinite; }
+@keyframes bh-txt-glitch { 0%, 92%, 100% { opacity: 0; } 93% { opacity: .7; transform: translateX(-3px); } 95% { opacity: .6; transform: translateX(3px); } 97% { opacity: 0; } }
+.bh-clock { font: 700 20px var(--font-code); color: #ffcd75; letter-spacing: .04em; }
+.bh-x { background: none; border: 0; color: #c9b6c9; font-size: 22px; cursor: pointer; padding: 0 4px; }
+@media (max-width: 640px) { .bh-banner-txt span { display: none; } .bh-clock { font-size: 17px; } }
+@media (prefers-reduced-motion: reduce) {
+  .bh, .bh *, .bh-banner * { animation: none !important; transition: none !important; }
+  .bh-grid i { transform: scale(1.02); }
+}
+.dev-bh { cursor: default; }
+.dev-bh-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.bh-offer.swarm, .bh-offer.corrupt { background: rgb(12 2 8 / .8); border: 1px solid rgb(255 74 74 / .25); border-radius: 14px; padding: 12px 16px 16px; backdrop-filter: blur(3px); }
+/* D · Breach + Swarm: static squares flicker before they fly into the boss; the terminal drops in under it */
+.bh-swarm-host.static i { animation: bh-flick .3s steps(2) infinite; }
+.bh-mix .bh-term { top: auto; transform: translateX(-50%); animation: bh-slam-d .35s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes bh-slam-d { from { transform: translateX(-50%) scale(1.3); opacity: 0; filter: blur(6px); } }
+.bh-mix .bh-term-log { padding: 14px 16px 2px; }
+
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
   .creator-grid { grid-template-columns: minmax(0, 1fr); }
@@ -16028,6 +16115,206 @@ function loadScript(src) {
   if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
 })();
 
+/* ───────── Boss Hack: a surprise review event ─────────
+   At a random time a countdown appears; at zero the world's boss "hacks in" with a few questions from
+   levels the player cleared a while ago (being tested on older material is what makes it stick).
+   For now these are design previews, started from Profile → DEV: three takeover animations to choose
+   from (A Pixel Swarm, B Glitch Breach, C Corruption Spread, D = A and B mixed) and the countdown banner. */
+const BOSS_ROWS = [
+  "....kkkk....",
+  "...kppppk...",
+  "..kppppppk..",
+  ".kppkkkkppk.",
+  ".kpkkkkkkpk.",
+  ".kpkrkkrkpk.",
+  ".kpkkkkkkpk.",
+  ".kppkkkkppk.",
+  "kppppkkppppk",
+  "kpdppppppdpk",
+  "kpdpprrppdpk",
+  "kpdppppppdpk",
+  ".kkkk..kkkk."
+];
+const BOSS_PAL = { k: "#1a1c2c", p: "#5d275d", d: "#b13e53", r: "#ff4a4a" };
+function bossSvg(cls = "") {
+  return `<svg class="bh-boss ${cls}" viewBox="-1 -1 14 15" shape-rendering="crispEdges" aria-hidden="true">${PX.sprite(BOSS_ROWS, 0, 0, 1, BOSS_PAL)}
+    <rect class="bh-eye" x="4" y="5" width="1" height="1" fill="#ff4a4a"/><rect class="bh-eye" x="7" y="5" width="1" height="1" fill="#ff4a4a"/></svg>`;
+}
+const bhStill = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+const bhWait = (ms) => new Promise((r) => setTimeout(r, bhStill() ? 0 : ms));
+async function bhType(el, text, speed = 28) {
+  if (bhStill()) { el.textContent = text; return; }
+  el.textContent = "";
+  for (const ch of text) { el.textContent += ch; await new Promise((r) => setTimeout(r, ch === "." || ch === "?" ? speed * 6 : speed)); }
+}
+/* What the boss says, using the player's real progress. */
+function bhLines() {
+  const h = S.hero, w = currentWorld();
+  const done = LEVELS.filter((l) => levelClear(l.id)).length;
+  return {
+    boss: w.boss || "The Gatekeeper", place: w.name,
+    taunt: `Heh. ${done || "A few"} level${done === 1 ? "" : "s"} cleared, ${h.name}… but do you still REMEMBER them?`,
+    deal: "3 quick questions from levels you beat a while ago. Win, and you earn bonus XP and the Firewall badge."
+  };
+}
+/* Shared ending: the boss's words and the two choices. */
+function bhOffer(o, t, cls = "") {
+  const box = document.createElement("div");
+  box.className = "bh-offer " + cls;
+  box.innerHTML = `<p class="bh-name">${esc(t.boss)}</p><p class="bh-say" id="bhSay"></p><p class="bh-deal" hidden>${esc(t.deal)}</p>
+    <div class="bh-btns" hidden><button class="btn primary bh-go" type="button">Face the boss</button><button class="btn bh-later" type="button">Not now</button></div>`;
+  o.appendChild(box);
+  return (async () => {
+    await bhType($("#bhSay", box), t.taunt);
+    $(".bh-deal", box).hidden = false; $(".bh-btns", box).hidden = false;
+    $(".bh-go", box).focus();
+    // Close the whole takeover, not just the box the words sit in (in B that's the terminal).
+    const close = () => bhEnd(box.closest(".bh"));
+    $(".bh-go", box).addEventListener("click", () => { close(); toast("Preview: this is where the boss's questions start."); });
+    $(".bh-later", box).addEventListener("click", () => { close(); toast("Preview: the boss waits, and the countdown keeps running."); });
+  })();
+}
+function bhStart(variant) {
+  bhEnd();
+  const o = document.createElement("div");
+  o.className = "bh bh-" + variant;
+  o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true"); o.setAttribute("aria-label", "Boss Hack");
+  document.body.appendChild(o);
+  document.body.classList.add("bh-on");
+  o.addEventListener("keydown", (e) => { if (e.key === "Escape") bhEnd(o); });
+  return o;
+}
+function bhEnd(o) {
+  (o ? [o] : $$(".bh")).forEach((x) => x.remove());
+  document.body.classList.remove("bh-on", "bh-shake");
+}
+
+/* Red squares fly in and snap together into the boss, one square per pixel of the sprite. They start at
+   the screen edges (A) or scattered across the screen like static (D). Resolves once the boss is formed. */
+async function bhFormBoss(o, x0, y0, px, from = "edges", hold = 250) {
+  const host = document.createElement("div"); host.className = "bh-swarm-host"; o.appendChild(host);
+  const bits = [];
+  BOSS_ROWS.forEach((row, j) => [...row].forEach((ch, i) => {
+    if (ch === ".") return;
+    const b = document.createElement("i");
+    const side = Math.floor(Math.random() * 4);
+    const sx = from === "scatter" ? Math.random() * innerWidth : side === 0 ? -40 : side === 1 ? innerWidth + 40 : Math.random() * innerWidth;
+    const sy = from === "scatter" ? Math.random() * innerHeight : side === 2 ? -40 : side === 3 ? innerHeight + 40 : Math.random() * innerHeight;
+    const tx = x0 + i * px, ty = y0 + j * px;
+    b.style.cssText = `left:${tx}px;top:${ty}px;width:${px}px;height:${px}px;transform:translate(${sx - tx}px,${sy - ty}px) rotate(${Math.random() * 180 - 90}deg);transition-delay:${(Math.random() * 0.7).toFixed(2)}s`;
+    b.dataset.c = BOSS_PAL[ch];
+    host.appendChild(b); bits.push(b);
+  }));
+  if (from === "scatter") host.classList.add("static");
+  await bhWait(hold);
+  host.classList.remove("static");
+  bits.forEach((b) => { b.style.transform = "none"; });
+  await bhWait(1500);
+  bits.forEach((b) => { b.style.background = b.dataset.c; });
+  host.classList.add("formed");
+  const eyes = document.createElement("div"); eyes.className = "bh-swarm-eyes";
+  eyes.style.cssText = `left:${x0 + 4 * px}px;top:${y0 + 5 * px}px;--px:${px}px`;
+  o.appendChild(eyes);
+}
+const bhPx = () => Math.max(9, Math.min(16, Math.floor(Math.min(innerWidth, innerHeight) / 34)));
+
+/* A · Pixel Swarm: red squares fly in from every edge and snap together into the boss. */
+async function bossHackSwarm() {
+  const o = bhStart("swarm"), t = bhLines();
+  const px = bhPx(), x0 = (innerWidth - 12 * px) / 2, y0 = Math.max(70, innerHeight * 0.2);
+  await bhFormBoss(o, x0, y0, px, "edges");
+  await bhWait(500);
+  const offer = bhOffer(o, t, "swarm");
+  $(".bh-offer", o).style.top = (y0 + 14 * px) + "px";
+  return offer;
+}
+
+/* B · Glitch Breach: the screen glitches and shakes, red static flickers, and a hacked terminal drops in. */
+async function bossHackGlitch() {
+  const o = bhStart("glitch"), t = bhLines();
+  o.innerHTML = `<div class="bh-scan"></div>${Array.from({ length: 6 }, (_, i) => `<div class="bh-slice" style="top:${8 + i * 15 + Math.random() * 6}%;height:${2 + Math.random() * 6}%;animation-delay:${(Math.random() * 0.4).toFixed(2)}s"></div>`).join("")}
+    <div class="bh-static">${Array.from({ length: 70 }, () => { const s = 4 + Math.floor(Math.random() * 16); return `<i style="left:${Math.random() * 100}%;top:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`; }).join("")}</div>`;
+  document.body.classList.add("bh-shake");
+  await bhWait(1300);
+  document.body.classList.remove("bh-shake");
+  const term = document.createElement("div");
+  term.className = "bh-term";
+  term.innerHTML = `<div class="bh-term-bar"><i></i><i></i><i></i><span>boss.exe</span></div>
+    <div class="bh-term-body"><div class="bh-term-boss">${bossSvg()}</div><pre class="bh-term-log" id="bhLog"></pre></div>`;
+  o.appendChild(term);
+  await bhWait(450);
+  await bhType($("#bhLog", term), `> WARNING: intrusion detected\n> ${t.boss.toUpperCase()} has hacked ${t.place}\n> planting bugs in your old levels...`, 22);
+  await bhWait(300);
+  return bhOffer(term, t, "glitch");
+}
+
+/* C · Corruption Spread: dark tiles infect the screen from a corner, then a red portal opens and the boss rises. */
+async function bossHackCorrupt() {
+  const o = bhStart("corrupt"), t = bhLines();
+  const size = innerWidth < 640 ? 30 : 40, cols = Math.ceil(innerWidth / size), rows = Math.ceil(innerHeight / size);
+  const grid = document.createElement("div"); grid.className = "bh-grid";
+  grid.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
+  const far = Math.hypot(cols, rows);
+  let html = "";
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const d = Math.hypot(cols - x, y) / far;
+    html += `<i style="animation-delay:${(d * 1.3 + Math.random() * 0.25).toFixed(2)}s"></i>`;
+  }
+  grid.innerHTML = html;
+  o.appendChild(grid);
+  await bhWait(1800);
+  const portal = document.createElement("div");
+  portal.className = "bh-portal";
+  portal.innerHTML = `<div class="bh-ring"></div><div class="bh-rise">${bossSvg()}</div>`;
+  o.appendChild(portal);
+  await bhWait(1300);
+  return bhOffer(o, t, "corrupt");
+}
+
+/* D · Breach + Swarm (A and B mixed): the screen glitches and red static flickers, the static flies
+   together into the boss, then the hacked terminal slams in underneath and types its warning. */
+async function bossHackMix() {
+  const o = bhStart("mix"), t = bhLines();
+  o.innerHTML = `<div class="bh-scan"></div>${Array.from({ length: 6 }, (_, i) => `<div class="bh-slice" style="top:${8 + i * 15 + Math.random() * 6}%;height:${2 + Math.random() * 6}%;animation-delay:${(Math.random() * 0.4).toFixed(2)}s"></div>`).join("")}`;
+  document.body.classList.add("bh-shake");
+  const px = Math.max(8, Math.min(14, Math.floor(Math.min(innerWidth, innerHeight) / 40)));
+  const x0 = (innerWidth - 12 * px) / 2, y0 = Math.max(56, innerHeight * 0.08);
+  await bhWait(200);
+  const formed = bhFormBoss(o, x0, y0, px, "scatter", 1300);   // static flickers, then flies together
+  await bhWait(1500);
+  document.body.classList.remove("bh-shake");
+  await formed;
+  const term = document.createElement("div");
+  term.className = "bh-term";
+  term.style.top = (y0 + 13 * px + 22) + "px";
+  term.innerHTML = `<div class="bh-term-bar"><i></i><i></i><i></i><span>boss.exe</span></div><pre class="bh-term-log" id="bhLog"></pre>`;
+  o.appendChild(term);
+  await bhWait(400);
+  await bhType($("#bhLog", term), `> WARNING: intrusion detected\n> ${t.boss.toUpperCase()} has hacked ${t.place}\n> planting bugs in your old levels...`, 22);
+  await bhWait(300);
+  return bhOffer(term, t, "glitch");
+}
+
+/* The countdown banner shown before the boss arrives (it starts at a random time). */
+function bossHackBanner(seconds = 23 * 3600 + 59 * 60 + 41) {
+  $$(".bh-banner").forEach((x) => x.remove());
+  const t = bhLines(), end = Date.now() + seconds * 1000;
+  const el = document.createElement("div");
+  el.className = "bh-banner";
+  el.innerHTML = `<div class="wrap bh-banner-in"><span class="bh-mini">${bossSvg()}</span>
+    <span class="bh-banner-txt"><b data-glitch="SIGNAL DETECTED">SIGNAL DETECTED</b><span>${esc(t.boss)} is breaking into ${esc(t.place)}</span></span>
+    <span class="bh-clock" aria-live="off">--:--:--</span><button class="bh-x" type="button" aria-label="Hide">×</button></div>`;
+  const view = $("#view"); view.parentNode.insertBefore(el, view);
+  const clock = $(".bh-clock", el);
+  const tick = () => {
+    if (!document.body.contains(el)) return clearInterval(timer);
+    const s = Math.max(0, Math.round((end - Date.now()) / 1000));
+    clock.textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, "0")).join(":");
+  };
+  const timer = setInterval(tick, 1000); tick();
+  $(".bh-x", el).addEventListener("click", () => el.remove());
+}
+
 /* Online backend settings (Supabase). The project URL and the public anon / publishable key are safe
    in website code: the Row Level Security rules in supabase/schema.sql decide what each player can
    read and write. Never put the service_role or secret key here, or anywhere in this repo.
@@ -16741,6 +17028,8 @@ function renderProfile(v) {
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+          <div class="dev-row dev-bh"><span><b>Boss Hack previews</b><br><span class="muted">Plays over the map. Pick the takeover you like best.</span>
+            <span class="dev-bh-btns"><button class="btn sm" data-bh="swarm">A · Pixel Swarm</button><button class="btn sm" data-bh="glitch">B · Glitch Breach</button><button class="btn sm" data-bh="corrupt">C · Corruption</button><button class="btn sm" data-bh="mix">D · A + B mix</button><button class="btn sm ghost" data-bh="banner">Countdown banner</button></span></span></div>
         </details>
       </div>
     </div>
@@ -16822,6 +17111,11 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
+    const run = { swarm: bossHackSwarm, glitch: bossHackGlitch, corrupt: bossHackCorrupt, mix: bossHackMix, banner: () => bossHackBanner() }[b.dataset.bh];
+    go({ name: "map" });
+    setTimeout(run, 350);
+  }));
   $$("[data-feat]", v).forEach((box) => box.addEventListener("change", () => {
     FEATURES[box.dataset.feat] = box.checked;
     const on = Object.keys(FEATURES).filter((k) => FEATURES[k]);

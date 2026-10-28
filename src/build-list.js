@@ -3,5 +3,5 @@ const content = ["content.js", "world2.js", "world3.js", "world4.js", "world5.js
   .filter((f) => require("fs").existsSync(__dirname + "/" + f));
 module.exports = {
   content,
-  app: ["vmods.js", "pixel.js", "runner.js", "app.js", "backend-config.js", "backend.js", "title.js", "profile.js"]
+  app: ["vmods.js", "pixel.js", "runner.js", "app.js", "bosshack.js", "backend-config.js", "backend.js", "title.js", "profile.js"]
 };

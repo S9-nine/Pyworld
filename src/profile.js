@@ -54,6 +54,8 @@ function renderProfile(v) {
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+          <div class="dev-row dev-bh"><span><b>Boss Hack previews</b><br><span class="muted">Plays over the map. Pick the takeover you like best.</span>
+            <span class="dev-bh-btns"><button class="btn sm" data-bh="swarm">A · Pixel Swarm</button><button class="btn sm" data-bh="glitch">B · Glitch Breach</button><button class="btn sm" data-bh="corrupt">C · Corruption</button><button class="btn sm" data-bh="mix">D · A + B mix</button><button class="btn sm ghost" data-bh="banner">Countdown banner</button></span></span></div>
         </details>
       </div>
     </div>
@@ -135,6 +137,11 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
+    const run = { swarm: bossHackSwarm, glitch: bossHackGlitch, corrupt: bossHackCorrupt, mix: bossHackMix, banner: () => bossHackBanner() }[b.dataset.bh];
+    go({ name: "map" });
+    setTimeout(run, 350);
+  }));
   $$("[data-feat]", v).forEach((box) => box.addEventListener("change", () => {
     FEATURES[box.dataset.feat] = box.checked;
     const on = Object.keys(FEATURES).filter((k) => FEATURES[k]);
