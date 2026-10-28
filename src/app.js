@@ -171,6 +171,7 @@ function addXP(n, label) {
   const before = rankFor(h.xp).r;
   h.xp += n;
   h.days[t] = (h.days[t] || 0) + n;
+  if (S.route && S.route.name === "level" && S.route.id) { const s = lv(S.route.id); s.x = (s.x | 0) + n; }   // XP per level, for the cleared card
   if (h.last !== t) {
     h.streak = h.last === addDays(t, -1) ? h.streak + 1 : 1;
     h.last = t;
@@ -895,6 +896,7 @@ function renderLevel(v, id, stage) {
         <div><p class="eyebrow">${L.boss ? "Boss level" : "Level " + L.world + "-" + L.n} · ${esc(L.concept)}</p><h1>${esc(L.title)}</h1></div>
         ${starsHtml(c && c.ok ? c.s : 0)}
       </div>
+      ${levelBar(id)}
       <nav class="stepper" aria-label="Stages">${STAGES.map((st) => `<button class="step" data-stage="${st.id}" ${st.id === stage ? 'aria-current="step"' : ""}><span class="k">${st.fun}</span><span class="v">${stageDone(id, st.id) ? ICON.check : ""}${st.label}</span></button>`).join("")}</nav>
     </div>
     <section class="stage" id="stage"></section>
@@ -919,19 +921,42 @@ function afterStage(L) {
     celebrate(L);
   }
 }
+/* How far through this level: a slim bar over the stage tabs (seeing the end near keeps people going). */
+function levelBar(id) {
+  const n = STAGES.filter((st) => stageDone(id, st.id)).length, pct = Math.round((n / STAGES.length) * 100);
+  return `<div class="lvl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${STAGES.length}" aria-valuenow="${n}" aria-label="Level progress">
+    <span class="lvl-bar-track"><i style="width:${pct}%"></i></span><span class="lvl-bar-txt">${n === STAGES.length ? "Level cleared" : `${n} of ${STAGES.length} steps`}</span></div>`;
+}
+/* The level-cleared moment: the hero jumps, stars pop in one by one, the XP counts up, the new skill is
+   named, and the world's progress bar fills. The best moment and the ending are what people remember. */
 function celebrate(L) {
-  const c = lv(L.id).c || { s: 1 };
+  const s = lv(L.id), c = s.c || { s: 1 }, h = S.hero;
   const idx = LEVELS.indexOf(L), nx = LEVELS[idx + 1];
   const newWorld = nx && nx.world !== L.world ? WORLDS[nx.world - 1] : null;
+  const inWorld = LEVELS.filter((l) => l.world === L.world), cleared = inWorld.filter((l) => levelClear(l.id)).length;
+  const from = Math.round(((cleared - 1) / inWorld.length) * 100), to = Math.round((cleared / inWorld.length) * 100);
   confetti();
-  openModal(`<div class="celebrate" style="display:grid;gap:14px">
+  openModal(`<div class="celebrate cel" style="display:grid;gap:14px">
+    <div class="cel-hero">${heroActorSvg(h.pix)}</div>
     <p class="eyebrow">${L.boss ? "Boss defeated" : "Level cleared"}</p>
     <h2>${esc(L.title)}</h2>
     <div class="big-stars">${starsHtml(c.s)}</div>
+    ${s.x ? `<p class="cel-xp">+<b class="pixel" id="celXp">0</b> XP</p>` : ""}
+    <p class="cel-skill"><span>New skill unlocked</span><b>${esc(L.concept)}</b></p>
+    <div class="cel-world"><div class="cel-world-txt"><span>${esc(WORLDS[L.world - 1].name)}</span><span>${cleared} of ${inWorld.length} levels</span></div>
+      <span class="lvl-bar-track"><i id="celBar" style="width:${from}%"></i></span></div>
     <p class="muted">${c.s === 3 ? "Three stars, no hints. That's real understanding." : "Replay the Forge without hints any time to raise your stars."} Its memory cards will show up in the Memory Dungeon tomorrow.</p>
     ${L.boss ? `<p><b>World ${L.world} complete.</b> Do the <i>Take it home</i> quests on the World page too. That's where your portfolio grows.${newWorld ? ` <b>${esc(newWorld.name)}</b> is now open.` : ""}</p>` : ""}
     <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">${newWorld ? "Enter " + esc(newWorld.name) : "Next: " + esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
     { onOpen: (bg) => {
+      const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const bar = $("#celBar", bg); setTimeout(() => { bar.style.width = to + "%"; }, still ? 0 : 700);
+      const xpEl = $("#celXp", bg);
+      if (xpEl) {
+        const goal = s.x | 0, t0 = performance.now(), dur = still ? 0 : 900;
+        const step = (t) => { const k = dur ? Math.min(1, (t - t0) / dur) : 1; xpEl.textContent = Math.round(goal * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
+        setTimeout(() => requestAnimationFrame(step), still ? 0 : 500);
+      }
       const n = $("#cNext", bg); if (n) n.addEventListener("click", () => { closeModal(); go({ name: "level", id: nx.id, stage: "learn" }); });
       const w = $("#cWorld", bg); if (w) w.addEventListener("click", () => { closeModal(); go({ name: "world", id: L.world }); });
     } });

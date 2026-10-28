@@ -4,6 +4,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Lexend:wght@300;400;500;600;700&family=Pixelify+Sans:wght@500;700&display=swap">
 <style>
+/* Jersey 10 (Google Fonts, OFL), scaled up so its letters are as tall as the old pixel font's. It has one
+   weight, so it covers every weight: headings use it as it is instead of a smudgy fake bold. */
+@font-face { font-family: "CQ Pixel"; font-display: swap; size-adjust: 118%; font-weight: 100 900;
+  src: url(https://fonts.gstatic.com/s/jersey10/v4/GftH7vZKsggXMf9n_J5n_5jh.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "CQ Pixel"; font-display: swap; size-adjust: 118%; font-weight: 100 900;
+  src: url(https://fonts.gstatic.com/s/jersey10/v4/GftH7vZKsggXMf9n_J5n8Zjh-1w.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 /* Layout: a sea-chart world map is home base; a quest board sits beside it; levels open as a full-width workshop with a dark code bench. */
 :root {
   --bg: #E8EFF7; --surface: #FFFFFF; --surface-2: #F3F7FC; --sunk: #DCE6F1;
@@ -15,7 +23,10 @@
   --code-bg: #0F1A2C; --code-ink: #E3EBF6; --code-muted: #7284A3; --code-line: #1D2C46; --code-sel: #2A4A78;
   --tok-kw: #FF92A8; --tok-str: #A3E58F; --tok-num: #FFC870; --tok-fn: #80CAFF; --tok-com: #7284A3;
   --shadow: 0 1px 2px rgb(20 34 59 / .06), 0 6px 20px rgb(20 34 59 / .07);
-  --font-display: "Pixelify Sans", "Courier New", monospace;
+  /* Jersey 10 keeps the pixel look with clearly different S/5, 8/B and E (Pixelify Sans mixed them up).
+     Pixelify Sans stays only for the big title logo. */
+  --font-display: "CQ Pixel", "Pixelify Sans", "Courier New", monospace;
+  --font-logo: "Pixelify Sans", "Courier New", monospace;
   --font-body: "Lexend", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-code: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --r: 12px;

@@ -12,6 +12,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Lexend:wght@300;400;500;600;700&family=Pixelify+Sans:wght@500;700&display=swap">
 <style>
+/* Jersey 10 (Google Fonts, OFL), scaled up so its letters are as tall as the old pixel font's. It has one
+   weight, so it covers every weight: headings use it as it is instead of a smudgy fake bold. */
+@font-face { font-family: "CQ Pixel"; font-display: swap; size-adjust: 118%; font-weight: 100 900;
+  src: url(https://fonts.gstatic.com/s/jersey10/v4/GftH7vZKsggXMf9n_J5n_5jh.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "CQ Pixel"; font-display: swap; size-adjust: 118%; font-weight: 100 900;
+  src: url(https://fonts.gstatic.com/s/jersey10/v4/GftH7vZKsggXMf9n_J5n8Zjh-1w.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 /* Layout: a sea-chart world map is home base; a quest board sits beside it; levels open as a full-width workshop with a dark code bench. */
 :root {
   --bg: #E8EFF7; --surface: #FFFFFF; --surface-2: #F3F7FC; --sunk: #DCE6F1;
@@ -23,7 +31,10 @@
   --code-bg: #0F1A2C; --code-ink: #E3EBF6; --code-muted: #7284A3; --code-line: #1D2C46; --code-sel: #2A4A78;
   --tok-kw: #FF92A8; --tok-str: #A3E58F; --tok-num: #FFC870; --tok-fn: #80CAFF; --tok-com: #7284A3;
   --shadow: 0 1px 2px rgb(20 34 59 / .06), 0 6px 20px rgb(20 34 59 / .07);
-  --font-display: "Pixelify Sans", "Courier New", monospace;
+  /* Jersey 10 keeps the pixel look with clearly different S/5, 8/B and E (Pixelify Sans mixed them up).
+     Pixelify Sans stays only for the big title logo. */
+  --font-display: "CQ Pixel", "Pixelify Sans", "Courier New", monospace;
+  --font-logo: "Pixelify Sans", "Courier New", monospace;
   --font-body: "Lexend", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-code: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --r: 12px;
@@ -415,7 +426,7 @@ table.lb .n { text-align: right; font-variant-numeric: tabular-nums; }
 .title-screen { position: relative; min-height: 100vh; min-height: 100dvh; background: #1a1c2c; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); color: #f4f4f4; }
 .scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 .title-ui { position: relative; display: grid; justify-items: center; gap: 22px; width: min(640px, 100%); text-align: center; }
-.logo { font-family: var(--font-display); font-weight: 700; font-size: clamp(54px, 13vw, 118px); line-height: .9; display: grid; color: #ffcd75; text-shadow: 4px 4px 0 #b13e53, 8px 8px 0 #1a1c2c; letter-spacing: .02em; margin: 0; }
+.logo { font-family: var(--font-logo); font-weight: 700; font-size: clamp(54px, 13vw, 118px); line-height: .9; display: grid; color: #ffcd75; text-shadow: 4px 4px 0 #b13e53, 8px 8px 0 #1a1c2c; letter-spacing: .02em; margin: 0; }
 .logo span:last-child { color: #73eff7; text-shadow: 4px 4px 0 #3b5dc9, 8px 8px 0 #1a1c2c; }
 .tagline { font-family: var(--font-display); font-size: clamp(14px, 2.6vw, 18px); text-transform: uppercase; letter-spacing: .18em; color: #f4f4f4; text-shadow: 2px 2px 0 #1a1c2c; }
 .press { font-family: var(--font-display); font-size: clamp(20px, 4vw, 28px); text-transform: uppercase; letter-spacing: .12em; background: none; border: 0; color: #f4f4f4; text-shadow: 3px 3px 0 #b13e53; padding: 10px 18px; animation: blink 1.1s steps(1) infinite; }
@@ -801,6 +812,35 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
   .map-expand { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); box-shadow: 0 4px 12px rgb(0 0 0 / .3); }
 }
 @media (prefers-reduced-motion: reduce) { .map-full { transition: none; } }
+
+/* Level progress (slim bar over the stage tabs) */
+.lvl-bar { display: flex; align-items: center; gap: 10px; margin: 2px 0 8px; }
+.lvl-bar-track { flex: 1; height: 8px; border-radius: 99px; background: var(--sunk); overflow: hidden; display: block; }
+.lvl-bar-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--sun), var(--grass)); transition: width .9s cubic-bezier(.2, .8, .2, 1); }
+.lvl-bar-txt { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+
+/* Level-cleared moment */
+.cel-hero { height: 84px; display: grid; place-items: center; margin-top: 4px; }
+.cel-hero .act { height: 84px; width: auto; max-width: 160px; overflow: visible; }
+.cel-hero .act-body { animation: cel-jump .7s cubic-bezier(.3, .7, .4, 1) 3 !important; transform-origin: 50% 100%; }
+@keyframes cel-jump { 0%, 100% { transform: translateY(0) scale(1, 1); } 20% { transform: translateY(0) scale(1.1, .9); } 50% { transform: translateY(-5px) scale(.95, 1.06); } }
+.cel .big-stars span { display: inline-block; animation: star-pop .5s cubic-bezier(.2, 1.6, .4, 1) both; }
+.cel .big-stars span:nth-child(1) { animation-delay: .25s; }
+.cel .big-stars span:nth-child(2) { animation-delay: .5s; }
+.cel .big-stars span:nth-child(3) { animation-delay: .75s; }
+@keyframes star-pop { 0% { transform: scale(0) rotate(-40deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+.cel-xp { margin: 0; font-size: 18px; color: var(--muted); }
+.cel-xp b { font-size: 34px; color: var(--sun); margin-right: 2px; }
+.cel-skill { margin: 0; display: grid; gap: 2px; padding: 8px 16px; border-radius: 10px; background: var(--grass-soft); }
+.cel-skill span { font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--grass); font-weight: 600; }
+.cel-skill b { font-family: var(--font-code); font-size: 15px; }
+.cel-world { width: min(320px, 100%); display: grid; gap: 6px; }
+.cel-world-txt { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.cel-world .lvl-bar-track { height: 10px; }
+@media (prefers-reduced-motion: reduce) {
+  .cel-hero .act-body, .cel .big-stars span { animation: none !important; }
+  .lvl-bar-track i { transition: none; }
+}
 
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
@@ -14209,6 +14249,7 @@ function addXP(n, label) {
   const before = rankFor(h.xp).r;
   h.xp += n;
   h.days[t] = (h.days[t] || 0) + n;
+  if (S.route && S.route.name === "level" && S.route.id) { const s = lv(S.route.id); s.x = (s.x | 0) + n; }   // XP per level, for the cleared card
   if (h.last !== t) {
     h.streak = h.last === addDays(t, -1) ? h.streak + 1 : 1;
     h.last = t;
@@ -14933,6 +14974,7 @@ function renderLevel(v, id, stage) {
         <div><p class="eyebrow">${L.boss ? "Boss level" : "Level " + L.world + "-" + L.n} · ${esc(L.concept)}</p><h1>${esc(L.title)}</h1></div>
         ${starsHtml(c && c.ok ? c.s : 0)}
       </div>
+      ${levelBar(id)}
       <nav class="stepper" aria-label="Stages">${STAGES.map((st) => `<button class="step" data-stage="${st.id}" ${st.id === stage ? 'aria-current="step"' : ""}><span class="k">${st.fun}</span><span class="v">${stageDone(id, st.id) ? ICON.check : ""}${st.label}</span></button>`).join("")}</nav>
     </div>
     <section class="stage" id="stage"></section>
@@ -14957,19 +14999,42 @@ function afterStage(L) {
     celebrate(L);
   }
 }
+/* How far through this level: a slim bar over the stage tabs (seeing the end near keeps people going). */
+function levelBar(id) {
+  const n = STAGES.filter((st) => stageDone(id, st.id)).length, pct = Math.round((n / STAGES.length) * 100);
+  return `<div class="lvl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${STAGES.length}" aria-valuenow="${n}" aria-label="Level progress">
+    <span class="lvl-bar-track"><i style="width:${pct}%"></i></span><span class="lvl-bar-txt">${n === STAGES.length ? "Level cleared" : `${n} of ${STAGES.length} steps`}</span></div>`;
+}
+/* The level-cleared moment: the hero jumps, stars pop in one by one, the XP counts up, the new skill is
+   named, and the world's progress bar fills. The best moment and the ending are what people remember. */
 function celebrate(L) {
-  const c = lv(L.id).c || { s: 1 };
+  const s = lv(L.id), c = s.c || { s: 1 }, h = S.hero;
   const idx = LEVELS.indexOf(L), nx = LEVELS[idx + 1];
   const newWorld = nx && nx.world !== L.world ? WORLDS[nx.world - 1] : null;
+  const inWorld = LEVELS.filter((l) => l.world === L.world), cleared = inWorld.filter((l) => levelClear(l.id)).length;
+  const from = Math.round(((cleared - 1) / inWorld.length) * 100), to = Math.round((cleared / inWorld.length) * 100);
   confetti();
-  openModal(`<div class="celebrate" style="display:grid;gap:14px">
+  openModal(`<div class="celebrate cel" style="display:grid;gap:14px">
+    <div class="cel-hero">${heroActorSvg(h.pix)}</div>
     <p class="eyebrow">${L.boss ? "Boss defeated" : "Level cleared"}</p>
     <h2>${esc(L.title)}</h2>
     <div class="big-stars">${starsHtml(c.s)}</div>
+    ${s.x ? `<p class="cel-xp">+<b class="pixel" id="celXp">0</b> XP</p>` : ""}
+    <p class="cel-skill"><span>New skill unlocked</span><b>${esc(L.concept)}</b></p>
+    <div class="cel-world"><div class="cel-world-txt"><span>${esc(WORLDS[L.world - 1].name)}</span><span>${cleared} of ${inWorld.length} levels</span></div>
+      <span class="lvl-bar-track"><i id="celBar" style="width:${from}%"></i></span></div>
     <p class="muted">${c.s === 3 ? "Three stars, no hints. That's real understanding." : "Replay the Forge without hints any time to raise your stars."} Its memory cards will show up in the Memory Dungeon tomorrow.</p>
     ${L.boss ? `<p><b>World ${L.world} complete.</b> Do the <i>Take it home</i> quests on the World page too. That's where your portfolio grows.${newWorld ? ` <b>${esc(newWorld.name)}</b> is now open.` : ""}</p>` : ""}
     <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">${newWorld ? "Enter " + esc(newWorld.name) : "Next: " + esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
     { onOpen: (bg) => {
+      const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const bar = $("#celBar", bg); setTimeout(() => { bar.style.width = to + "%"; }, still ? 0 : 700);
+      const xpEl = $("#celXp", bg);
+      if (xpEl) {
+        const goal = s.x | 0, t0 = performance.now(), dur = still ? 0 : 900;
+        const step = (t) => { const k = dur ? Math.min(1, (t - t0) / dur) : 1; xpEl.textContent = Math.round(goal * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
+        setTimeout(() => requestAnimationFrame(step), still ? 0 : 500);
+      }
       const n = $("#cNext", bg); if (n) n.addEventListener("click", () => { closeModal(); go({ name: "level", id: nx.id, stage: "learn" }); });
       const w = $("#cWorld", bg); if (w) w.addEventListener("click", () => { closeModal(); go({ name: "world", id: L.world }); });
     } });
