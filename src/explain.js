@@ -8,7 +8,7 @@ const EXPLAIN = {
   "1-1": {
     keys: [
       ["what the quotes do", /quote|string|text|\bstr\b|word|letters|characters/i],
-      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b/i]
+      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b|express|evaluat|comput|work(s|ed)? (it )?out|result|solve/i]
     ],
     model: "print(\"5 + 5\") shows 5 + 5 exactly as written, because the quotes make it a string of text. print(5 + 5) has no quotes, so Python does the maths first and shows 10."
   },
@@ -292,7 +292,7 @@ const EXPLAIN = {
   "5-1": {
     need: 4,
     keys: [
-      ["the request", /request/i],
+      ["what the browser sends first", /request/i],
       ["the method", /method|\bget\b/i],
       ["the response", /respon/i],
       ["the status code", /status|200|404/i],
@@ -419,7 +419,7 @@ const EXPLAIN = {
     need: 3,
     keys: [
       ["the edge cases you thought about", /empty|blank|spaces?|comma|rupee|₹|\brs\b|negative|minus|letter|abc|decimal|\bdot\b|zero|none|symbol|currency|\d,\d/i],
-      ["which one was hardest", /hard|difficult|tricky|tough|challeng|longest|confus/i],
+      ["which case gave you the most trouble", /hard|difficult|tricky|tough|challeng|longest|confus/i],
       ["how you handled it", /strip|replace|remov|raise|valueerror|check|\bif\b|\btry\b|except|float|int\(|return/i]
     ],
     model: "I thought about an empty string, extra spaces, the ₹ symbol, commas like 1,200, negative amounts and letters like abc. The hardest was commas, because I had to remove them without breaking decimals. I used strip and replace, then float, and raised a ValueError for anything that still wasn't a number."

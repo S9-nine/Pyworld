@@ -51,3 +51,9 @@ select at, level, stage, rating, message from feedback order by at desc limit 10
 select count(*) as players, round(avg(levels_done), 1) as avg_levels_done, max(levels_done) as best,
        count(*) filter (where last_played >= current_date - 7) as active_this_week
 from profiles;
+
+-- Explain answers players stood by ("I think my answer is right"). Read them: if they're right,
+-- add their wording to that level's key idea in src/explain.js so the checker accepts it next time.
+select level, at, detail->>'text' as answer, detail->>'got' as ideas_found, detail->>'need' as ideas_needed
+from events where kind = 'explain_dispute'
+order by at desc limit 50;

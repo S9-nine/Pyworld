@@ -150,7 +150,9 @@ function summary(r) {
 const EXPLAIN_EXAMPLES = {
   "1-1": [["first prints as a string, second prints 10", "pass"],
           ["the first one prints as a string and the second prints as 10", "pass"],
-          ["the first is a strnig in quotes, the secnod one does the mtah and shows 10", "pass"]],
+          ["the first is a strnig in quotes, the secnod one does the mtah and shows 10", "pass"],
+          ["the quotes print as it is as a string and the ones without quotes will run it as a expression", "pass"],
+          ["quotes", "short"]],
   "1-2": [["gold stores the value as its a variable and when u use gold again it just adds extra to the existing variable, as the left side works first and then reads to the right", "wrong"],
           ["gold is a variable, so it stores a value. Python works out the right side first, gold + 25, using the old value 50, then saves the result 75 back into gold.", "pass"]],
   "1-4": [["input gives a number so we use int to compare the age", "wrong"]],

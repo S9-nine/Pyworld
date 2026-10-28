@@ -380,6 +380,9 @@ function renderHome(v) {
   const todayXp = h.days[today()] || 0;
   const goalPct = Math.min(1, todayXp / DAILY_GOAL);
   const ready = readiness();
+  // The card says what's actually true: never started, part-way through a level, or onto a new one.
+  const stepsDone = nx ? STAGES.filter((s) => stageDone(nx.id, s.id)).length : 0;
+  const brandNew = !!nx && h.xp === 0 && !stepsDone && LEVELS.every((l) => !levelClear(l.id));
   v.innerHTML = `
   <div class="wrap home">
     <div class="home-main">
@@ -387,13 +390,13 @@ function renderHome(v) {
         <div>
           <p class="eyebrow">${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].when)} · ${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].name)}</p>
           <h1>${greeting()}, ${esc(h.name)}.</h1>
-          <p>${h.xp === 0 ? "Your quest starts on the little island in the bottom-left. Each level takes about 30–45 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
+          <p>${brandNew ? "Welcome! Press <b>Start</b> below to begin your first level. Each level takes about 30–45 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
         </div>
       </div>
-      ${nx ? `<button class="card continue trail-card" id="contBtn">
+      ${nx ? `<button class="card continue trail-card${brandNew ? " start-here" : ""}" id="contBtn">
         <span class="lvl-badge">${nx.world}-${nx.n}</span>
-        <span style="flex:1;min-width:0"><span class="eyebrow">${levelClear(nx.id) ? "Replay" : stageDone(nx.id, "learn") ? "Continue" : "Next level"}</span><br><b style="font-size:17px">${esc(nx.title)}</b> <span class="muted">· ${esc(nx.concept)}</span></span>
-        <span class="btn primary sm">${ICON.play} ${STAGES.find((s) => s.id === nextStageOf(nx.id)).label}</span>
+        <span style="flex:1;min-width:0"><span class="eyebrow">${brandNew ? "Start here · your first level" : levelClear(nx.id) ? "Replay" : stepsDone ? `Continue · ${stepsDone} of ${STAGES.length} steps done` : "Up next"}</span><br><b style="font-size:17px">${esc(nx.title)}</b> <span class="muted">· ${esc(nx.concept)}</span></span>
+        <span class="btn primary sm">${ICON.play} ${brandNew ? "Start level 1" : (stepsDone ? "Continue: " : "Start: ") + STAGES.find((s) => s.id === nextStageOf(nx.id)).label}</span>
       </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>Every world cleared!</b><br><span class="muted">You've finished the whole quest. Replay levels for 3 stars, and keep the Take it home quests going.</span></span></div>`}
       <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div>${miniMapHtml()}</div>
       <div class="card loop">
@@ -1243,15 +1246,18 @@ function challengeStage(host, L, kind) {
       <div class="bench">
         <div class="bench-bar"><span class="file"><i></i>${task.file || (isBug ? "bug_hunt" : "quest") + "_" + L.id.replace("-", "_") + "." + ext}</span>
           <button class="btn sm" id="resetBtn">${ICON.reset} Reset</button>
-          <button class="btn sm go" id="runBtn">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>
-          <button class="btn sm primary" id="checkBtn">${ICON.check} Check</button></div>
-        <div id="ed"></div>
+          <button class="btn sm go" id="runBtn" title="Try your code and see what it prints. Nothing is scored.">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>
+          <button class="btn sm primary" id="checkBtn" title="Grade your code against the tests. Passing opens the next step.">${ICON.check} Check</button></div>
+        <p class="bench-help"><b>${ICON.play} ${lang === "html" ? "Show" : "Run"}</b> tries it, nothing is scored · <b>${ICON.check} Check</b> grades it and opens the next step</p>
+        <div class="ed-wrap"><div id="ed"></div>${lsGet(draftKey) || (isBug ? s.b : s.c && s.c.ok) ? "" : `<span class="type-cue" id="typeCue" aria-hidden="true">✎ ${isBug ? "Fix the code here" : "Write your code here"}</span>`}</div>
         <div class="console" id="con"></div>
         <div class="practice" id="practice">${practiceHtml(task)}</div>
       </div>
     </div>
     <div class="next-row" id="stageNext" style="max-width:none">${(isBug ? s.b : s.c && s.c.ok) ? nextStageBtn(L, kind) : ""}</div>`;
-  const ed = createEditor($("#ed", host), startCode, { onChange: (c) => lsSet(draftKey, c), id: "code-" + kind, lang });
+  const cue = $("#typeCue", host), dropCue = () => cue && cue.remove();
+  const ed = createEditor($("#ed", host), startCode, { onChange: (c) => { lsSet(draftKey, c); dropCue(); }, id: "code-" + kind, lang });
+  $("#ed", host).addEventListener("focusin", dropCue);
   const conEl = $("#con", host), con = createConsole(conEl);
   const refreshPractice = () => { const p = $("#practice", host); if (p) { const open = $$("details[open] summary b", p).map((b) => b.textContent); p.innerHTML = practiceHtml(task); $$("details", p).forEach((d) => { if (open.includes($("summary b", d).textContent)) d.open = true; }); } };
   con.hint(isBug ? "Press Run to see what goes wrong." : lang === "html" ? "Press Show to preview your page. Press Check when you think it's right." : "Press Run to try your code. Press Check when you think it's right.");
@@ -1423,14 +1429,15 @@ function stageExplain(host, L) {
           <p class="inn-say" id="innSay" aria-live="polite">${locked ? "You've answered this one. Read what each idea means below." : "A sentence or two is plenty. Saying it out loud first helps."}</p>
         </div>
       </div>
-      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> ${esc(k)}</li>`).join("")}</ul></div>` : ""}
+      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> <span class="xk">Idea ${i + 1}: <i>say it and it appears</i></span></li>`).join("")}</ul><button type="button" class="btn ghost sm" id="xHint">Stuck? Show a hint</button></div>` : ""}
       <div class="starters" id="starters"><span class="muted">Stuck? Start with:</span>${STARTERS.map((t) => `<button type="button" class="chip">${esc(t)}</button>`).join("")}</div>
       <label class="sr" for="expl">Your explanation</label>
-      <textarea id="expl" placeholder="In my own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
+      <textarea id="expl" placeholder="Type your answer here, in your own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
       <div class="row">
         <span class="wc" id="wc"></span>
         ${Speech ? `<button class="btn" id="micBtn" type="button" title="Speak your answer. Uses your browser's speech service.">🎤 Speak</button>` : ""}
         ${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Interviewer feedback</button>` : ""}
+        <button class="btn ghost" id="xMine" hidden title="Your answer is saved and sent so we can teach the checker your wording.">I think my answer is right</button>
         <button class="btn primary" id="saveExpl"></button>
       </div>
       <div id="xres"></div>
@@ -1442,12 +1449,22 @@ function stageExplain(host, L) {
     say.innerHTML = html;
     face.classList.remove("react"); void face.offsetWidth; face.classList.add("react");
   };
-  // Live ticks: count the key ideas as the player types, and notice each new one.
+  // Live ticks: count the key ideas as the player types, and notice each new one. Ideas stay hidden
+  // until the player says them (or asks for a hint), so there's nothing to copy, and nothing ticks
+  // until the answer reads like a real sentence (one word like "quotes" isn't an explanation).
   let seen = new Set();
+  const shown = new Set();
+  const hintBtn = $("#xHint");
   const tick = (announce) => {
     const chk = explainCheck(ta.value, L);
-    $$("#xlist li", host).forEach((li, i) => { li.classList.toggle("hit", !!chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○"; });
-    const c = $("#xcount"); if (c) c.textContent = `${chk.got} of ${keys.length} · aim for ${need}`;
+    const real = chk.kind !== "short" && chk.kind !== "words";
+    chk.hits = chk.hits.map((h) => real && h);
+    $$("#xlist li", host).forEach((li, i) => {
+      li.classList.toggle("hit", chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○";
+      $(".xk", li).innerHTML = locked || chk.hits[i] || shown.has(i) ? esc(keys[i][0]) : `Idea ${i + 1}: <i>say it and it appears</i>`;
+    });
+    if (hintBtn) hintBtn.hidden = locked || keys.every((_, i) => chk.hits[i] || shown.has(i));
+    const c = $("#xcount"); if (c) c.textContent = `${chk.hits.filter(Boolean).length} of ${keys.length} · aim for ${need}`;
     const n = (ta.value.trim().match(/\S+/g) || []).length;
     wc.textContent = n ? `${n} word${n === 1 ? "" : "s"}` : "";
     if (announce && chk.kind === "wrong" && !locked) react(chk.msg);
@@ -1472,9 +1489,17 @@ function stageExplain(host, L) {
     $("#starters").hidden = on;
     saveBtn.innerHTML = on ? `Rewrite answer (1 ★ · you have ${starsToSpend()})` : s.e ? "Save new answer" : "Save answer";
     saveBtn.title = on ? `You have ${starsToSpend()} star${starsToSpend() === 1 ? "" : "s"} to spend.` : "";
+    tick(false);
   };
   setLocked(locked);
   tick(false);
+  if (hintBtn) hintBtn.addEventListener("click", () => {
+    const hits = tick(false).hits, i = keys.findIndex((_, j) => !hits[j] && !shown.has(j));
+    if (i < 0) return;
+    shown.add(i); tick(false);
+    react(`Here's a nudge: say something about <b>${esc(keys[i][0])}</b>.`);
+    ta.focus();
+  });
   if (s.e) showReview(explainCheck(s.e, L).hits);
   ta.addEventListener("input", () => { tick(true); if (!locked) lsSet(draftKey, ta.value); });
   $$("#starters .chip", host).forEach((b) => b.addEventListener("click", () => {
@@ -1492,35 +1517,75 @@ function stageExplain(host, L) {
     }
     const chk = tick(false);
     netLog("explain", L.id, "explain", chk.ok, { why: chk.kind, got: chk.got, need: chk.need, text: ta.value.trim().slice(0, 600) });
-    if (!chk.ok) { react(chk.msg); ta.focus(); return; }
+    if (!chk.ok) {
+      if (chk.kind === "keys") {
+        const i = keys.findIndex((_, j) => !chk.hits[j]); if (i >= 0) { shown.add(i); tick(false); }
+        // The checker only knows the wordings we taught it. After two near-misses with real
+        // sentences, the player can stand by their answer; it's logged so we can teach new wordings.
+        if (++keyMisses >= 2) $("#xMine").hidden = false;
+      }
+      react(chk.msg); ta.focus(); return;
+    }
+    accept(chk, false);
+  });
+  let keyMisses = 0;
+  const accept = (chk, disputed) => {
     const n = (ta.value.trim().match(/\S+/g) || []).length;
     const first = !s.e;
     s.e = ta.value.trim().slice(0, 2000);
     showReview(chk.hits);
-    react(n < 12 ? pickOne(INN_SHORT) : pickOne(INN_PRAISE));
+    react(disputed ? "Fair enough, I'll take your word for it! Check the ideas below to be sure you covered them." : n < 12 ? pickOne(INN_SHORT) : pickOne(INN_PRAISE));
     if (first) addXP(XP.explain, "Explained it"); else save();
+    $("#xMine").hidden = true;
     setLocked(true);
     sparkle(saveBtn, "+XP"); heroReact("hop");
     afterStage(L);
     if (levelClear(L.id)) render();
+  };
+  $("#xMine").addEventListener("click", () => {
+    const chk = tick(false);
+    if (chk.kind !== "keys" && !chk.ok) return react(chk.msg);
+    netLog("explain_dispute", L.id, "explain", null, { got: chk.got, need: chk.need, text: ta.value.trim().slice(0, 600) });
+    accept(chk, true);
   });
   const mic = $("#micBtn");
   if (mic) {
-    let rec = null;
+    // Words appear live while the player speaks (grey "interim" guesses are replaced by final text).
+    // Stop always works at once: the button resets straight away, and the browser is made to let go.
+    let rec = null, base = "", heard = false, quiet = null;
+    const MIC_ERR = {
+      "not-allowed": "The browser blocked the microphone. Allow it from the lock icon in the address bar, or just type.",
+      "service-not-allowed": "This browser doesn't allow speech typing here. Try Chrome or Edge, or just type.",
+      "network": "Speech typing needs the internet in this browser, and it couldn't connect. Try again, or type it.",
+      "audio-capture": "I couldn't find a microphone. Check it's plugged in, or type it.",
+      "no-speech": "I didn't hear anything. Press Speak and talk a little louder, or type it."
+    };
+    const endMic = () => {
+      clearTimeout(quiet);
+      if (rec) { const r = rec; rec = null; r.onresult = r.onend = r.onerror = null; try { r.abort(); } catch (_) {} }
+      mic.textContent = "🎤 Speak"; mic.classList.remove("live");
+      ta.value = ta.value.trim(); ta.dispatchEvent(new Event("input"));
+    };
     mic.addEventListener("click", () => {
       if (locked) return react("Rewrite the answer first, then you can speak a new one.");
-      if (rec) { rec.stop(); return; }
+      if (rec) { endMic(); return react(heard ? "Got it. Read it over, fix any words I misheard, then save." : "Stopped. Press Speak to try again, or type it."); }
       rec = new Speech();
-      rec.lang = navigator.language || "en-IN"; rec.continuous = true; rec.interimResults = false;
+      rec.lang = navigator.language || "en-IN"; rec.continuous = true; rec.interimResults = true;
+      base = ta.value.trim(); heard = false;
       rec.onresult = (e) => {
-        const said = [...e.results].slice(e.resultIndex).map((r) => r[0].transcript).join(" ").trim();
-        if (said) { ta.value = (ta.value.trimEnd() + " " + said).trim(); ta.dispatchEvent(new Event("input")); }
+        let fin = "", live = "";
+        for (const r of e.results) (r.isFinal ? (fin += r[0].transcript + " ") : (live += r[0].transcript + " "));
+        heard = heard || !!(fin + live).trim();
+        ta.value = [base, fin.trim(), live.trim()].filter(Boolean).join(" ");
+        ta.dispatchEvent(new Event("input"));
+        clearTimeout(quiet); quiet = setTimeout(() => { if (rec) { endMic(); react("I stopped listening after a quiet moment. Read it over, then save."); } }, 12000);
       };
-      rec.onend = () => { rec = null; mic.textContent = "🎤 Speak"; mic.classList.remove("live"); };
-      rec.onerror = (e) => { react(e.error === "not-allowed" ? "The browser blocked the microphone. You can allow it in the address bar, or just type." : "I couldn't hear that. Try again, or type it."); };
-      rec.start();
+      rec.onerror = (e) => { endMic(); react(MIC_ERR[e.error] || "Speech typing stopped. Try again, or type it."); };
+      rec.onend = () => { if (rec) endMic(); };
+      try { rec.start(); } catch (_) { rec = null; return react("Speech typing isn't available right now. Just type it."); }
       mic.textContent = "■ Stop"; mic.classList.add("live");
-      react("I'm listening… explain it like you would to a friend.");
+      react("I'm listening… your words will appear in the box. Press Stop when you're done.");
+      quiet = setTimeout(() => { if (rec && !heard) { endMic(); react(MIC_ERR["no-speech"]); } }, 10000);
     });
   }
   const fb = $("#fbBtn");

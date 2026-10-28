@@ -679,6 +679,14 @@ function typoFixes(words, L) {
   }
   return extra;
 }
+/* A hint names its idea, so repeating the hint's own words doesn't count: "quotes" alone can't tick
+   "what the quotes do". Hint words that would tick the idea by themselves are removed from the
+   answer (with their endings: quote, quotes, quoted) before that idea is matched. */
+function withoutHint(text, hint, re) {
+  const stems = explainWords(hint).filter((w) => w.length >= 4 && !EXPLAIN_GLUE.has(w) && re.test(w)).map((w) => w.slice(0, Math.max(4, w.length - 2)));
+  if (!stems.length) return text;
+  return text.replace(/[A-Za-z0-9_']+/g, (w) => stems.some((s) => w.toLowerCase().startsWith(s)) ? " " : w);
+}
 /* Returns { ok, msg, hits, got, need, kind }. hits are worked out even when the answer isn't ready
    yet, so the page can tick key ideas live while the player types. */
 function explainCheck(text, L) {
@@ -686,7 +694,7 @@ function explainCheck(text, L) {
   const keys = L.explainKeys || [];
   const fixes = typoFixes(words, L);
   const tt = fixes.length ? t + " " + fixes.join(" ") : t;
-  const hits = keys.map(([, re]) => re.test(tt));
+  const hits = keys.map(([hint, re]) => re.test(withoutHint(tt, hint, re)));
   const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
   const got = hits.filter(Boolean).length;
   const res = (ok, kind, msg) => ({ ok, kind, msg, hits, got, need });

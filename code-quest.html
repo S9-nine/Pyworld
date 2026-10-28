@@ -579,6 +579,20 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .xlive ul { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 3px; }
 .xlive li { opacity: .7; transition: color .2s, opacity .2s; }
 .xlive li.hit { opacity: 1; color: var(--grass); font-weight: 600; }
+.xlive .xk i { opacity: .75; font-weight: 400; }
+#xHint { margin-top: 6px; }
+#xHint[hidden], #xMine[hidden] { display: none; }
+/* Direction cues: what Run and Check do, and where to type. Quiet, and gone once the player starts. */
+.bench-help { margin: 0; padding: 5px 10px; font-size: 11.5px; color: var(--code-muted); border-bottom: 1px solid var(--code-line); }
+.bench-help b { color: var(--code-ink); font-weight: 600; }
+.bench-help svg { width: 11px; height: 11px; vertical-align: -1px; }
+.ed-wrap { position: relative; }
+.type-cue { position: absolute; bottom: 14px; right: 12px; z-index: 2; pointer-events: none; font-size: 12px; font-weight: 600; color: var(--code-bg); background: var(--sun); padding: 3px 9px; border-radius: 8px; animation: cue-bob 1.6s ease-in-out infinite; }
+@keyframes cue-bob { 50% { transform: translateY(-3px); } }
+.continue.start-here { border-color: var(--sun); animation: start-glow 2.2s ease-in-out infinite; }
+@keyframes start-glow { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--sun) 30%, transparent), var(--shadow); } }
+@media (prefers-reduced-motion: reduce) { .continue.start-here { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .type-cue { animation: none; } }
 .starters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; }
 .starters[hidden] { display: none; }
 .chip { border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer; }
@@ -642,6 +656,38 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .guild-forms .pinput { width: 100%; min-width: 0; box-sizing: border-box; }
 #gBody { display: grid; gap: 16px; min-width: 0; }
 .guild-forms h3 { margin: 0; }
+/* Guild tabs (up to 5 guilds) and chat */
+.g-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.g-tab { flex: none; font: 600 14px var(--font-ui, inherit); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-tab:hover { border-color: var(--sun); }
+.g-tab.on { background: var(--sun); color: var(--sun-ink); border-color: var(--sun); }
+.g-tab.add { color: var(--muted); border-style: dashed; }
+.g-tab.add.on { color: var(--sun-ink); border-style: solid; }
+.g-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.guild > *, .g-grid > * { min-width: 0; }
+.chat { padding: 14px 16px; display: grid; gap: 10px; }
+.chat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.chat-head h3 { margin: 0; }
+#chatLive { font-size: 12px; }
+#chatLive.on { color: var(--grass); }
+.chat-list { height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; overscroll-behavior: contain; }
+.chat-empty { margin: auto; text-align: center; }
+.msg { display: flex; gap: 8px; align-items: flex-end; max-width: 85%; }
+.msg.me { align-self: flex-end; flex-direction: row-reverse; }
+.msg .bubble { background: var(--surface); border: 1px solid var(--line); border-radius: 12px 12px 12px 4px; padding: 6px 10px 8px; min-width: 0; }
+.msg.me .bubble { background: color-mix(in srgb, var(--sun) 18%, var(--surface)); border-color: color-mix(in srgb, var(--sun) 45%, var(--line)); border-radius: 12px 12px 4px 12px; }
+.msg-meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.msg-meta b { color: var(--ink); font-weight: 600; }
+.msg-body { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.4; margin-top: 2px; }
+.msg-del { margin-left: auto; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; opacity: 0; transition: opacity .15s; }
+.msg:hover .msg-del, .msg-del:focus-visible { opacity: 1; }
+@media (hover: none) { .msg-del { opacity: .7; } }
+.chat-send { display: flex; gap: 8px; align-items: flex-end; }
+.chat-send textarea { flex: 1; min-width: 0; resize: none; font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-height: 120px; }
+.chat-send textarea:focus { outline: 2px solid var(--sun); outline-offset: 0; }
+.chat-note { font-size: 12px; margin: 0; }
+#chatErr[hidden] { display: none; }
+@media (max-width: 640px) { .chat-list { height: 280px; } .msg { max-width: 92%; } }
 .guild-code code { font: 700 22px var(--font-code); letter-spacing: .18em; padding: 4px 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); }
 .fb-rate { display: flex; gap: 6px; flex-wrap: wrap; }
 .fb-rate .chip[aria-pressed="true"] { border-color: var(--sun); background: var(--sun-soft); }
@@ -10536,7 +10582,7 @@ const EXPLAIN = {
   "1-1": {
     keys: [
       ["what the quotes do", /quote|string|text|\bstr\b|word|letters|characters/i],
-      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b/i]
+      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b|express|evaluat|comput|work(s|ed)? (it )?out|result|solve/i]
     ],
     model: "print(\"5 + 5\") shows 5 + 5 exactly as written, because the quotes make it a string of text. print(5 + 5) has no quotes, so Python does the maths first and shows 10."
   },
@@ -10820,7 +10866,7 @@ const EXPLAIN = {
   "5-1": {
     need: 4,
     keys: [
-      ["the request", /request/i],
+      ["what the browser sends first", /request/i],
       ["the method", /method|\bget\b/i],
       ["the response", /respon/i],
       ["the status code", /status|200|404/i],
@@ -10947,7 +10993,7 @@ const EXPLAIN = {
     need: 3,
     keys: [
       ["the edge cases you thought about", /empty|blank|spaces?|comma|rupee|₹|\brs\b|negative|minus|letter|abc|decimal|\bdot\b|zero|none|symbol|currency|\d,\d/i],
-      ["which one was hardest", /hard|difficult|tricky|tough|challeng|longest|confus/i],
+      ["which case gave you the most trouble", /hard|difficult|tricky|tough|challeng|longest|confus/i],
       ["how you handled it", /strip|replace|remov|raise|valueerror|check|\bif\b|\btry\b|except|float|int\(|return/i]
     ],
     model: "I thought about an empty string, extra spaces, the ₹ symbol, commas like 1,200, negative amounts and letters like abc. The hardest was commas, because I had to remove them without breaking decimals. I used strip and replace, then float, and raised a ValueError for anything that still wasn't a number."
@@ -13847,6 +13893,14 @@ function typoFixes(words, L) {
   }
   return extra;
 }
+/* A hint names its idea, so repeating the hint's own words doesn't count: "quotes" alone can't tick
+   "what the quotes do". Hint words that would tick the idea by themselves are removed from the
+   answer (with their endings: quote, quotes, quoted) before that idea is matched. */
+function withoutHint(text, hint, re) {
+  const stems = explainWords(hint).filter((w) => w.length >= 4 && !EXPLAIN_GLUE.has(w) && re.test(w)).map((w) => w.slice(0, Math.max(4, w.length - 2)));
+  if (!stems.length) return text;
+  return text.replace(/[A-Za-z0-9_']+/g, (w) => stems.some((s) => w.toLowerCase().startsWith(s)) ? " " : w);
+}
 /* Returns { ok, msg, hits, got, need, kind }. hits are worked out even when the answer isn't ready
    yet, so the page can tick key ideas live while the player types. */
 function explainCheck(text, L) {
@@ -13854,7 +13908,7 @@ function explainCheck(text, L) {
   const keys = L.explainKeys || [];
   const fixes = typoFixes(words, L);
   const tt = fixes.length ? t + " " + fixes.join(" ") : t;
-  const hits = keys.map(([, re]) => re.test(tt));
+  const hits = keys.map(([hint, re]) => re.test(withoutHint(tt, hint, re)));
   const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
   const got = hits.filter(Boolean).length;
   const res = (ok, kind, msg) => ({ ok, kind, msg, hits, got, need });
@@ -14257,6 +14311,9 @@ function renderHome(v) {
   const todayXp = h.days[today()] || 0;
   const goalPct = Math.min(1, todayXp / DAILY_GOAL);
   const ready = readiness();
+  // The card says what's actually true: never started, part-way through a level, or onto a new one.
+  const stepsDone = nx ? STAGES.filter((s) => stageDone(nx.id, s.id)).length : 0;
+  const brandNew = !!nx && h.xp === 0 && !stepsDone && LEVELS.every((l) => !levelClear(l.id));
   v.innerHTML = `
   <div class="wrap home">
     <div class="home-main">
@@ -14264,13 +14321,13 @@ function renderHome(v) {
         <div>
           <p class="eyebrow">${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].when)} · ${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].name)}</p>
           <h1>${greeting()}, ${esc(h.name)}.</h1>
-          <p>${h.xp === 0 ? "Your quest starts on the little island in the bottom-left. Each level takes about 30–45 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
+          <p>${brandNew ? "Welcome! Press <b>Start</b> below to begin your first level. Each level takes about 30–45 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
         </div>
       </div>
-      ${nx ? `<button class="card continue trail-card" id="contBtn">
+      ${nx ? `<button class="card continue trail-card${brandNew ? " start-here" : ""}" id="contBtn">
         <span class="lvl-badge">${nx.world}-${nx.n}</span>
-        <span style="flex:1;min-width:0"><span class="eyebrow">${levelClear(nx.id) ? "Replay" : stageDone(nx.id, "learn") ? "Continue" : "Next level"}</span><br><b style="font-size:17px">${esc(nx.title)}</b> <span class="muted">· ${esc(nx.concept)}</span></span>
-        <span class="btn primary sm">${ICON.play} ${STAGES.find((s) => s.id === nextStageOf(nx.id)).label}</span>
+        <span style="flex:1;min-width:0"><span class="eyebrow">${brandNew ? "Start here · your first level" : levelClear(nx.id) ? "Replay" : stepsDone ? `Continue · ${stepsDone} of ${STAGES.length} steps done` : "Up next"}</span><br><b style="font-size:17px">${esc(nx.title)}</b> <span class="muted">· ${esc(nx.concept)}</span></span>
+        <span class="btn primary sm">${ICON.play} ${brandNew ? "Start level 1" : (stepsDone ? "Continue: " : "Start: ") + STAGES.find((s) => s.id === nextStageOf(nx.id)).label}</span>
       </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>Every world cleared!</b><br><span class="muted">You've finished the whole quest. Replay levels for 3 stars, and keep the Take it home quests going.</span></span></div>`}
       <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div>${miniMapHtml()}</div>
       <div class="card loop">
@@ -15120,15 +15177,18 @@ function challengeStage(host, L, kind) {
       <div class="bench">
         <div class="bench-bar"><span class="file"><i></i>${task.file || (isBug ? "bug_hunt" : "quest") + "_" + L.id.replace("-", "_") + "." + ext}</span>
           <button class="btn sm" id="resetBtn">${ICON.reset} Reset</button>
-          <button class="btn sm go" id="runBtn">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>
-          <button class="btn sm primary" id="checkBtn">${ICON.check} Check</button></div>
-        <div id="ed"></div>
+          <button class="btn sm go" id="runBtn" title="Try your code and see what it prints. Nothing is scored.">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>
+          <button class="btn sm primary" id="checkBtn" title="Grade your code against the tests. Passing opens the next step.">${ICON.check} Check</button></div>
+        <p class="bench-help"><b>${ICON.play} ${lang === "html" ? "Show" : "Run"}</b> tries it, nothing is scored · <b>${ICON.check} Check</b> grades it and opens the next step</p>
+        <div class="ed-wrap"><div id="ed"></div>${lsGet(draftKey) || (isBug ? s.b : s.c && s.c.ok) ? "" : `<span class="type-cue" id="typeCue" aria-hidden="true">✎ ${isBug ? "Fix the code here" : "Write your code here"}</span>`}</div>
         <div class="console" id="con"></div>
         <div class="practice" id="practice">${practiceHtml(task)}</div>
       </div>
     </div>
     <div class="next-row" id="stageNext" style="max-width:none">${(isBug ? s.b : s.c && s.c.ok) ? nextStageBtn(L, kind) : ""}</div>`;
-  const ed = createEditor($("#ed", host), startCode, { onChange: (c) => lsSet(draftKey, c), id: "code-" + kind, lang });
+  const cue = $("#typeCue", host), dropCue = () => cue && cue.remove();
+  const ed = createEditor($("#ed", host), startCode, { onChange: (c) => { lsSet(draftKey, c); dropCue(); }, id: "code-" + kind, lang });
+  $("#ed", host).addEventListener("focusin", dropCue);
   const conEl = $("#con", host), con = createConsole(conEl);
   const refreshPractice = () => { const p = $("#practice", host); if (p) { const open = $$("details[open] summary b", p).map((b) => b.textContent); p.innerHTML = practiceHtml(task); $$("details", p).forEach((d) => { if (open.includes($("summary b", d).textContent)) d.open = true; }); } };
   con.hint(isBug ? "Press Run to see what goes wrong." : lang === "html" ? "Press Show to preview your page. Press Check when you think it's right." : "Press Run to try your code. Press Check when you think it's right.");
@@ -15300,14 +15360,15 @@ function stageExplain(host, L) {
           <p class="inn-say" id="innSay" aria-live="polite">${locked ? "You've answered this one. Read what each idea means below." : "A sentence or two is plenty. Saying it out loud first helps."}</p>
         </div>
       </div>
-      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> ${esc(k)}</li>`).join("")}</ul></div>` : ""}
+      ${keys.length ? `<div class="xlive"><div class="xlive-head"><b>Key ideas</b><span id="xcount"></span></div><ul id="xlist">${keys.map(([k], i) => `<li data-k="${i}"><span class="tick">○</span> <span class="xk">Idea ${i + 1}: <i>say it and it appears</i></span></li>`).join("")}</ul><button type="button" class="btn ghost sm" id="xHint">Stuck? Show a hint</button></div>` : ""}
       <div class="starters" id="starters"><span class="muted">Stuck? Start with:</span>${STARTERS.map((t) => `<button type="button" class="chip">${esc(t)}</button>`).join("")}</div>
       <label class="sr" for="expl">Your explanation</label>
-      <textarea id="expl" placeholder="In my own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
+      <textarea id="expl" placeholder="Type your answer here, in your own words…">${esc(s.e || lsGet(draftKey) || "")}</textarea>
       <div class="row">
         <span class="wc" id="wc"></span>
         ${Speech ? `<button class="btn" id="micBtn" type="button" title="Speak your answer. Uses your browser's speech service.">🎤 Speak</button>` : ""}
         ${S.sample ? `<button class="btn" id="fbBtn">${ICON.sage} Interviewer feedback</button>` : ""}
+        <button class="btn ghost" id="xMine" hidden title="Your answer is saved and sent so we can teach the checker your wording.">I think my answer is right</button>
         <button class="btn primary" id="saveExpl"></button>
       </div>
       <div id="xres"></div>
@@ -15319,12 +15380,22 @@ function stageExplain(host, L) {
     say.innerHTML = html;
     face.classList.remove("react"); void face.offsetWidth; face.classList.add("react");
   };
-  // Live ticks: count the key ideas as the player types, and notice each new one.
+  // Live ticks: count the key ideas as the player types, and notice each new one. Ideas stay hidden
+  // until the player says them (or asks for a hint), so there's nothing to copy, and nothing ticks
+  // until the answer reads like a real sentence (one word like "quotes" isn't an explanation).
   let seen = new Set();
+  const shown = new Set();
+  const hintBtn = $("#xHint");
   const tick = (announce) => {
     const chk = explainCheck(ta.value, L);
-    $$("#xlist li", host).forEach((li, i) => { li.classList.toggle("hit", !!chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○"; });
-    const c = $("#xcount"); if (c) c.textContent = `${chk.got} of ${keys.length} · aim for ${need}`;
+    const real = chk.kind !== "short" && chk.kind !== "words";
+    chk.hits = chk.hits.map((h) => real && h);
+    $$("#xlist li", host).forEach((li, i) => {
+      li.classList.toggle("hit", chk.hits[i]); $(".tick", li).textContent = chk.hits[i] ? "✓" : "○";
+      $(".xk", li).innerHTML = locked || chk.hits[i] || shown.has(i) ? esc(keys[i][0]) : `Idea ${i + 1}: <i>say it and it appears</i>`;
+    });
+    if (hintBtn) hintBtn.hidden = locked || keys.every((_, i) => chk.hits[i] || shown.has(i));
+    const c = $("#xcount"); if (c) c.textContent = `${chk.hits.filter(Boolean).length} of ${keys.length} · aim for ${need}`;
     const n = (ta.value.trim().match(/\S+/g) || []).length;
     wc.textContent = n ? `${n} word${n === 1 ? "" : "s"}` : "";
     if (announce && chk.kind === "wrong" && !locked) react(chk.msg);
@@ -15349,9 +15420,17 @@ function stageExplain(host, L) {
     $("#starters").hidden = on;
     saveBtn.innerHTML = on ? `Rewrite answer (1 ★ · you have ${starsToSpend()})` : s.e ? "Save new answer" : "Save answer";
     saveBtn.title = on ? `You have ${starsToSpend()} star${starsToSpend() === 1 ? "" : "s"} to spend.` : "";
+    tick(false);
   };
   setLocked(locked);
   tick(false);
+  if (hintBtn) hintBtn.addEventListener("click", () => {
+    const hits = tick(false).hits, i = keys.findIndex((_, j) => !hits[j] && !shown.has(j));
+    if (i < 0) return;
+    shown.add(i); tick(false);
+    react(`Here's a nudge: say something about <b>${esc(keys[i][0])}</b>.`);
+    ta.focus();
+  });
   if (s.e) showReview(explainCheck(s.e, L).hits);
   ta.addEventListener("input", () => { tick(true); if (!locked) lsSet(draftKey, ta.value); });
   $$("#starters .chip", host).forEach((b) => b.addEventListener("click", () => {
@@ -15369,35 +15448,75 @@ function stageExplain(host, L) {
     }
     const chk = tick(false);
     netLog("explain", L.id, "explain", chk.ok, { why: chk.kind, got: chk.got, need: chk.need, text: ta.value.trim().slice(0, 600) });
-    if (!chk.ok) { react(chk.msg); ta.focus(); return; }
+    if (!chk.ok) {
+      if (chk.kind === "keys") {
+        const i = keys.findIndex((_, j) => !chk.hits[j]); if (i >= 0) { shown.add(i); tick(false); }
+        // The checker only knows the wordings we taught it. After two near-misses with real
+        // sentences, the player can stand by their answer; it's logged so we can teach new wordings.
+        if (++keyMisses >= 2) $("#xMine").hidden = false;
+      }
+      react(chk.msg); ta.focus(); return;
+    }
+    accept(chk, false);
+  });
+  let keyMisses = 0;
+  const accept = (chk, disputed) => {
     const n = (ta.value.trim().match(/\S+/g) || []).length;
     const first = !s.e;
     s.e = ta.value.trim().slice(0, 2000);
     showReview(chk.hits);
-    react(n < 12 ? pickOne(INN_SHORT) : pickOne(INN_PRAISE));
+    react(disputed ? "Fair enough, I'll take your word for it! Check the ideas below to be sure you covered them." : n < 12 ? pickOne(INN_SHORT) : pickOne(INN_PRAISE));
     if (first) addXP(XP.explain, "Explained it"); else save();
+    $("#xMine").hidden = true;
     setLocked(true);
     sparkle(saveBtn, "+XP"); heroReact("hop");
     afterStage(L);
     if (levelClear(L.id)) render();
+  };
+  $("#xMine").addEventListener("click", () => {
+    const chk = tick(false);
+    if (chk.kind !== "keys" && !chk.ok) return react(chk.msg);
+    netLog("explain_dispute", L.id, "explain", null, { got: chk.got, need: chk.need, text: ta.value.trim().slice(0, 600) });
+    accept(chk, true);
   });
   const mic = $("#micBtn");
   if (mic) {
-    let rec = null;
+    // Words appear live while the player speaks (grey "interim" guesses are replaced by final text).
+    // Stop always works at once: the button resets straight away, and the browser is made to let go.
+    let rec = null, base = "", heard = false, quiet = null;
+    const MIC_ERR = {
+      "not-allowed": "The browser blocked the microphone. Allow it from the lock icon in the address bar, or just type.",
+      "service-not-allowed": "This browser doesn't allow speech typing here. Try Chrome or Edge, or just type.",
+      "network": "Speech typing needs the internet in this browser, and it couldn't connect. Try again, or type it.",
+      "audio-capture": "I couldn't find a microphone. Check it's plugged in, or type it.",
+      "no-speech": "I didn't hear anything. Press Speak and talk a little louder, or type it."
+    };
+    const endMic = () => {
+      clearTimeout(quiet);
+      if (rec) { const r = rec; rec = null; r.onresult = r.onend = r.onerror = null; try { r.abort(); } catch (_) {} }
+      mic.textContent = "🎤 Speak"; mic.classList.remove("live");
+      ta.value = ta.value.trim(); ta.dispatchEvent(new Event("input"));
+    };
     mic.addEventListener("click", () => {
       if (locked) return react("Rewrite the answer first, then you can speak a new one.");
-      if (rec) { rec.stop(); return; }
+      if (rec) { endMic(); return react(heard ? "Got it. Read it over, fix any words I misheard, then save." : "Stopped. Press Speak to try again, or type it."); }
       rec = new Speech();
-      rec.lang = navigator.language || "en-IN"; rec.continuous = true; rec.interimResults = false;
+      rec.lang = navigator.language || "en-IN"; rec.continuous = true; rec.interimResults = true;
+      base = ta.value.trim(); heard = false;
       rec.onresult = (e) => {
-        const said = [...e.results].slice(e.resultIndex).map((r) => r[0].transcript).join(" ").trim();
-        if (said) { ta.value = (ta.value.trimEnd() + " " + said).trim(); ta.dispatchEvent(new Event("input")); }
+        let fin = "", live = "";
+        for (const r of e.results) (r.isFinal ? (fin += r[0].transcript + " ") : (live += r[0].transcript + " "));
+        heard = heard || !!(fin + live).trim();
+        ta.value = [base, fin.trim(), live.trim()].filter(Boolean).join(" ");
+        ta.dispatchEvent(new Event("input"));
+        clearTimeout(quiet); quiet = setTimeout(() => { if (rec) { endMic(); react("I stopped listening after a quiet moment. Read it over, then save."); } }, 12000);
       };
-      rec.onend = () => { rec = null; mic.textContent = "🎤 Speak"; mic.classList.remove("live"); };
-      rec.onerror = (e) => { react(e.error === "not-allowed" ? "The browser blocked the microphone. You can allow it in the address bar, or just type." : "I couldn't hear that. Try again, or type it."); };
-      rec.start();
+      rec.onerror = (e) => { endMic(); react(MIC_ERR[e.error] || "Speech typing stopped. Try again, or type it."); };
+      rec.onend = () => { if (rec) endMic(); };
+      try { rec.start(); } catch (_) { rec = null; return react("Speech typing isn't available right now. Just type it."); }
       mic.textContent = "■ Stop"; mic.classList.add("live");
-      react("I'm listening… explain it like you would to a friend.");
+      react("I'm listening… your words will appear in the box. Press Stop when you're done.");
+      quiet = setTimeout(() => { if (rec && !heard) { endMic(); react(MIC_ERR["no-speech"]); } }, 10000);
     });
   }
   const fb = $("#fbBtn");
@@ -15651,8 +15770,8 @@ const CQ_BACKEND = {
    • its summary shows on its guild's board;
    • attempts, mistakes and hints are logged to help improve the game;
    • players can send feedback from any screen.
-   Tables and security rules live in supabase/schema.sql. */
-const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null };
+   Tables and security rules live in supabase/schema.sql, hardening.sql and sessions.sql. */
+const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null, session: null, lastLog: 0, noSession: false, chatTimer: null, chatChan: null };
 const netConfigured = () => !!(CQ_BACKEND.url && CQ_BACKEND.key);
 const netOn = () => netConfigured() && S.mode === "local";
 const NET_PRIVACY = "Online, the game stores your hero name, progress and attempts (including code you check) to improve the game. No email or real name is needed, so please don't type personal details.";
@@ -15723,6 +15842,7 @@ async function netDeleteMe(slot) {
   const loginKey = "cq.net.slot" + slot;
   let hasLogin = false;
   try { hasLogin = !!localStorage.getItem(loginKey); } catch (_) {}
+  if (NET.sb) netStopGuild();
   if (netConfigured() && hasLogin) {
     clearTimeout(NET.saveTimer); clearTimeout(NET.timer); NET.queue = [];
     if (NET.slot !== slot || !NET.uid) await netStart();
@@ -15744,9 +15864,20 @@ function netSave() {
 }
 
 /* Play data: what players try, get wrong and need help with. Sent in small batches. */
+/* One id per sitting (a new one after 30 quiet minutes), so a visit can be followed start to finish. */
+function netSession() {
+  const now = Date.now();
+  if (!NET.session || now - NET.lastLog > 30 * 60 * 1000) {
+    NET.session = crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+  }
+  NET.lastLog = now;
+  return NET.session;
+}
 function netLog(kind, level, stage, ok, detail) {
   if (!netOn()) return;
-  if (NET.queue.length < 300) NET.queue.push({ kind, level: level || null, stage: stage || null, ok: ok == null ? null : !!ok, detail: detail || null });
+  const row = { kind, level: level || null, stage: stage || null, ok: ok == null ? null : !!ok, detail: detail || null };
+  if (!NET.noSession) row.session_id = netSession();
+  if (NET.queue.length < 300) NET.queue.push(row);
   if (NET.queue.length >= 20) netFlushEvents();
   else if (!NET.timer) NET.timer = setTimeout(netFlushEvents, 15000);
 }
@@ -15754,42 +15885,68 @@ async function netFlushEvents() {
   clearTimeout(NET.timer); NET.timer = null;
   if (!NET.uid || !NET.queue.length) return;
   const batch = NET.queue.splice(0, 50);
-  try { const { error } = await NET.sb.from("events").insert(batch); if (error) throw error; }
+  try {
+    let { error } = await NET.sb.from("events").insert(batch);
+    // A database without the session column yet (sessions.sql not run): send without it.
+    if (error && /session_id/.test(error.message || "")) {
+      NET.noSession = true;
+      batch.forEach((r) => delete r.session_id);
+      ({ error } = await NET.sb.from("events").insert(batch));
+    }
+    if (error) throw error;
+  }
   catch (_) { NET.queue.unshift(...batch); }
 }
 document.addEventListener("visibilitychange", () => { if (document.hidden) { netFlushEvents(); if (NET.saveTimer) { clearTimeout(NET.saveTimer); netPush().catch(() => {}); } } });
 
-/* ───────── Guild (online) ───────── */
-async function netGuild() {
-  const { data, error } = await NET.sb.rpc("my_guild");
+/* ───────── Guilds (online): up to 5 per player, each with a board and a chat ───────── */
+async function netGuilds() {
+  const { data, error } = await NET.sb.rpc("my_guilds");
   if (error) throw error;
-  return (data && data[0]) || null;
+  return data || [];
 }
-/* Fills S.others with guild mates, so the map's side board and the Guild page show them. */
-async function netRefreshBoard() {
+/* Fills S.others with guild mates (everyone from all my guilds, once each), so the map's side board
+   shows them. With a guild id, returns just that guild's board. */
+async function netRefreshBoard(guildId) {
   if (!NET.uid) return [];
-  const { data, error } = await NET.sb.rpc("guild_board");
+  let { data, error } = await NET.sb.rpc("guild_board_for", { p_guild: guildId || null });
+  if (error && !guildId) ({ data, error } = await NET.sb.rpc("guild_board"));   // database not upgraded yet
   if (error) return [];
-  const o = {};
-  (data || []).forEach((p, i) => { if (!p.is_me) o["g" + i] = { name: p.nickname, pix: p.pix, color: p.color, xp: p.xp, stars: p.stars, streak: p.streak, cur: p.cur, done: p.levels_done, last: p.last_played || "" }; });
-  S.others = o;
+  if (!guildId) {
+    const o = {};
+    (data || []).forEach((p, i) => { if (!p.is_me) o["g" + i] = { name: p.nickname, pix: p.pix, color: p.color, xp: p.xp, stars: p.stars, streak: p.streak, cur: p.cur, done: p.levels_done, last: p.last_played || "" }; });
+    S.others = o;
+  }
   return data || [];
 }
 function netGuildMsg(e) { return esc(String((e && e.message) || e || "Something went wrong").replace(/^.*?: /, "")); }
+function netStopGuild() {
+  clearInterval(NET.boardTimer); clearInterval(NET.chatTimer);
+  if (NET.chatChan) { NET.sb.removeChannel(NET.chatChan); NET.chatChan = null; }
+}
+const guildPick = () => "cq.guild.slot" + (S.slot || 1);
 
-async function renderNetGuild(v) {
-  clearInterval(NET.boardTimer);
-  v.innerHTML = `<div class="wrap"><div class="guild"><div><p class="eyebrow">Play together</p><h1>Guild</h1><p class="muted" id="gStatus">Connecting to the guild hall…</p></div><div id="gBody"></div></div></div>`;
+async function renderNetGuild(v, pickId) {
+  netStopGuild();
+  v.innerHTML = `<div class="wrap"><div class="guild"><div><p class="eyebrow">Play together</p><h1>Guild</h1><p class="muted" id="gStatus">Connecting to the guild hall…</p></div><div id="gTabs"></div><div id="gBody"></div></div></div>`;
   if (!NET.uid && !(await netStart())) {
     $("#gStatus").innerHTML = `Couldn't reach the guild hall. Check your internet connection. <button class="btn sm" id="gRetry">Try again</button>`;
     $("#gRetry").addEventListener("click", () => renderNetGuild(v));
     return;
   }
-  let g;
-  try { g = await netGuild(); } catch (e) { $("#gStatus").textContent = "Couldn't load your guild. Try again in a minute."; return; }
-  const body = $("#gBody"), status = $("#gStatus");
+  let gs;
+  try { gs = await netGuilds(); } catch (e) { $("#gStatus").textContent = "Couldn't load your guilds. Try again in a minute."; return; }
+  if (pickId) lsSet(guildPick(), pickId);
+  const want = pickId === "new" ? "new" : lsGet(guildPick());
+  const g = want === "new" ? null : gs.find((x) => x.id === want) || gs[0];
+  const status = $("#gStatus"), body = $("#gBody");
+  // Tabs: one per guild, plus "Join or start" while there's room (5 max).
+  if (gs.length) {
+    $("#gTabs").innerHTML = `<div class="g-tabs" role="tablist">${gs.map((x) => `<button class="g-tab${g && x.id === g.id ? " on" : ""}" role="tab" aria-selected="${!!(g && x.id === g.id)}" data-g="${esc(x.id)}">${esc(x.name)}</button>`).join("")}${gs.length < 5 ? `<button class="g-tab add${g ? "" : " on"}" data-g="new">+ Join or start</button>` : ""}</div>`;
+    $$(".g-tab", v).forEach((b) => b.addEventListener("click", () => renderNetGuild(v, b.dataset.g)));
+  }
   if (!g) {
-    status.textContent = "Join your friends' guild with their code, or start a new one and share yours.";
+    status.textContent = gs.length ? "Join another guild with a friend's code, or start a new one. You can be in up to 5." : "Join your friends' guild with their code, or start a new one and share yours.";
     body.innerHTML = `<div class="guild-forms">
       <div class="card"><h3>Join a guild</h3><label class="sr" for="gCode">Guild code</label><input id="gCode" class="pinput" maxlength="8" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase"><p class="fb-err" id="gJoinErr" hidden></p><button class="btn primary" id="gJoin">Join</button></div>
       <div class="card"><h3>Start a guild</h3><label class="sr" for="gName">Guild name</label><input id="gName" class="pinput" maxlength="32" placeholder="The Debug Dragons" autocomplete="off"><p class="fb-err" id="gMakeErr" hidden></p><button class="btn" id="gMake">Create</button></div>
@@ -15803,37 +15960,99 @@ async function renderNetGuild(v) {
       const { data, error } = await NET.sb.rpc("join_guild", { p_code: code });
       if (error) return err("#gJoinErr", netGuildMsg(error));
       if (!data || !data.length) return err("#gJoinErr", "No guild with that code. Check it and try again.");
-      toast("Welcome to the guild!"); renderNetGuild(v);
+      toast("Welcome to the guild!"); netRefreshBoard(); renderNetGuild(v, data[0].id);
     });
     $("#gMake").addEventListener("click", async () => {
       const name = $("#gName").value.trim();
       if (name.length < 2) return err("#gMakeErr", "Give your guild a name (at least 2 letters).");
-      const { error } = await NET.sb.rpc("create_guild", { p_name: name });
+      const { data, error } = await NET.sb.rpc("create_guild", { p_name: name });
       if (error) return err("#gMakeErr", netGuildMsg(error));
-      toast("Guild created. Share the code!"); renderNetGuild(v);
+      toast("Guild created. Share the code!"); renderNetGuild(v, data && data[0] && data[0].id);
     });
     return;
   }
-  const draw = (rows) => {
-    status.innerHTML = `<b>${esc(g.name)}</b> · ${g.members} player${g.members === 1 ? "" : "s"}. The board refreshes while you're here.`;
-    body.innerHTML = `<div class="card" style="padding:6px 0"><div class="table-scroll"><table class="lb">
+  status.innerHTML = `<b>${esc(g.name)}</b> · ${g.members} player${g.members === 1 ? "" : "s"}${g.is_owner ? " · you started it" : ""}`;
+  body.innerHTML = `<div class="g-grid">
+    <div class="card chat" id="gChat"><div class="chat-head"><h3>Guild chat</h3><span class="muted" id="chatLive">connecting…</span></div>
+      <div class="chat-list" id="chatList" aria-live="polite"><p class="muted chat-empty">Loading messages…</p></div>
+      <form class="chat-send" id="chatForm"><label class="sr" for="chatIn">Message</label>
+        <textarea id="chatIn" rows="1" maxlength="500" placeholder="Say hi, ask for help, share a win…"></textarea>
+        <button class="btn primary" id="chatBtn" type="submit">Send</button></form>
+      <p class="fb-err" id="chatErr" hidden></p>
+      <p class="muted chat-note">Be kind. Never share your real name, school, phone number or address here.</p></div>
+    <div class="card" style="padding:6px 0" id="gBoard"></div>
+    <div class="card side-card prose"><h3 style="margin-top:0">Invite friends</h3><p>Share this code. They open the game, go to <b>Guild</b> and type it in.</p>
+      <p class="guild-code"><code>${esc(g.code)}</code> <button class="btn sm" id="gCopy">Copy</button></p>
+      <p class="muted" style="font-size:12.5px">${NET_PRIVACY}</p><button class="btn ghost sm" id="gLeave">Leave ${esc(g.name)}</button></div></div>`;
+  $("#gCopy").addEventListener("click", () => { try { navigator.clipboard.writeText(g.code); toast("Code copied"); } catch (_) { toast("Code: " + g.code); } });
+  $("#gLeave").addEventListener("click", async () => {
+    if (!confirm("Leave " + g.name + "? You can join again with the code.")) return;
+    const { error } = await NET.sb.rpc("leave_guild_id", { p_guild: g.id });
+    if (error) return toast(netGuildMsg(error));
+    lsSet(guildPick(), null); netRefreshBoard(); renderNetGuild(v);
+  });
+
+  const drawBoard = (rows) => {
+    const el = $("#gBoard", v); if (!el) return;
+    el.innerHTML = `<div class="table-scroll"><table class="lb">
       <thead><tr><th>#</th><th>Hero</th><th>Where</th><th class="n">Stars</th><th class="n">Streak</th><th class="n">XP</th></tr></thead>
       <tbody>${rows.map((r, i) => { const p = { name: r.nickname, pix: r.pix, color: r.color, xp: r.xp, stars: r.stars, streak: r.streak, cur: r.cur, last: r.last_played || "" };
         return `<tr class="${r.is_me ? "me" : ""}"><td class="r">${i + 1}</td><td><span class="who">${avatarHtml(p, "sm")}<span>${esc(p.name)}${r.is_me ? " (you)" : ""}<br><span class="muted" style="font-weight:400;font-size:12px">${esc(rankFor(p.xp).r.name)}</span></span></span></td><td>${esc(placeOf(p).label)}</td><td class="n">${p.stars | 0}</td><td class="n">${p.streak | 0}</td><td class="n pixel" style="font-size:17px">${p.xp | 0}</td></tr>`; }).join("")}</tbody>
-    </table></div></div>
-    <div class="card side-card prose"><h3 style="margin-top:0">Invite friends</h3><p>Share this code. They open the game, go to <b>Guild</b> and type it in.</p>
-      <p class="guild-code"><code>${esc(g.code)}</code> <button class="btn sm" id="gCopy">Copy</button></p>
-      <p class="muted" style="font-size:12.5px">${NET_PRIVACY}</p><button class="btn ghost sm" id="gLeave">Leave guild</button></div>`;
-    $("#gCopy").addEventListener("click", () => { try { navigator.clipboard.writeText(g.code); toast("Code copied"); } catch (_) { toast("Code: " + g.code); } });
-    $("#gLeave").addEventListener("click", async () => {
-      if (!confirm("Leave " + g.name + "? You can join again with the code.")) return;
-      const { error } = await NET.sb.rpc("leave_guild");
-      if (error) return toast(netGuildMsg(error));
-      S.others = {}; renderNetGuild(v);
-    });
+    </table></div>`;
   };
-  draw(await netRefreshBoard());
-  NET.boardTimer = setInterval(async () => { if (S.route.name !== "guild") return clearInterval(NET.boardTimer); draw(await netRefreshBoard()); }, 30000);
+  drawBoard(await netRefreshBoard(g.id));
+  NET.boardTimer = setInterval(async () => { if (S.route.name !== "guild") return netStopGuild(); drawBoard(await netRefreshBoard(g.id)); }, 30000);
+  netChat(v, g);
+}
+
+/* Guild chat: the latest 100 messages, live. New messages arrive through Supabase Realtime, with a
+   slow refresh as a fallback. Everything is shown as plain text (esc), so links and code can't run. */
+function netChat(v, g) {
+  const list = $("#chatList", v), input = $("#chatIn", v), form = $("#chatForm", v), errEl = $("#chatErr", v), live = $("#chatLive", v);
+  let lastKey = null;
+  const when = (t) => {
+    const d = new Date(t), hm = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    return d.toDateString() === new Date().toDateString() ? hm : d.toLocaleDateString([], { day: "numeric", month: "short" }) + " " + hm;
+  };
+  const load = async () => {
+    if (S.route.name !== "guild" || !document.body.contains(list)) return netStopGuild();
+    const { data, error } = await NET.sb.rpc("guild_chat", { p_guild: g.id });
+    if (error) { live.textContent = "can't reach chat"; return; }
+    const key = (data || []).map((m) => m.id).join(",");
+    if (key === lastKey) return;
+    const first = lastKey === null, atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+    lastKey = key;
+    list.innerHTML = data.length ? data.map((m) => `<div class="msg${m.is_me ? " me" : ""}" data-id="${m.id}">
+        ${m.is_me ? "" : avatarHtml({ pix: m.pix, color: m.color }, "sm")}
+        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b> <span>${esc(when(m.at))}</span>${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
+      : `<p class="muted chat-empty">No messages yet. Say hi to your guild!</p>`;
+    if (first || atBottom) list.scrollTop = list.scrollHeight;
+  };
+  list.addEventListener("click", async (e) => {
+    const del = e.target.closest(".msg-del"); if (!del) return;
+    if (!confirm("Delete this message for everyone?")) return;
+    const { error } = await NET.sb.from("guild_messages").delete().eq("id", del.closest(".msg").dataset.id);
+    if (error) return toast("Couldn't delete it. Try again.");
+    load();
+  });
+  const send = async () => {
+    const text = input.value.trim();
+    if (!text) return;
+    const btn = $("#chatBtn", v); btn.disabled = true;
+    const { error } = await NET.sb.from("guild_messages").insert({ guild_id: g.id, body: text.slice(0, 500) });
+    btn.disabled = false;
+    if (error) { errEl.textContent = /Slow down|a lot of chat/.test(error.message || "") ? error.message : "Couldn't send it. Check your internet and try again."; errEl.hidden = false; return; }
+    errEl.hidden = true; input.value = ""; input.style.height = "";
+    await load(); list.scrollTop = list.scrollHeight; input.focus();
+  };
+  form.addEventListener("submit", (e) => { e.preventDefault(); send(); });
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+  input.addEventListener("input", () => { errEl.hidden = true; input.style.height = ""; input.style.height = Math.min(input.scrollHeight, 120) + "px"; });
+  load();
+  NET.chatChan = NET.sb.channel("guild-chat-" + g.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: "guild_messages", filter: "guild_id=eq." + g.id }, () => load())
+    .subscribe((st) => { const on = st === "SUBSCRIBED"; live.textContent = on ? "● live" : "refreshing every 15s"; live.classList.toggle("on", on); });
+  NET.chatTimer = setInterval(load, 15000);
 }
 
 /* ───────── Feedback ───────── */
