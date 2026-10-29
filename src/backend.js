@@ -6,10 +6,10 @@
    • attempts, mistakes and hints are logged to help improve the game;
    • players can send feedback from any screen.
    Tables and security rules live in supabase/schema.sql, hardening.sql and sessions.sql. */
-const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null, session: null, lastLog: 0, noSession: false, chatTimer: null, chatChan: null };
+const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null, session: null, lastLog: 0, noSession: false, pageChat: null, pageGuild: null, panelChat: null, panelGuild: null, allChat: null, unread: 0 };
 const netConfigured = () => !!(CQ_BACKEND.url && CQ_BACKEND.key);
 const netOn = () => netConfigured() && S.mode === "local";
-const NET_PRIVACY = "Online, the game stores your hero name, progress and attempts (including code you check) to improve the game. No email or real name is needed, so please don't type personal details.";
+const NET_PRIVACY = "Online, the game stores your hero name, progress, attempts (including code you check) and how long each step takes, to improve the game. No email or real name is needed, so please don't type personal details.";
 
 function netLoad() {
   if (!NET.lib) NET.lib = (window.supabase ? Promise.resolve() : loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js")).then(() => window.supabase);
@@ -24,6 +24,8 @@ async function netStart() {
   try {
     const lib = await netLoad();
     if (NET.slot !== slot || !NET.sb) {
+      if (NET.allChat && NET.sb) { NET.sb.removeChannel(NET.allChat); }
+      NET.allChat = null; NET.unread = 0;
       NET.sb = lib.createClient(CQ_BACKEND.url, CQ_BACKEND.key, { auth: { storageKey: "cq.net.slot" + slot, persistSession: true, autoRefreshToken: true } });
       NET.slot = slot; NET.uid = null; S.others = {};
     }
@@ -49,6 +51,7 @@ async function netStart() {
     setSync("ok", "Saved online");
     netFlushEvents();
     netRefreshBoard();
+    netWatchChat(); netCountUnread();
     return true;
   } catch (e) {
     console.warn("Online save unavailable:", (e && e.message) || e);
@@ -87,7 +90,7 @@ async function netDeleteMe(slot) {
     await NET.sb.auth.signOut({ scope: "local" }).catch(() => {});
   }
   try { localStorage.removeItem(loginKey); } catch (_) {}
-  if (NET.slot === slot) { NET.sb = null; NET.slot = null; NET.uid = null; S.others = {}; }
+  if (NET.slot === slot) { closeChatPanel(); NET.sb = null; NET.slot = null; NET.uid = null; NET.allChat = null; NET.unread = 0; S.others = {}; }
   return true;
 }
 
@@ -156,9 +159,17 @@ async function netRefreshBoard(guildId) {
 }
 function netGuildMsg(e) { return esc(String((e && e.message) || e || "Something went wrong").replace(/^.*?: /, "")); }
 function netStopGuild() {
-  clearInterval(NET.boardTimer); clearInterval(NET.chatTimer);
-  if (NET.chatChan) { NET.sb.removeChannel(NET.chatChan); NET.chatChan = null; }
+  clearInterval(NET.boardTimer);
+  if (NET.pageChat) { NET.pageChat.stop(); NET.pageChat = null; NET.pageGuild = null; }
 }
+const MASTER_TAG = `<span class="gm-tag">${ICON.crown}Guild Master</span>`;
+/* The chat box, used on the Guild page and in the floating chat panel. */
+const chatHtml = () => `<div class="card chat"><div class="chat-head"><h3>Guild chat</h3><span class="muted chat-live">connecting…</span></div>
+  <div class="chat-list" aria-live="polite"><p class="muted chat-empty">Loading messages…</p></div>
+  <form class="chat-send"><textarea rows="1" maxlength="500" aria-label="Message" placeholder="Say hi, ask for help, share a win…"></textarea>
+    <button class="btn primary" type="submit">Send</button></form>
+  <p class="fb-err chat-err" hidden></p>
+  <p class="muted chat-note">Be kind. Never share your real name, school, phone number or address here.</p></div>`;
 const guildPick = () => "cq.guild.slot" + (S.slot || 1);
 
 async function renderNetGuild(v, pickId) {
@@ -208,13 +219,7 @@ async function renderNetGuild(v, pickId) {
   }
   status.innerHTML = `<b>${esc(g.name)}</b> · ${g.members} player${g.members === 1 ? "" : "s"}${g.is_owner ? " · you started it" : ""}`;
   body.innerHTML = `<div class="g-grid">
-    <div class="card chat" id="gChat"><div class="chat-head"><h3>Guild chat</h3><span class="muted" id="chatLive">connecting…</span></div>
-      <div class="chat-list" id="chatList" aria-live="polite"><p class="muted chat-empty">Loading messages…</p></div>
-      <form class="chat-send" id="chatForm"><label class="sr" for="chatIn">Message</label>
-        <textarea id="chatIn" rows="1" maxlength="500" placeholder="Say hi, ask for help, share a win…"></textarea>
-        <button class="btn primary" id="chatBtn" type="submit">Send</button></form>
-      <p class="fb-err" id="chatErr" hidden></p>
-      <p class="muted chat-note">Be kind. Never share your real name, school, phone number or address here.</p></div>
+    <div id="gChat">${chatHtml()}</div>
     <div class="card" style="padding:6px 0" id="gBoard"></div>
     <div class="card side-card prose"><h3 style="margin-top:0">Invite friends</h3><p>Share this code. They open the game, go to <b>Guild</b> and type it in.</p>
       <p class="guild-code"><code>${esc(g.code)}</code> <button class="btn sm" id="gCopy">Copy</button></p>
@@ -232,25 +237,28 @@ async function renderNetGuild(v, pickId) {
     el.innerHTML = `<div class="table-scroll"><table class="lb">
       <thead><tr><th>#</th><th>Hero</th><th>Where</th><th class="n">Stars</th><th class="n">Streak</th><th class="n">XP</th></tr></thead>
       <tbody>${rows.map((r, i) => { const p = { name: r.nickname, pix: r.pix, color: r.color, xp: r.xp, stars: r.stars, streak: r.streak, cur: r.cur, last: r.last_played || "" };
-        return `<tr class="${r.is_me ? "me" : ""}"><td class="r">${i + 1}</td><td><span class="who">${avatarHtml(p, "sm")}<span>${esc(p.name)}${r.is_me ? " (you)" : ""}<br><span class="muted" style="font-weight:400;font-size:12px">${esc(rankFor(p.xp).r.name)}</span></span></span></td><td>${esc(placeOf(p).label)}</td><td class="n">${p.stars | 0}</td><td class="n">${p.streak | 0}</td><td class="n pixel" style="font-size:17px">${p.xp | 0}</td></tr>`; }).join("")}</tbody>
+        return `<tr class="${r.is_me ? "me" : ""}"><td class="r">${i + 1}</td><td><span class="who">${avatarHtml(p, "sm")}<span>${esc(p.name)}${r.is_me ? " (you)" : ""}${r.is_master ? MASTER_TAG : ""}<br><span class="muted" style="font-weight:400;font-size:12px">${esc(rankFor(p.xp).r.name)}</span></span></span></td><td>${esc(placeOf(p).label)}</td><td class="n">${p.stars | 0}</td><td class="n">${p.streak | 0}</td><td class="n pixel" style="font-size:17px">${p.xp | 0}</td></tr>`; }).join("")}</tbody>
     </table></div>`;
   };
   drawBoard(await netRefreshBoard(g.id));
   NET.boardTimer = setInterval(async () => { if (S.route.name !== "guild") return netStopGuild(); drawBoard(await netRefreshBoard(g.id)); }, 30000);
-  netChat(v, g);
+  NET.pageGuild = g.id;
+  NET.pageChat = netChat($("#gChat", v), g);
 }
 
 /* Guild chat: the latest 100 messages, live. New messages arrive through Supabase Realtime, with a
-   slow refresh as a fallback. Everything is shown as plain text (esc), so links and code can't run. */
-function netChat(v, g) {
-  const list = $("#chatList", v), input = $("#chatIn", v), form = $("#chatForm", v), errEl = $("#chatErr", v), live = $("#chatLive", v);
-  let lastKey = null;
+   slow refresh as a fallback. Everything is shown as plain text (esc), so links and code can't run.
+   Works inside any box made by chatHtml(); returns { stop } to disconnect it. */
+function netChat(root, g) {
+  const list = $(".chat-list", root), input = $(".chat-send textarea", root), form = $(".chat-send", root), errEl = $(".chat-err", root), live = $(".chat-live", root);
+  let lastKey = null, chan = null, timer = null, stopped = false;
+  const stop = () => { stopped = true; clearInterval(timer); if (chan && NET.sb) NET.sb.removeChannel(chan); chan = null; };
   const when = (t) => {
     const d = new Date(t), hm = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
     return d.toDateString() === new Date().toDateString() ? hm : d.toLocaleDateString([], { day: "numeric", month: "short" }) + " " + hm;
   };
   const load = async () => {
-    if (S.route.name !== "guild" || !document.body.contains(list)) return netStopGuild();
+    if (stopped || !document.body.contains(list)) return stop();
     const { data, error } = await NET.sb.rpc("guild_chat", { p_guild: g.id });
     if (error) { live.textContent = "can't reach chat"; return; }
     const key = (data || []).map((m) => m.id).join(",");
@@ -259,9 +267,10 @@ function netChat(v, g) {
     lastKey = key;
     list.innerHTML = data.length ? data.map((m) => `<div class="msg${m.is_me ? " me" : ""}" data-id="${m.id}">
         ${m.is_me ? "" : avatarHtml({ pix: m.pix, color: m.color }, "sm")}
-        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b> <span>${esc(when(m.at))}</span>${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
+        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b>${m.from_master ? MASTER_TAG : ""} <span>${esc(when(m.at))}</span>${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
       : `<p class="muted chat-empty">No messages yet. Say hi to your guild!</p>`;
     if (first || atBottom) list.scrollTop = list.scrollHeight;
+    if (data.length) { chatSeen(g.id, data[data.length - 1].id); netCountUnread(); }
   };
   list.addEventListener("click", async (e) => {
     const del = e.target.closest(".msg-del"); if (!del) return;
@@ -273,7 +282,7 @@ function netChat(v, g) {
   const send = async () => {
     const text = input.value.trim();
     if (!text) return;
-    const btn = $("#chatBtn", v); btn.disabled = true;
+    const btn = $("button[type=submit]", form); btn.disabled = true;
     const { error } = await NET.sb.from("guild_messages").insert({ guild_id: g.id, body: text.slice(0, 500) });
     btn.disabled = false;
     if (error) { errEl.textContent = /Slow down|a lot of chat/.test(error.message || "") ? error.message : "Couldn't send it. Check your internet and try again."; errEl.hidden = false; return; }
@@ -284,10 +293,84 @@ function netChat(v, g) {
   input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
   input.addEventListener("input", () => { errEl.hidden = true; input.style.height = ""; input.style.height = Math.min(input.scrollHeight, 120) + "px"; });
   load();
-  NET.chatChan = NET.sb.channel("guild-chat-" + g.id)
+  chan = NET.sb.channel("guild-chat-" + g.id + "-" + Math.random().toString(36).slice(2, 7))
     .on("postgres_changes", { event: "*", schema: "public", table: "guild_messages", filter: "guild_id=eq." + g.id }, () => load())
     .subscribe((st) => { const on = st === "SUBSCRIBED"; live.textContent = on ? "● live" : "refreshing every 15s"; live.classList.toggle("on", on); });
-  NET.chatTimer = setInterval(load, 15000);
+  timer = setInterval(load, 15000);
+  return { stop };
+}
+
+/* ───────── Floating chat button (top bar) ─────────
+   Opens the chat of any of my guilds over whatever screen you're on, with a badge for messages that
+   arrived while you were elsewhere. Seen = the newest message id you've had on screen, per guild. */
+const chatSeenKey = () => "cq.chatSeen.slot" + (S.slot || 1);
+function chatSeen(gid, id) {
+  const seen = lsGet(chatSeenKey()) || {};
+  if (id == null) return seen[gid] || 0;
+  if (id > (seen[gid] || 0)) { seen[gid] = id; lsSet(chatSeenKey(), seen); }
+}
+function renderChatBtn() {
+  const slot = $("#chatBtnSlot"); if (!slot) return;
+  if (!S.hero || !netOn()) { slot.innerHTML = ""; return; }
+  const n = NET.unread | 0;
+  slot.innerHTML = `<button class="chat-fab${chatPanelOpen() ? " on" : ""}" id="chatFab" type="button" aria-label="Guild chat${n ? ", " + n + " new" : ""}" title="Guild chat">${ICON.talk}${n ? `<span class="badge">${n > 9 ? "9+" : n}</span>` : ""}</button>`;
+  $("#chatFab").addEventListener("click", () => (chatPanelOpen() ? closeChatPanel() : openChatPanel()));
+}
+let unreadBusy = false;
+async function netCountUnread() {
+  if (!NET.uid || unreadBusy) return;
+  unreadBusy = true;
+  try {
+    let n = 0;
+    for (const g of await netGuilds()) {
+      const { data } = await NET.sb.rpc("guild_chat", { p_guild: g.id });
+      const seen = chatSeen(g.id);
+      n += (data || []).filter((m) => !m.is_me && m.id > seen).length;
+    }
+    NET.unread = n; renderChatBtn();
+  } catch (_) {} finally { unreadBusy = false; }
+}
+/* One live channel for all my guilds (Realtime only sends rows I'm allowed to read). */
+function netWatchChat() {
+  if (NET.allChat || !NET.sb) return;
+  NET.allChat = NET.sb.channel("my-guild-chat").on("postgres_changes", { event: "INSERT", schema: "public", table: "guild_messages" }, (p) => {
+    const m = p.new || {};
+    if (m.user_id === NET.uid || NET.panelGuild === m.guild_id || NET.pageGuild === m.guild_id) return;
+    NET.unread = (NET.unread | 0) + 1; renderChatBtn();
+  }).subscribe();
+}
+const chatPanelOpen = () => !!$("#chatPanel");
+function closeChatPanel() {
+  if (NET.panelChat) { NET.panelChat.stop(); NET.panelChat = null; }
+  NET.panelGuild = null;
+  $$("#chatPanel, #chatPanelBg").forEach((x) => x.remove());
+  document.body.classList.remove("cp-on");
+  renderChatBtn();
+}
+async function openChatPanel(gid) {
+  closeChatPanel();
+  if (!NET.uid && !(await netStart())) return toast("Chat needs an internet connection.");
+  let gs;
+  try { gs = await netGuilds(); } catch (_) { return toast("Couldn't reach the guild hall. Try again in a minute."); }
+  if (!gs.length) { toast("Join or start a guild to chat with friends."); return go({ name: "guild" }); }
+  const g = gs.find((x) => x.id === (gid || lsGet(guildPick()))) || gs[0];
+  document.body.insertAdjacentHTML("beforeend", `<div class="chat-panel-bg" id="chatPanelBg"></div>
+    <aside class="chat-panel" id="chatPanel" role="dialog" aria-label="Guild chat">
+      <div class="cp-head">${gs.length > 1 ? `<select class="cp-pick" aria-label="Which guild">${gs.map((x) => `<option value="${esc(x.id)}" ${x.id === g.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>` : `<b class="cp-name">${esc(g.name)}</b>`}
+        <button class="btn sm ghost cp-open" type="button">Guild page</button><button class="cp-x" type="button" aria-label="Close chat">×</button></div>
+      ${chatHtml()}</aside>`);
+  const panel = $("#chatPanel");
+  document.body.classList.add("cp-on");
+  $(".cp-x", panel).addEventListener("click", closeChatPanel);
+  $("#chatPanelBg").addEventListener("click", closeChatPanel);
+  $(".cp-open", panel).addEventListener("click", () => { lsSet(guildPick(), g.id); closeChatPanel(); go({ name: "guild" }); });
+  panel.addEventListener("keydown", (e) => { if (e.key === "Escape") closeChatPanel(); });
+  const pick = $(".cp-pick", panel);
+  if (pick) pick.addEventListener("change", () => { lsSet(guildPick(), pick.value); openChatPanel(pick.value); });
+  NET.panelGuild = g.id;
+  NET.panelChat = netChat(panel, g);
+  renderChatBtn();
+  if (!matchMedia("(pointer: coarse)").matches) $(".chat-send textarea", panel).focus();   // no surprise keyboard on phones
 }
 
 /* ───────── Feedback ───────── */

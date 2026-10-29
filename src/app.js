@@ -92,7 +92,7 @@ function cleanHero(d) {
   h.role = clampInt(d.role, 0, 5);
   for (const k of ["xp", "streak", "best", "stars", "done", "spent"]) h[k] = clampInt(d[k], 0, 1e7);
   for (const k of ["last", "cur", "created"]) if (typeof d[k] === "string") h[k] = d[k].slice(0, 12);
-  for (const k of ["days", "lv", "cards", "home", "ext"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
+  for (const k of ["days", "lv", "cards", "home", "ext", "bh", "badges", "ai"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
   return h;
 }
 function clampInt(v, lo, hi) { v = Math.round(Number(v)); return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo; }
@@ -315,14 +315,74 @@ function confetti() {
 }
 
 /* ───────── Router ───────── */
-function go(route) {
+/* Phone Back button / swipe: every screen change adds a browser history entry (#level/1-1/code), so Back
+   returns to the previous screen and its scroll position instead of leaving the site. If a pop-up,
+   the chat panel or a takeover is open, Back closes that first and stays on the page. */
+const routeHash = (r) => "#" + [r.name, r.id, r.stage].filter((x) => x != null && x !== "").join("/");
+function hashRoute(h) {
+  const [name, id, stage] = String(h || "").replace(/^#\/?/, "").split("/").map(decodeURIComponent);
+  if (!name || !/^(map|world|level|review|guild|profile)$/.test(name)) return null;
+  const r = { name };
+  if (id) r.id = name === "world" ? +id : id;
+  if (stage) r.stage = stage;
+  return r;
+}
+function go(route, { replace = false } = {}) {
   S.route = route;
+  if (S.hero) {
+    try {
+      const h = routeHash(route), same = location.hash === h;
+      if (!replace && !same) history.replaceState(Object.assign({}, history.state, { y: scrollY }), "");
+      history[replace || same ? "replaceState" : "pushState"]({ cq: route, y: 0 }, "", h);
+    } catch (_) {}
+  }
   render();
   window.scrollTo({ top: 0 });
 }
+/* ───────── Time on task ─────────
+   How long each stage really takes: counted in 15-second ticks, only while the game is on screen and
+   the player did something in the last 90 seconds. Logged when they leave the stage or the page. */
+const TT = { key: null, id: null, stage: null, ms: 0, input: Date.now() };
+function ttFlush(keepGoing = false) {
+  if (TT.key && TT.ms >= 15000 && typeof netLog === "function") netLog("time", TT.id, TT.stage, stageDone(TT.id, TT.stage), { ms: TT.ms });
+  TT.ms = 0;
+  if (!keepGoing) TT.key = null;
+}
+function ttTrack() {
+  const r = S.route, cur = r.name === "level" && S.hero ? $(".step[aria-current='step']") : null;
+  const key = cur ? r.id + "/" + cur.dataset.stage : null;
+  if (key === TT.key) return;
+  ttFlush();
+  if (key) Object.assign(TT, { key, id: r.id, stage: cur.dataset.stage, ms: 0, input: Date.now() });
+}
+["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, () => { TT.input = Date.now(); }, { passive: true, capture: true }));
+setInterval(() => { if (TT.key && !document.hidden && Date.now() - TT.input < 90000) TT.ms += 15000; }, 15000);
+document.addEventListener("visibilitychange", () => { if (document.hidden) ttFlush(true); });
+/* Learning traces for a future AI tutor: only for players who switched it on in Profile → Your data. */
+const aiOn = () => !!(S.hero && S.hero.ai && S.hero.ai.on);
+
+function closeTopLayer() {
+  if ($(".bh")) { bhEnd(); return true; }
+  if ($("#modalBg")) { closeModal(); return true; }
+  if (typeof chatPanelOpen === "function" && chatPanelOpen()) { closeChatPanel(); return true; }
+  return false;
+}
+window.addEventListener("popstate", (e) => {
+  if (!S.hero) return;
+  if (closeTopLayer()) {   // Back closed something: put the screen we're on back in the history
+    try { history.pushState({ cq: S.route, y: scrollY }, "", routeHash(S.route)); } catch (_) {}
+    return;
+  }
+  const r = (e.state && e.state.cq) || hashRoute(location.hash) || { name: "map" };
+  S.route = r;
+  render();
+  const y = (e.state && e.state.y) || 0;
+  requestAnimationFrame(() => window.scrollTo({ top: y }));
+});
 function render() {
   renderNav();
   renderChip();
+  renderChatBtn();
   const r = S.route, v = $("#view");
   if (!S.hero) return renderTitle(v);
   if (r.name === "map") renderHome(v);
@@ -333,6 +393,8 @@ function render() {
   else if (r.name === "profile") renderProfile(v);
   else renderHome(v);
   fixSvgVars(v);
+  bossHackBanner();
+  ttTrack();
 }
 /* Move CSS variables out of SVG presentation attributes into style, where every browser resolves them. */
 function fixSvgVars(root) {
@@ -349,16 +411,27 @@ function renderNav() {
   if (!S.hero) { nav.innerHTML = ""; return; }
   const due = dueCards().length;
   const cur = S.route.name === "level" || S.route.name === "world" ? "map" : S.route.name;
-  nav.innerHTML = `
-    <button data-nav="map" ${cur === "map" ? 'aria-current="page"' : ""}>Map</button>
-    <button data-nav="review" ${cur === "review" ? 'aria-current="page"' : ""}>Memory Dungeon ${due ? `<span class="badge">${due}</span>` : ""}</button>
-    <button data-nav="guild" ${cur === "guild" ? 'aria-current="page"' : ""}>Guild</button>
-    <button data-nav="profile" ${cur === "profile" ? 'aria-current="page"' : ""}>Profile</button>
-    <button data-nav="guide">How to play</button>
-    ${netConfigured() && S.mode === "local" ? '<button data-nav="feedback">Feedback</button>' : ""}`;
+  // On phones this becomes a tab bar along the bottom (icons + short names); the less-used items move
+  // into "More", so nothing hides off the edge of the screen.
+  const tab = (n, icon, long, short, extra = "") => `<button data-nav="${n}" ${cur === n ? 'aria-current="page"' : ""}><span class="nav-ic">${icon}</span><span class="nav-tx" data-short="${short}">${long}</span>${extra}</button>`;
+  const fb = netConfigured() && S.mode === "local";
+  nav.innerHTML =
+    tab("map", ICON.map, "Map", "Map") +
+    tab("review", ICON.cards, "Memory Dungeon", "Dungeon", due ? `<span class="badge">${due}</span>` : "") +
+    tab("guild", ICON.people, "Guild", "Guild") +
+    tab("profile", pixelSvg(S.hero.pix), "Profile", "Profile") +
+    `<button class="nav-extra" data-nav="guide">How to play</button>` +
+    (fb ? `<button class="nav-extra" data-nav="feedback">Feedback</button>` : "") +
+    `<button class="nav-more" data-nav="more" aria-label="More"><span class="nav-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></span><span class="nav-tx">More</span></button>`;
   $$("[data-nav]", nav).forEach((b) => b.addEventListener("click", () => {
     const n = b.dataset.nav;
-    if (n === "guide") openGuide(); else if (n === "feedback") openFeedback(); else go({ name: n });
+    if (n === "guide") openGuide();
+    else if (n === "feedback") openFeedback();
+    else if (n === "more") openModal(`<div class="more-sheet"><h2>More</h2>
+        <button class="btn" data-m="guide">${ICON.help} How to play</button>
+        ${fb ? `<button class="btn" data-m="feedback">${ICON.talk} Send feedback</button>` : ""}
+        <button class="btn ghost" data-close>Close</button></div>`, { onOpen: (bg) => $$("[data-m]", bg).forEach((x) => x.addEventListener("click", () => { closeModal(); x.dataset.m === "guide" ? openGuide() : openFeedback(); })) });
+    else go({ name: n });
   }));
 }
 function renderChip() {
@@ -742,18 +815,28 @@ function highlightHtml(src) {
   return out;
 }
 const highlightFor = (lang) => lang === "sql" ? highlightSql : lang === "html" ? highlightHtml : lang === "text" ? esc : highlight;
+const EDITOR_WRAP = window.matchMedia ? matchMedia("(max-width: 640px)") : { matches: false, addEventListener() {} };
 function createEditor(host, code, { onChange, id, lang = "python", readOnly = false } = {}) {
   const paintCode = highlightFor(lang);
   host.innerHTML = `<div class="editor"><div class="gutter" aria-hidden="true"></div><div class="code-scroll"><div class="code-inner"><pre aria-hidden="true"><code></code></pre><textarea id="${id || ""}" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" ${readOnly ? "readonly" : ""} aria-label="${lang === "python" ? "Python" : lang.toUpperCase()} code editor. Press Escape then Tab to leave."></textarea></div></div></div>`;
   const ta = $("textarea", host), pre = $("code", host), gut = $(".gutter", host);
+  // On phones long lines wrap instead of scrolling sideways. A hidden copy of the lines measures how
+  // tall each one wraps, so the line numbers stay next to the line they belong to.
+  const mirror = document.createElement("div");
+  mirror.className = "ed-mirror"; mirror.setAttribute("aria-hidden", "true");
+  $(".code-inner", host).appendChild(mirror);
   let errLine = null, escaped = false;
   const paint = () => {
     pre.innerHTML = paintCode(ta.value) + "\n";
-    const n = ta.value.split("\n").length;
-    let g = "";
-    for (let i = 1; i <= n; i++) g += `<div class="${i === errLine ? "err" : ""}">${i}</div>`;
-    gut.innerHTML = g;
+    const lines = ta.value.split("\n"), wrap = EDITOR_WRAP.matches;
+    let heights = [];
+    if (wrap) {
+      mirror.innerHTML = lines.map((l) => `<div>${esc(l) || " "}</div>`).join("");
+      heights = [...mirror.children].map((d) => d.offsetHeight);
+    }
+    gut.innerHTML = lines.map((_, i) => `<div class="${i + 1 === errLine ? "err" : ""}"${wrap && heights[i] ? ` style="height:${heights[i]}px"` : ""}>${i + 1}</div>`).join("");
   };
+  EDITOR_WRAP.addEventListener("change", paint);
   const insert = (text) => {
     ta.focus();
     if (!document.execCommand || !document.execCommand("insertText", false, text)) {
@@ -848,6 +931,7 @@ async function runInBench(ed, con, runBtn, ctx = {}) {
   const r = await runPython(ed.get(), { ask: () => con.ask(), onOut: (t) => con.write(t), limit: 6000,
     files: ctx.files, env: ctx.env, api: ctx.api, db: ctx.db, modules: ctx.modules, keep: !!ctx.keep });
   runBtn.innerHTML = ICON.play + " Run";
+  if (aiOn() && S.route.name === "level") netLog("run", S.route.id, TT.stage, !r.error, { code: ed.get().slice(0, 4000), out: String(r.out || "").slice(0, 800), err: r.error ? (r.error.name + ": " + (r.error.msg || "")).slice(0, 200) : null, sec: Math.round(TT.ms / 1000) });
   if (r.error) { con.error(r.error); if (r.error.line) ed.mark(r.error.line); }
   else if (!r.out) con.hint(ctx.quiet || "(Your program ran but printed nothing.)");
   if (ctx.after) ctx.after(r);
@@ -897,7 +981,7 @@ function renderLevel(v, id, stage) {
         ${starsHtml(c && c.ok ? c.s : 0)}
       </div>
       ${levelBar(id)}
-      <nav class="stepper" aria-label="Stages">${STAGES.map((st) => `<button class="step" data-stage="${st.id}" ${st.id === stage ? 'aria-current="step"' : ""}><span class="k">${st.fun}</span><span class="v">${stageDone(id, st.id) ? ICON.check : ""}${st.label}</span></button>`).join("")}</nav>
+      <nav class="stepper" aria-label="Stages">${STAGES.map((st) => `<button class="step${stageDone(id, st.id) ? " done" : ""}" data-stage="${st.id}" ${st.id === stage ? 'aria-current="step"' : ""}><span class="k">${st.fun}</span><span class="v">${stageDone(id, st.id) ? ICON.check : ""}${st.label}</span></button>`).join("")}</nav>
     </div>
     <section class="stage" id="stage"></section>
   </div>`;
@@ -917,8 +1001,10 @@ function bindNext(host, L) {
 function afterStage(L) {
   if (levelClear(L.id) && !lv(L.id).d) {
     lv(L.id).d = 1;
+    lv(L.id).dt = today();   // when it was cleared: the Boss Hack only tests levels cleared 2+ days ago
     save();
     celebrate(L);
+    bossHackMaybeSchedule(0.5);
   }
 }
 /* How far through this level: a slim bar over the stage tabs (seeing the end near keeps people going). */

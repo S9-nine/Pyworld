@@ -51,11 +51,19 @@ function renderProfile(v) {
         </div>
         <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete profile"}</button></div>
 
+        ${S.mode === "local" && netConfigured() ? `<hr class="sep">
+        <h3 class="sub">Your data</h3>
+        <div class="ai-consent">
+          <p>We're building an AI tutor for Code Quest. It learns best from how real players solve problems: the code you run, the mistakes you make and fix, and how long things take.</p>
+          <label class="dev-row"><input type="checkbox" id="pAi" ${h.ai && h.ai.on ? "checked" : ""}><span><b>Help train Code Quest's AI tutor with my play</b><br>
+            <span class="muted">Shares the code you run and what happened, only to train and improve Code Quest's own teaching AI. No real name or contact details. You can switch it off any time.${h.ai && h.ai.at ? ` Last changed ${esc(h.ai.at)}.` : ""}</span></span></label>
+          <label class="dev-row" id="pAiAge" ${h.ai && h.ai.on ? "hidden" : ""}><input type="checkbox" id="pAiAdult"><span>I'm 18 or older, or my parent or guardian has said yes.</span></label>
+        </div>` : ""}
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
-          <div class="dev-row dev-bh"><span><b>Boss Hack previews</b><br><span class="muted">Plays over the map. Pick the takeover you like best.</span>
-            <span class="dev-bh-btns"><button class="btn sm" data-bh="swarm">A · Pixel Swarm</button><button class="btn sm" data-bh="glitch">B · Glitch Breach</button><button class="btn sm" data-bh="corrupt">C · Corruption</button><button class="btn sm" data-bh="mix">D · A + B mix</button><button class="btn sm ghost" data-bh="banner">Countdown banner</button></span></span></div>
+          <div class="dev-row dev-bh"><span><b>Boss Hack</b><br><span class="muted">Test the surprise review event. "Now" uses any cleared levels except your newest.</span>
+            <span class="dev-bh-btns"><button class="btn sm" data-bh="now">Boss Hack now</button><button class="btn sm" data-bh="soon">30-second countdown</button><button class="btn sm ghost" data-bh="preview">Takeover only</button></span></span></div>
         </details>
       </div>
     </div>
@@ -79,6 +87,7 @@ function renderProfile(v) {
         <div><b class="num">${h.best}</b><span>Best streak</span></div>
         <div><b class="num">${readiness()}%</b><span>Job-ready</span></div>
       </div>
+      ${h.badges && h.badges.firewall ? `<p class="badges"><span class="dev-tag">BADGE</span> Firewall${h.badges.firewall > 1 ? ` ×${h.badges.firewall}` : ""} <span class="muted">· beat the Boss Hack</span></p>` : ""}
       <p class="muted" style="font-size:12.5px">Questing since ${esc(h.created)}. ${S.mode === "cloud" ? "Saved to your Claude account." : "Saved in this browser, file " + S.slot + "."}</p>`;
     $$("#pChars .char").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.pix === draft.pix)));
     $$("#pCols .swatch").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.col === draft.color)));
@@ -137,10 +146,25 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  const aiBox = $("#pAi", v);
+  if (aiBox) aiBox.addEventListener("change", () => {
+    if (aiBox.checked && !$("#pAiAdult", v).checked) {
+      aiBox.checked = false;
+      toast("Please tick the box below first: you need to be 18+, or have a parent's or guardian's OK.");
+      $("#pAiAdult", v).focus();
+      return;
+    }
+    S.hero.ai = { on: aiBox.checked, at: today(), v: 1 };
+    save();
+    netLog("consent", null, null, aiBox.checked, { ai: aiBox.checked, v: 1 });
+    toast(aiBox.checked ? "Thank you! Your play now helps train the AI tutor." : "Switched off. Nothing more will be shared for the AI tutor.");
+    $("#pAiAge", v).hidden = aiBox.checked;
+  });
   $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
-    const run = { swarm: bossHackSwarm, glitch: bossHackGlitch, corrupt: bossHackCorrupt, mix: bossHackMix, banner: () => bossHackBanner() }[b.dataset.bh];
+    const kind = b.dataset.bh;
     go({ name: "map" });
-    setTimeout(run, 350);
+    if (kind === "soon") { bhState().due = Date.now() + 30e3; bhAutoShown = false; save(); bossHackBanner(); }
+    else setTimeout(() => bossHackTakeover({ preview: kind === "preview" }), 350);
   }));
   $$("[data-feat]", v).forEach((box) => box.addEventListener("change", () => {
     FEATURES[box.dataset.feat] = box.checked;
@@ -207,6 +231,9 @@ function mergeInto(h, o) {
   else if (o.last === h.last) h.streak = Math.max(h.streak, o.streak);
   if (o.created && (!h.created || o.created < h.created)) h.created = o.created;
   for (const [d, x] of Object.entries(o.days || {})) h.days[d] = Math.max(h.days[d] || 0, x);
+  if (o.ai && (!h.ai || (o.ai.at || "") > (h.ai.at || ""))) h.ai = o.ai;
+  if (o.badges) { h.badges = h.badges || {}; for (const [k, n] of Object.entries(o.badges)) h.badges[k] = Math.max(h.badges[k] | 0, n | 0); }
+  if (o.bh && (o.bh.last || "") >= ((h.bh && h.bh.last) || "")) h.bh = Object.assign({}, h.bh, o.bh, { fights: Math.max((h.bh && h.bh.fights) | 0, o.bh.fights | 0), wins: Math.max((h.bh && h.bh.wins) | 0, o.bh.wins | 0) });
   for (const [id, b] of Object.entries(o.lv || {})) {
     const a = (h.lv[id] = h.lv[id] || {});
     if (b.l) a.l = 1;
@@ -215,6 +242,8 @@ function mergeInto(h, o) {
     if (Array.isArray(b.t)) { a.t = a.t || []; b.t.forEach((v, i) => { if (v && (!a.t[i] || v < a.t[i])) a.t[i] = v; }); }
     if (b.c && b.c.ok) a.c = { ok: 1, s: Math.max((a.c && a.c.ok && a.c.s) || 0, b.c.s || 1) };
     if (typeof b.e === "string" && b.e.length > (a.e || "").length) a.e = b.e;
+    if (b.dt && (!a.dt || b.dt < a.dt)) a.dt = b.dt;
+    if (b.bh && (!a.bh || b.bh > a.bh)) a.bh = b.bh;
     if (b.lc && typeof b.lc === "object") {   // Learn cards: keep every guess, run and "your turn" done
       a.lc = a.lc || {};
       for (const [k, x] of Object.entries(b.lc)) {

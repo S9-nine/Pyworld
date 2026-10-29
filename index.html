@@ -842,7 +842,7 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
   .lvl-bar-track i { transition: none; }
 }
 
-/* ───────── Boss Hack (design previews) ───────── */
+/* ───────── Boss Hack (glitch breach takeover, countdown banner, the fight) ───────── */
 body.bh-on { overflow: hidden; }
 body.bh-on > .topbar, body.bh-on #view, body.bh-on .bh-banner { filter: grayscale(.75) brightness(.45); transition: filter .8s; }
 .bh { position: fixed; inset: 0; z-index: 80; overflow: hidden; color: #f4f4f4;
@@ -859,17 +859,6 @@ body.bh-on > .topbar, body.bh-on #view, body.bh-on .bh-banner { filter: grayscal
 .bh .btn.bh-go { background: #ff4a4a; border-color: #ff4a4a; color: #1a0006; }
 .bh .btn.bh-later { background: transparent; color: #f4f4f4; border-color: #6b4a6b; }
 .bh-offer [hidden], .bh-btns[hidden] { display: none; }
-
-/* A · Pixel Swarm */
-.bh-swarm-host i { position: absolute; background: #ff4a4a; box-shadow: 0 0 6px rgb(255 60 60 / .7);
-  transition: transform 1.1s cubic-bezier(.25, .9, .3, 1), background .5s, box-shadow .5s; }
-.bh-swarm-host.formed i { box-shadow: none; }
-.bh-swarm-host.formed { filter: drop-shadow(0 0 18px rgb(255 50 50 / .55)); animation: bh-breathe 2.4s ease-in-out infinite; }
-@keyframes bh-breathe { 50% { filter: drop-shadow(0 0 30px rgb(255 50 50 / .8)); } }
-.bh-swarm-eyes { position: absolute; width: calc(var(--px) * 4); height: var(--px); }
-.bh-swarm-eyes::before, .bh-swarm-eyes::after { content: ""; position: absolute; top: 0; width: var(--px); height: var(--px); background: #ff4a4a; box-shadow: 0 0 14px 4px rgb(255 60 60 / .8); animation: bh-eye-glow 1.2s steps(2) infinite; }
-.bh-swarm-eyes::before { left: 0; } .bh-swarm-eyes::after { right: 0; }
-@keyframes bh-eye-glow { 50% { background: #ffe0e0; } }
 
 /* B · Glitch Breach */
 body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2) infinite; }
@@ -890,21 +879,6 @@ body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2)
 .bh-term .bh-offer { position: static; transform: none; width: auto; padding: 4px 16px 0; }
 .bh-term .bh-name { font-size: 24px; }
 
-/* C · Corruption Spread */
-.bh-corrupt { background: none; }
-.bh-grid { position: absolute; inset: 0; display: grid; grid-auto-rows: 40px; }
-@media (max-width: 640px) { .bh-grid { grid-auto-rows: 30px; } }
-.bh-grid i { background: rgb(6 0 6 / .9); box-shadow: inset 0 0 0 1px rgb(255 60 60 / .35); transform: scale(0); animation: bh-tile .35s steps(3) both; }
-@keyframes bh-tile { to { transform: scale(1.02); } }
-.bh-portal { position: absolute; left: 50%; top: 34%; width: 200px; height: 200px; transform: translate(-50%, -50%); }
-.bh-ring { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgb(255 60 60 / .55), rgb(120 0 30 / .35) 55%, transparent 70%); box-shadow: 0 0 0 3px #ff4a4a, 0 0 50px 10px rgb(255 50 50 / .5); animation: bh-open .6s cubic-bezier(.2, 1.3, .4, 1) both, bh-spin 6s linear infinite; }
-@keyframes bh-open { from { transform: scale(0); } }
-@keyframes bh-spin { to { filter: hue-rotate(25deg); } }
-.bh-rise { position: absolute; left: 50%; bottom: 22px; width: 120px; height: 130px; transform: translateX(-50%); clip-path: inset(-40px -40px 0 -40px); }
-.bh-rise .bh-boss { animation: bh-rise 1s .4s cubic-bezier(.2, .9, .3, 1) both; }
-@keyframes bh-rise { from { transform: translateY(100%); } }
-.bh-corrupt .bh-offer { top: calc(34% + 120px); }
-
 /* Countdown banner */
 .bh-banner { background: repeating-linear-gradient(-45deg, #2a0710 0 14px, #1a040a 14px 28px); border-bottom: 2px solid #ff4a4a; color: #f4f4f4; }
 .bh-banner-in { display: flex; align-items: center; gap: 12px; padding-block: 8px; }
@@ -918,16 +892,103 @@ body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2)
 @media (max-width: 640px) { .bh-banner-txt span { display: none; } .bh-clock { font-size: 17px; } }
 @media (prefers-reduced-motion: reduce) {
   .bh, .bh *, .bh-banner * { animation: none !important; transition: none !important; }
-  .bh-grid i { transform: scale(1.02); }
 }
 .dev-bh { cursor: default; }
 .dev-bh-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.bh-offer.swarm, .bh-offer.corrupt { background: rgb(12 2 8 / .8); border: 1px solid rgb(255 74 74 / .25); border-radius: 14px; padding: 12px 16px 16px; backdrop-filter: blur(3px); }
-/* D · Breach + Swarm: static squares flicker before they fly into the boss; the terminal drops in under it */
-.bh-swarm-host.static i { animation: bh-flick .3s steps(2) infinite; }
-.bh-mix .bh-term { top: auto; transform: translateX(-50%); animation: bh-slam-d .35s cubic-bezier(.2, 1.4, .4, 1) both; }
-@keyframes bh-slam-d { from { transform: translateX(-50%) scale(1.3); opacity: 0; filter: blur(6px); } }
-.bh-mix .bh-term-log { padding: 14px 16px 2px; }
+
+/* ───────── Phones: bottom tab bar, wrapped code, stage tabs that fit ───────── */
+.nav .nav-more { display: none; }
+.nav-ic { display: none; }
+.ed-mirror { position: absolute; left: 0; right: 0; top: 0; visibility: hidden; pointer-events: none; padding: 12px 16px 12px 4px; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
+.more-sheet { display: grid; gap: 10px; }
+.more-sheet h2 { margin: 0 0 4px; }
+.more-sheet .btn { justify-content: flex-start; gap: 10px; }
+.more-sheet .btn svg { width: 18px; height: 18px; }
+@media (max-width: 640px) {
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  /* A blur on the top bar would pin the "fixed" tab bar inside it, so phones get a solid bar instead. */
+  .topbar { backdrop-filter: none; background: var(--bg); }
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; order: 0; width: auto; margin: 0; overflow: visible;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
+  .nav button { flex-direction: column; gap: 3px; padding: 6px 2px 5px; border-radius: 10px; font-size: 11px; position: relative; min-width: 0; }
+  .nav button[aria-current="page"] { box-shadow: none; background: var(--surface-2); color: var(--ink); }
+  .nav button[aria-current="page"] .nav-ic { color: var(--sun); }
+  .nav .nav-extra { display: none; }
+  .nav .nav-more { display: inline-flex; }
+  .nav-ic { display: grid; place-items: center; width: 24px; height: 24px; }
+  .nav-ic svg { width: 22px; height: 22px; }
+  .nav-tx { font-size: 0; }
+  .nav-tx::after { content: attr(data-short); font-size: 11px; }
+  .nav-more .nav-tx { font-size: 11px; }
+  .nav-more .nav-tx::after { content: none; }
+  .nav .badge { position: absolute; top: 2px; right: calc(50% - 22px); font-size: 10px; min-width: 16px; height: 16px; padding: 0 4px; }
+  .toasts { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+  /* Code wraps instead of scrolling sideways */
+  .code-scroll { overflow-x: visible; }
+  .code-inner { display: block; }
+  .code-inner pre, .code-inner textarea { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .editor { font-size: 13px; line-height: 20px; }
+  .gutter { min-width: 32px; padding: 12px 6px 12px 8px; }
+  .gutter div { line-height: 20px; }
+  /* Stage tabs: a green tab instead of a tick, so every name fits */
+  .step .v svg { display: none; }
+  .step .v { font-size: 12.5px; }
+  .step.done { background: var(--grass-soft); border-color: color-mix(in srgb, var(--grass) 50%, var(--line)); }
+  .step.done .v { color: var(--grass); }
+}
+
+/* ───────── Floating chat button + panel, Guild Master tag ───────── */
+.chat-fab { position: relative; width: 40px; height: 40px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.chat-fab svg { width: 20px; height: 20px; }
+.chat-fab:hover, .chat-fab.on { border-color: var(--sun); color: var(--sun); }
+.chat-fab .badge { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; font-size: 10.5px; min-width: 18px; height: 18px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px; font-weight: 700; }
+.chat-panel-bg { position: fixed; inset: 0; z-index: 44; background: rgb(8 14 26 / .35); }
+.chat-panel { position: fixed; z-index: 45; top: 0; right: 0; bottom: 0; width: min(400px, 100%); background: var(--bg); border-left: 1px solid var(--line); box-shadow: -10px 0 30px rgb(0 0 0 / .25);
+  display: grid; grid-template-rows: auto minmax(0, 1fr); padding: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px)); gap: 8px; animation: cp-in .22s ease-out both; }
+@keyframes cp-in { from { transform: translateX(40px); opacity: 0; } }
+.cp-head { display: flex; align-items: center; gap: 8px; }
+.cp-name, .cp-pick { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; }
+.cp-pick { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; }
+.cp-x { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
+.chat-panel .chat { min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto auto auto; }
+.chat-panel .chat-list { height: auto; min-height: 0; }
+body.cp-on { overflow: hidden; }
+.gm-tag { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 1px 6px; border-radius: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: var(--sun-ink); background: var(--sun); vertical-align: 1px; white-space: nowrap; }
+.gm-tag svg { width: 11px; height: 11px; }
+@media (max-width: 640px) {
+  .chat-fab { width: 36px; height: 36px; }
+  .chat-panel { width: 100%; border-left: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { .chat-panel { animation: none; } }
+
+/* Boss Hack fight, inside the terminal */
+.bh-term { max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }
+.bh-term .bh-offer, .bh-q, .bh-result { position: static; transform: none; width: auto; padding: 4px 16px 0; text-align: left; }
+.bh-term .bh-offer { text-align: center; }
+.bh-q { display: grid; gap: 10px; }
+.bh-q h3 { margin: 0; font-size: 17px; color: #f4f4f4; }
+.bh-q-head { margin: 0; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font: 600 12.5px var(--font-code); color: #ff8a8a; }
+.bh-q-dots { display: flex; gap: 5px; }
+.bh-q-dots i { width: 22px; height: 6px; border-radius: 3px; background: #3a1a28; }
+.bh-q-dots i.on { background: #ffcd75; } .bh-q-dots i.ok { background: #38b764; } .bh-q-dots i.miss { background: #ff4a4a; }
+.bh-q .opt { background: #140910; border-color: #4a2333; color: #f4f4f4; }
+.bh-q .opt .l { background: #2a0a12; border-color: #4a2333; color: #ffcd75; }
+.bh-q .why { color: #1a1c2c; }
+.bh-q-nav { display: flex; justify-content: flex-end; gap: 8px; }
+.bh-q-nav .btn.primary, .bh-result .btn.primary { background: #ff4a4a; border-color: #ff4a4a; color: #1a0006; }
+.bh-result { display: grid; gap: 10px; text-align: center; }
+.bh-result .bh-term-log { text-align: left; }
+.bh-result.won .bh-term-log { color: #6bffa0; }
+.bh-score { margin: 0; font-family: var(--font-display); font-size: 26px; color: #ffcd75; }
+.bh-badge { margin: 0; font-weight: 700; color: #f4f4f4; }
+.bh-review { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.bh-review .btn { background: transparent; color: #f4f4f4; border-color: #6b4a6b; }
+.bh-fight { background: #ff4a4a; border-color: #ff4a4a; color: #1a0006; font-family: var(--font-body); font-size: 13px; letter-spacing: 0; }
+.badges { margin: 4px 0 0; font-weight: 600; }
+@media (max-width: 640px) { .bh-term-body { grid-template-columns: 52px 1fr; } .bh-term-boss { width: 52px; height: 58px; } .bh-term-log { font-size: 12.5px; } }
+.ai-consent p { margin: 0 0 6px; font-size: 14px; }
+.ai-consent .dev-row[hidden] { display: none; }
 
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
@@ -948,6 +1009,7 @@ body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2)
     <nav class="nav" id="nav" aria-label="Main"></nav>
     <div class="top-right">
       <span class="sync" id="sync" data-s="local">Starting</span>
+      <div id="chatBtnSlot"></div>
       <div id="chipSlot"></div>
     </div>
   </div>
@@ -14257,7 +14319,7 @@ function cleanHero(d) {
   h.role = clampInt(d.role, 0, 5);
   for (const k of ["xp", "streak", "best", "stars", "done", "spent"]) h[k] = clampInt(d[k], 0, 1e7);
   for (const k of ["last", "cur", "created"]) if (typeof d[k] === "string") h[k] = d[k].slice(0, 12);
-  for (const k of ["days", "lv", "cards", "home", "ext"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
+  for (const k of ["days", "lv", "cards", "home", "ext", "bh", "badges", "ai"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
   return h;
 }
 function clampInt(v, lo, hi) { v = Math.round(Number(v)); return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo; }
@@ -14480,14 +14542,74 @@ function confetti() {
 }
 
 /* ───────── Router ───────── */
-function go(route) {
+/* Phone Back button / swipe: every screen change adds a browser history entry (#level/1-1/code), so Back
+   returns to the previous screen and its scroll position instead of leaving the site. If a pop-up,
+   the chat panel or a takeover is open, Back closes that first and stays on the page. */
+const routeHash = (r) => "#" + [r.name, r.id, r.stage].filter((x) => x != null && x !== "").join("/");
+function hashRoute(h) {
+  const [name, id, stage] = String(h || "").replace(/^#\/?/, "").split("/").map(decodeURIComponent);
+  if (!name || !/^(map|world|level|review|guild|profile)$/.test(name)) return null;
+  const r = { name };
+  if (id) r.id = name === "world" ? +id : id;
+  if (stage) r.stage = stage;
+  return r;
+}
+function go(route, { replace = false } = {}) {
   S.route = route;
+  if (S.hero) {
+    try {
+      const h = routeHash(route), same = location.hash === h;
+      if (!replace && !same) history.replaceState(Object.assign({}, history.state, { y: scrollY }), "");
+      history[replace || same ? "replaceState" : "pushState"]({ cq: route, y: 0 }, "", h);
+    } catch (_) {}
+  }
   render();
   window.scrollTo({ top: 0 });
 }
+/* ───────── Time on task ─────────
+   How long each stage really takes: counted in 15-second ticks, only while the game is on screen and
+   the player did something in the last 90 seconds. Logged when they leave the stage or the page. */
+const TT = { key: null, id: null, stage: null, ms: 0, input: Date.now() };
+function ttFlush(keepGoing = false) {
+  if (TT.key && TT.ms >= 15000 && typeof netLog === "function") netLog("time", TT.id, TT.stage, stageDone(TT.id, TT.stage), { ms: TT.ms });
+  TT.ms = 0;
+  if (!keepGoing) TT.key = null;
+}
+function ttTrack() {
+  const r = S.route, cur = r.name === "level" && S.hero ? $(".step[aria-current='step']") : null;
+  const key = cur ? r.id + "/" + cur.dataset.stage : null;
+  if (key === TT.key) return;
+  ttFlush();
+  if (key) Object.assign(TT, { key, id: r.id, stage: cur.dataset.stage, ms: 0, input: Date.now() });
+}
+["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, () => { TT.input = Date.now(); }, { passive: true, capture: true }));
+setInterval(() => { if (TT.key && !document.hidden && Date.now() - TT.input < 90000) TT.ms += 15000; }, 15000);
+document.addEventListener("visibilitychange", () => { if (document.hidden) ttFlush(true); });
+/* Learning traces for a future AI tutor: only for players who switched it on in Profile → Your data. */
+const aiOn = () => !!(S.hero && S.hero.ai && S.hero.ai.on);
+
+function closeTopLayer() {
+  if ($(".bh")) { bhEnd(); return true; }
+  if ($("#modalBg")) { closeModal(); return true; }
+  if (typeof chatPanelOpen === "function" && chatPanelOpen()) { closeChatPanel(); return true; }
+  return false;
+}
+window.addEventListener("popstate", (e) => {
+  if (!S.hero) return;
+  if (closeTopLayer()) {   // Back closed something: put the screen we're on back in the history
+    try { history.pushState({ cq: S.route, y: scrollY }, "", routeHash(S.route)); } catch (_) {}
+    return;
+  }
+  const r = (e.state && e.state.cq) || hashRoute(location.hash) || { name: "map" };
+  S.route = r;
+  render();
+  const y = (e.state && e.state.y) || 0;
+  requestAnimationFrame(() => window.scrollTo({ top: y }));
+});
 function render() {
   renderNav();
   renderChip();
+  renderChatBtn();
   const r = S.route, v = $("#view");
   if (!S.hero) return renderTitle(v);
   if (r.name === "map") renderHome(v);
@@ -14498,6 +14620,8 @@ function render() {
   else if (r.name === "profile") renderProfile(v);
   else renderHome(v);
   fixSvgVars(v);
+  bossHackBanner();
+  ttTrack();
 }
 /* Move CSS variables out of SVG presentation attributes into style, where every browser resolves them. */
 function fixSvgVars(root) {
@@ -14514,16 +14638,27 @@ function renderNav() {
   if (!S.hero) { nav.innerHTML = ""; return; }
   const due = dueCards().length;
   const cur = S.route.name === "level" || S.route.name === "world" ? "map" : S.route.name;
-  nav.innerHTML = `
-    <button data-nav="map" ${cur === "map" ? 'aria-current="page"' : ""}>Map</button>
-    <button data-nav="review" ${cur === "review" ? 'aria-current="page"' : ""}>Memory Dungeon ${due ? `<span class="badge">${due}</span>` : ""}</button>
-    <button data-nav="guild" ${cur === "guild" ? 'aria-current="page"' : ""}>Guild</button>
-    <button data-nav="profile" ${cur === "profile" ? 'aria-current="page"' : ""}>Profile</button>
-    <button data-nav="guide">How to play</button>
-    ${netConfigured() && S.mode === "local" ? '<button data-nav="feedback">Feedback</button>' : ""}`;
+  // On phones this becomes a tab bar along the bottom (icons + short names); the less-used items move
+  // into "More", so nothing hides off the edge of the screen.
+  const tab = (n, icon, long, short, extra = "") => `<button data-nav="${n}" ${cur === n ? 'aria-current="page"' : ""}><span class="nav-ic">${icon}</span><span class="nav-tx" data-short="${short}">${long}</span>${extra}</button>`;
+  const fb = netConfigured() && S.mode === "local";
+  nav.innerHTML =
+    tab("map", ICON.map, "Map", "Map") +
+    tab("review", ICON.cards, "Memory Dungeon", "Dungeon", due ? `<span class="badge">${due}</span>` : "") +
+    tab("guild", ICON.people, "Guild", "Guild") +
+    tab("profile", pixelSvg(S.hero.pix), "Profile", "Profile") +
+    `<button class="nav-extra" data-nav="guide">How to play</button>` +
+    (fb ? `<button class="nav-extra" data-nav="feedback">Feedback</button>` : "") +
+    `<button class="nav-more" data-nav="more" aria-label="More"><span class="nav-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></span><span class="nav-tx">More</span></button>`;
   $$("[data-nav]", nav).forEach((b) => b.addEventListener("click", () => {
     const n = b.dataset.nav;
-    if (n === "guide") openGuide(); else if (n === "feedback") openFeedback(); else go({ name: n });
+    if (n === "guide") openGuide();
+    else if (n === "feedback") openFeedback();
+    else if (n === "more") openModal(`<div class="more-sheet"><h2>More</h2>
+        <button class="btn" data-m="guide">${ICON.help} How to play</button>
+        ${fb ? `<button class="btn" data-m="feedback">${ICON.talk} Send feedback</button>` : ""}
+        <button class="btn ghost" data-close>Close</button></div>`, { onOpen: (bg) => $$("[data-m]", bg).forEach((x) => x.addEventListener("click", () => { closeModal(); x.dataset.m === "guide" ? openGuide() : openFeedback(); })) });
+    else go({ name: n });
   }));
 }
 function renderChip() {
@@ -14907,18 +15042,28 @@ function highlightHtml(src) {
   return out;
 }
 const highlightFor = (lang) => lang === "sql" ? highlightSql : lang === "html" ? highlightHtml : lang === "text" ? esc : highlight;
+const EDITOR_WRAP = window.matchMedia ? matchMedia("(max-width: 640px)") : { matches: false, addEventListener() {} };
 function createEditor(host, code, { onChange, id, lang = "python", readOnly = false } = {}) {
   const paintCode = highlightFor(lang);
   host.innerHTML = `<div class="editor"><div class="gutter" aria-hidden="true"></div><div class="code-scroll"><div class="code-inner"><pre aria-hidden="true"><code></code></pre><textarea id="${id || ""}" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" ${readOnly ? "readonly" : ""} aria-label="${lang === "python" ? "Python" : lang.toUpperCase()} code editor. Press Escape then Tab to leave."></textarea></div></div></div>`;
   const ta = $("textarea", host), pre = $("code", host), gut = $(".gutter", host);
+  // On phones long lines wrap instead of scrolling sideways. A hidden copy of the lines measures how
+  // tall each one wraps, so the line numbers stay next to the line they belong to.
+  const mirror = document.createElement("div");
+  mirror.className = "ed-mirror"; mirror.setAttribute("aria-hidden", "true");
+  $(".code-inner", host).appendChild(mirror);
   let errLine = null, escaped = false;
   const paint = () => {
     pre.innerHTML = paintCode(ta.value) + "\n";
-    const n = ta.value.split("\n").length;
-    let g = "";
-    for (let i = 1; i <= n; i++) g += `<div class="${i === errLine ? "err" : ""}">${i}</div>`;
-    gut.innerHTML = g;
+    const lines = ta.value.split("\n"), wrap = EDITOR_WRAP.matches;
+    let heights = [];
+    if (wrap) {
+      mirror.innerHTML = lines.map((l) => `<div>${esc(l) || " "}</div>`).join("");
+      heights = [...mirror.children].map((d) => d.offsetHeight);
+    }
+    gut.innerHTML = lines.map((_, i) => `<div class="${i + 1 === errLine ? "err" : ""}"${wrap && heights[i] ? ` style="height:${heights[i]}px"` : ""}>${i + 1}</div>`).join("");
   };
+  EDITOR_WRAP.addEventListener("change", paint);
   const insert = (text) => {
     ta.focus();
     if (!document.execCommand || !document.execCommand("insertText", false, text)) {
@@ -15013,6 +15158,7 @@ async function runInBench(ed, con, runBtn, ctx = {}) {
   const r = await runPython(ed.get(), { ask: () => con.ask(), onOut: (t) => con.write(t), limit: 6000,
     files: ctx.files, env: ctx.env, api: ctx.api, db: ctx.db, modules: ctx.modules, keep: !!ctx.keep });
   runBtn.innerHTML = ICON.play + " Run";
+  if (aiOn() && S.route.name === "level") netLog("run", S.route.id, TT.stage, !r.error, { code: ed.get().slice(0, 4000), out: String(r.out || "").slice(0, 800), err: r.error ? (r.error.name + ": " + (r.error.msg || "")).slice(0, 200) : null, sec: Math.round(TT.ms / 1000) });
   if (r.error) { con.error(r.error); if (r.error.line) ed.mark(r.error.line); }
   else if (!r.out) con.hint(ctx.quiet || "(Your program ran but printed nothing.)");
   if (ctx.after) ctx.after(r);
@@ -15062,7 +15208,7 @@ function renderLevel(v, id, stage) {
         ${starsHtml(c && c.ok ? c.s : 0)}
       </div>
       ${levelBar(id)}
-      <nav class="stepper" aria-label="Stages">${STAGES.map((st) => `<button class="step" data-stage="${st.id}" ${st.id === stage ? 'aria-current="step"' : ""}><span class="k">${st.fun}</span><span class="v">${stageDone(id, st.id) ? ICON.check : ""}${st.label}</span></button>`).join("")}</nav>
+      <nav class="stepper" aria-label="Stages">${STAGES.map((st) => `<button class="step${stageDone(id, st.id) ? " done" : ""}" data-stage="${st.id}" ${st.id === stage ? 'aria-current="step"' : ""}><span class="k">${st.fun}</span><span class="v">${stageDone(id, st.id) ? ICON.check : ""}${st.label}</span></button>`).join("")}</nav>
     </div>
     <section class="stage" id="stage"></section>
   </div>`;
@@ -15082,8 +15228,10 @@ function bindNext(host, L) {
 function afterStage(L) {
   if (levelClear(L.id) && !lv(L.id).d) {
     lv(L.id).d = 1;
+    lv(L.id).dt = today();   // when it was cleared: the Boss Hack only tests levels cleared 2+ days ago
     save();
     celebrate(L);
+    bossHackMaybeSchedule(0.5);
   }
 }
 /* How far through this level: a slim bar over the stage tabs (seeing the end near keeps people going). */
@@ -16124,10 +16272,10 @@ function loadScript(src) {
 })();
 
 /* ───────── Boss Hack: a surprise review event ─────────
-   At a random time a countdown appears; at zero the world's boss "hacks in" with a few questions from
-   levels the player cleared a while ago (being tested on older material is what makes it stick).
-   For now these are design previews, started from Profile → DEV: three takeover animations to choose
-   from (A Pixel Swarm, B Glitch Breach, C Corruption Spread, D = A and B mixed) and the countdown banner. */
+   Every few days, at a random time, a countdown appears on the map. At zero the world's boss "hacks
+   in" (the glitch-breach takeover) and plants bugs in levels the player cleared a while ago: being
+   tested on older material is what makes it stick. Beat 4 questions (one miss allowed) for bonus XP and
+   a Firewall badge. State lives in the save as hero.bh = { due, last, fights, wins } and hero.badges. */
 const BOSS_ROWS = [
   "....kkkk....",
   "...kppppk...",
@@ -16144,6 +16292,8 @@ const BOSS_ROWS = [
   ".kkkk..kkkk."
 ];
 const BOSS_PAL = { k: "#1a1c2c", p: "#5d275d", d: "#b13e53", r: "#ff4a4a" };
+const BOSS_XP = { win: 40, try: 10 };
+const BOSS_QUESTION_TYPES = ["mcq", "multi", "predict", "spot", "fill", "match", "trace", "order"];
 function bossSvg(cls = "") {
   return `<svg class="bh-boss ${cls}" viewBox="-1 -1 14 15" shape-rendering="crispEdges" aria-hidden="true">${PX.sprite(BOSS_ROWS, 0, 0, 1, BOSS_PAL)}
     <rect class="bh-eye" x="4" y="5" width="1" height="1" fill="#ff4a4a"/><rect class="bh-eye" x="7" y="5" width="1" height="1" fill="#ff4a4a"/></svg>`;
@@ -16155,33 +16305,47 @@ async function bhType(el, text, speed = 28) {
   el.textContent = "";
   for (const ch of text) { el.textContent += ch; await new Promise((r) => setTimeout(r, ch === "." || ch === "?" ? speed * 6 : speed)); }
 }
-/* What the boss says, using the player's real progress. */
+const bhState = () => (S.hero.bh = S.hero.bh || { due: 0, last: "", fights: 0, wins: 0 });
+const daysSince = (key) => (key ? Math.round((new Date(today()) - new Date(key)) / 864e5) : 999);
+
+/* ── Which questions: from levels cleared a while ago ──
+   Skips the newest cleared level and anything cleared in the last 2 days. Half the picks come from the
+   weakest levels (few stars, wrong riddles, hints), half from the ones practised longest ago, and the
+   last is a "boss round" (a predict / trace / spot-the-bug riddle when there is one). */
+function bossPicks(n = 4, relaxed = false) {
+  const cleared = LEVELS.filter((l) => levelClear(l.id) && (l.think || []).some((q) => BOSS_QUESTION_TYPES.includes(q.type)));
+  const newest = cleared[cleared.length - 1];
+  const pool = cleared.filter((l) => l !== newest && (relaxed || daysSince(lv(l.id).dt) >= 2));
+  if (pool.length < 2) return null;
+  const weak = (l) => { const s = lv(l.id); return (3 - ((s.c && s.c.s) || 1)) * 2 + (s.t || []).filter((x) => x === 2).length + ((s.cm && s.cm.h) | 0) + ((s.bm && s.bm.h) | 0); };
+  const last = (l) => lv(l.id).bh || lv(l.id).dt || "";
+  const byWeak = [...pool].sort((a, b) => weak(b) - weak(a)), byOld = [...pool].sort((a, b) => (last(a) < last(b) ? -1 : 1));
+  const levels = [];
+  for (let i = 0; levels.length < n && i < n * 4; i++) {
+    const from = i % 2 === 0 ? byWeak : byOld, l = from[Math.floor(i / 2) % from.length];
+    if (!levels.includes(l) || pool.length < n) levels.push(l);
+  }
+  const used = new Set();
+  return levels.map((L, i) => {
+    const boss = i === levels.length - 1;
+    let qs = L.think.map((q, k) => ({ q, k })).filter(({ q, k }) => BOSS_QUESTION_TYPES.includes(q.type) && !used.has(L.id + k));
+    if (boss && qs.some(({ q }) => ["predict", "trace", "spot"].includes(q.type))) qs = qs.filter(({ q }) => ["predict", "trace", "spot"].includes(q.type));
+    const pick = qs[Math.floor(Math.random() * qs.length)] || { q: L.think[0], k: 0 };
+    used.add(L.id + pick.k);
+    return { L, q: pick.q, boss };
+  });
+}
 function bhLines() {
   const h = S.hero, w = currentWorld();
   const done = LEVELS.filter((l) => levelClear(l.id)).length;
   return {
     boss: w.boss || "The Gatekeeper", place: w.name,
     taunt: `Heh. ${done || "A few"} level${done === 1 ? "" : "s"} cleared, ${h.name}… but do you still REMEMBER them?`,
-    deal: "3 quick questions from levels you beat a while ago. Win, and you earn bonus XP and the Firewall badge."
+    deal: `I've planted 4 bugs in levels you beat a while ago. Squash them (one miss allowed) for +${BOSS_XP.win} XP and the Firewall badge.`
   };
 }
-/* Shared ending: the boss's words and the two choices. */
-function bhOffer(o, t, cls = "") {
-  const box = document.createElement("div");
-  box.className = "bh-offer " + cls;
-  box.innerHTML = `<p class="bh-name">${esc(t.boss)}</p><p class="bh-say" id="bhSay"></p><p class="bh-deal" hidden>${esc(t.deal)}</p>
-    <div class="bh-btns" hidden><button class="btn primary bh-go" type="button">Face the boss</button><button class="btn bh-later" type="button">Not now</button></div>`;
-  o.appendChild(box);
-  return (async () => {
-    await bhType($("#bhSay", box), t.taunt);
-    $(".bh-deal", box).hidden = false; $(".bh-btns", box).hidden = false;
-    $(".bh-go", box).focus();
-    // Close the whole takeover, not just the box the words sit in (in B that's the terminal).
-    const close = () => bhEnd(box.closest(".bh"));
-    $(".bh-go", box).addEventListener("click", () => { close(); toast("Preview: this is where the boss's questions start."); });
-    $(".bh-later", box).addEventListener("click", () => { close(); toast("Preview: the boss waits, and the countdown keeps running."); });
-  })();
-}
+
+/* ── The takeover (design B: glitch breach) ── */
 function bhStart(variant) {
   bhEnd();
   const o = document.createElement("div");
@@ -16195,50 +16359,11 @@ function bhStart(variant) {
 function bhEnd(o) {
   (o ? [o] : $$(".bh")).forEach((x) => x.remove());
   document.body.classList.remove("bh-on", "bh-shake");
+  if (S.hero && S.route.name === "map") bossHackBanner();
 }
-
-/* Red squares fly in and snap together into the boss, one square per pixel of the sprite. They start at
-   the screen edges (A) or scattered across the screen like static (D). Resolves once the boss is formed. */
-async function bhFormBoss(o, x0, y0, px, from = "edges", hold = 250) {
-  const host = document.createElement("div"); host.className = "bh-swarm-host"; o.appendChild(host);
-  const bits = [];
-  BOSS_ROWS.forEach((row, j) => [...row].forEach((ch, i) => {
-    if (ch === ".") return;
-    const b = document.createElement("i");
-    const side = Math.floor(Math.random() * 4);
-    const sx = from === "scatter" ? Math.random() * innerWidth : side === 0 ? -40 : side === 1 ? innerWidth + 40 : Math.random() * innerWidth;
-    const sy = from === "scatter" ? Math.random() * innerHeight : side === 2 ? -40 : side === 3 ? innerHeight + 40 : Math.random() * innerHeight;
-    const tx = x0 + i * px, ty = y0 + j * px;
-    b.style.cssText = `left:${tx}px;top:${ty}px;width:${px}px;height:${px}px;transform:translate(${sx - tx}px,${sy - ty}px) rotate(${Math.random() * 180 - 90}deg);transition-delay:${(Math.random() * 0.7).toFixed(2)}s`;
-    b.dataset.c = BOSS_PAL[ch];
-    host.appendChild(b); bits.push(b);
-  }));
-  if (from === "scatter") host.classList.add("static");
-  await bhWait(hold);
-  host.classList.remove("static");
-  bits.forEach((b) => { b.style.transform = "none"; });
-  await bhWait(1500);
-  bits.forEach((b) => { b.style.background = b.dataset.c; });
-  host.classList.add("formed");
-  const eyes = document.createElement("div"); eyes.className = "bh-swarm-eyes";
-  eyes.style.cssText = `left:${x0 + 4 * px}px;top:${y0 + 5 * px}px;--px:${px}px`;
-  o.appendChild(eyes);
-}
-const bhPx = () => Math.max(9, Math.min(16, Math.floor(Math.min(innerWidth, innerHeight) / 34)));
-
-/* A · Pixel Swarm: red squares fly in from every edge and snap together into the boss. */
-async function bossHackSwarm() {
-  const o = bhStart("swarm"), t = bhLines();
-  const px = bhPx(), x0 = (innerWidth - 12 * px) / 2, y0 = Math.max(70, innerHeight * 0.2);
-  await bhFormBoss(o, x0, y0, px, "edges");
-  await bhWait(500);
-  const offer = bhOffer(o, t, "swarm");
-  $(".bh-offer", o).style.top = (y0 + 14 * px) + "px";
-  return offer;
-}
-
-/* B · Glitch Breach: the screen glitches and shakes, red static flickers, and a hacked terminal drops in. */
-async function bossHackGlitch() {
+async function bossHackTakeover({ preview = false } = {}) {
+  const picks = preview ? null : bossPicks(4, true);
+  if (!preview && !picks) return toast("Clear a few more levels first: the boss only tests older ones.");
   const o = bhStart("glitch"), t = bhLines();
   o.innerHTML = `<div class="bh-scan"></div>${Array.from({ length: 6 }, (_, i) => `<div class="bh-slice" style="top:${8 + i * 15 + Math.random() * 6}%;height:${2 + Math.random() * 6}%;animation-delay:${(Math.random() * 0.4).toFixed(2)}s"></div>`).join("")}
     <div class="bh-static">${Array.from({ length: 70 }, () => { const s = 4 + Math.floor(Math.random() * 16); return `<i style="left:${Math.random() * 100}%;top:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`; }).join("")}</div>`;
@@ -16248,79 +16373,115 @@ async function bossHackGlitch() {
   const term = document.createElement("div");
   term.className = "bh-term";
   term.innerHTML = `<div class="bh-term-bar"><i></i><i></i><i></i><span>boss.exe</span></div>
-    <div class="bh-term-body"><div class="bh-term-boss">${bossSvg()}</div><pre class="bh-term-log" id="bhLog"></pre></div>`;
+    <div class="bh-term-body"><div class="bh-term-boss">${bossSvg()}</div><pre class="bh-term-log"></pre></div><div class="bh-term-main"></div>`;
   o.appendChild(term);
   await bhWait(450);
-  await bhType($("#bhLog", term), `> WARNING: intrusion detected\n> ${t.boss.toUpperCase()} has hacked ${t.place}\n> planting bugs in your old levels...`, 22);
+  await bhType($(".bh-term-log", term), `> WARNING: intrusion detected\n> ${t.boss.toUpperCase()} has hacked ${t.place}\n> planting bugs in your old levels...`, 22);
   await bhWait(300);
-  return bhOffer(term, t, "glitch");
+  const main = $(".bh-term-main", term);
+  main.innerHTML = `<div class="bh-offer"><p class="bh-name">${esc(t.boss)}</p><p class="bh-say"></p><p class="bh-deal" hidden>${esc(t.deal)}</p>
+    <div class="bh-btns" hidden><button class="btn primary bh-go" type="button">Face the boss</button><button class="btn bh-later" type="button">Not now</button></div></div>`;
+  await bhType($(".bh-say", main), t.taunt);
+  $(".bh-deal", main).hidden = false; $(".bh-btns", main).hidden = false;
+  $(".bh-go", main).focus();
+  $(".bh-go", main).addEventListener("click", () => (preview ? (bhEnd(o), toast("Preview: this is where the boss's questions start.")) : bossHackFight(o, main, picks)));
+  $(".bh-later", main).addEventListener("click", () => { bhEnd(o); if (!preview) toast(`${t.boss} is waiting on the map. Face him when you're ready.`); });
 }
 
-/* C · Corruption Spread: dark tiles infect the screen from a corner, then a red portal opens and the boss rises. */
-async function bossHackCorrupt() {
-  const o = bhStart("corrupt"), t = bhLines();
-  const size = innerWidth < 640 ? 30 : 40, cols = Math.ceil(innerWidth / size), rows = Math.ceil(innerHeight / size);
-  const grid = document.createElement("div"); grid.className = "bh-grid";
-  grid.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
-  const far = Math.hypot(cols, rows);
-  let html = "";
-  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
-    const d = Math.hypot(cols - x, y) / far;
-    html += `<i style="animation-delay:${(d * 1.3 + Math.random() * 0.25).toFixed(2)}s"></i>`;
-  }
-  grid.innerHTML = html;
-  o.appendChild(grid);
-  await bhWait(1800);
-  const portal = document.createElement("div");
-  portal.className = "bh-portal";
-  portal.innerHTML = `<div class="bh-ring"></div><div class="bh-rise">${bossSvg()}</div>`;
-  o.appendChild(portal);
-  await bhWait(1300);
-  return bhOffer(o, t, "corrupt");
+/* ── The fight: 4 questions inside the hacked terminal ── */
+function bossHackFight(o, main, picks) {
+  const t = bhLines();
+  let i = 0, right = 0;
+  const missed = [];
+  netLog("bosshack", null, null, null, { start: true, levels: picks.map((p) => p.L.id) });
+  const show = () => {
+    const { L, q, boss } = picks[i];
+    main.innerHTML = `<div class="bh-q">
+      <p class="bh-q-head"><span>&gt; ${boss ? "BOSS ROUND" : `bug ${i + 1} of ${picks.length}`}</span><span>planted in ${esc(L.world + "-" + L.n)} ${esc(L.title)}</span></p>
+      <div class="bh-q-dots">${picks.map((_, k) => `<i class="${k < i ? (missed.includes(k) ? "miss" : "ok") : k === i ? "on" : ""}"></i>`).join("")}</div>
+      <h3>${q.q}</h3>
+      ${q.code && !["spot", "fill"].includes(q.type) ? `<pre class="sample">${highlightFor(q.lang)(q.code)}</pre>` : ""}
+      <div class="bh-q-body"></div><div class="bh-q-why"></div><div class="bh-q-nav"></div></div>`;
+    const body = $(".bh-q-body", main), why = $(".bh-q-why", main), nav = $(".bh-q-nav", main);
+    const k = {
+      done: false, was: 0, nav,
+      checkBtn: (label, fn) => { nav.innerHTML = `<button class="btn primary">${label}</button>`; $("button", nav).addEventListener("click", fn); },
+      answered: (correct) => {
+        netLog("bosshack", L.id, "think", correct, { q: L.think.indexOf(q), boss });
+        if (correct) right++; else missed.push(i);
+        why.innerHTML = `<div class="why ${correct ? "good" : ""}"><b>${correct ? "Bug squashed!" : "The bug survives."}</b>${q.why}</div>`;
+        const last = i === picks.length - 1;
+        nav.innerHTML = `<button class="btn primary">${last ? "See the result" : "Next bug"}</button>`;
+        $("button", nav).addEventListener("click", () => { if (last) finish(); else { i++; show(); main.scrollTop = 0; } });
+      }
+    };
+    (THINK[q.type] || THINK.mcq)(q, body, k);
+    fixSvgVars(main);
+  };
+  const finish = () => {
+    const won = right >= picks.length - 1, b = bhState();
+    b.due = 0; b.last = today(); b.fights = (b.fights | 0) + 1;
+    picks.forEach(({ L }) => { lv(L.id).bh = today(); });
+    if (won) { b.wins = (b.wins | 0) + 1; S.hero.badges = S.hero.badges || {}; S.hero.badges.firewall = (S.hero.badges.firewall | 0) + 1; }
+    addXP(won ? BOSS_XP.win : BOSS_XP.try, won ? "Boss Hack defeated" : "Fought the Boss Hack");
+    netLog("bosshack", null, null, won, { right, of: picks.length, levels: picks.map((p) => p.L.id) });
+    const review = [...new Set(missed.map((k) => picks[k].L))];
+    main.innerHTML = `<div class="bh-result ${won ? "won" : ""}">
+      <pre class="bh-term-log">${won ? `> FIREWALL RESTORED\n> ${esc(t.boss.toUpperCase())} retreats from ${esc(t.place)}` : `> ${esc(t.boss.toUpperCase())} escaped... for now`}</pre>
+      <p class="bh-score">${right} of ${picks.length} bugs squashed</p>
+      ${won ? `<p class="bh-badge"><span class="dev-tag">BADGE</span> Firewall${S.hero.badges.firewall > 1 ? ` ×${S.hero.badges.firewall}` : ""} · +${BOSS_XP.win} XP</p>` : `<p class="bh-deal">+${BOSS_XP.try} XP for fighting. These levels deserve a quick look:</p>`}
+      ${review.length ? `<div class="bh-review">${review.map((L) => `<button class="btn sm" data-review="${esc(L.id)}">Review ${esc(L.world + "-" + L.n)} ${esc(L.title)}</button>`).join("")}</div>` : ""}
+      <div class="bh-btns"><button class="btn primary bh-done" type="button">Back to the map</button></div></div>`;
+    if (won) confetti();
+    $(".bh-done", main).addEventListener("click", () => bhEnd(o));
+    $$("[data-review]", main).forEach((x) => x.addEventListener("click", () => { bhEnd(o); go({ name: "level", id: x.dataset.review, stage: "learn" }); }));
+    save();
+  };
+  show();
 }
 
-/* D · Breach + Swarm (A and B mixed): the screen glitches and red static flickers, the static flies
-   together into the boss, then the hacked terminal slams in underneath and types its warning. */
-async function bossHackMix() {
-  const o = bhStart("mix"), t = bhLines();
-  o.innerHTML = `<div class="bh-scan"></div>${Array.from({ length: 6 }, (_, i) => `<div class="bh-slice" style="top:${8 + i * 15 + Math.random() * 6}%;height:${2 + Math.random() * 6}%;animation-delay:${(Math.random() * 0.4).toFixed(2)}s"></div>`).join("")}`;
-  document.body.classList.add("bh-shake");
-  const px = Math.max(8, Math.min(14, Math.floor(Math.min(innerWidth, innerHeight) / 40)));
-  const x0 = (innerWidth - 12 * px) / 2, y0 = Math.max(56, innerHeight * 0.08);
-  await bhWait(200);
-  const formed = bhFormBoss(o, x0, y0, px, "scatter", 1300);   // static flickers, then flies together
-  await bhWait(1500);
-  document.body.classList.remove("bh-shake");
-  await formed;
-  const term = document.createElement("div");
-  term.className = "bh-term";
-  term.style.top = (y0 + 13 * px + 22) + "px";
-  term.innerHTML = `<div class="bh-term-bar"><i></i><i></i><i></i><span>boss.exe</span></div><pre class="bh-term-log" id="bhLog"></pre>`;
-  o.appendChild(term);
-  await bhWait(400);
-  await bhType($("#bhLog", term), `> WARNING: intrusion detected\n> ${t.boss.toUpperCase()} has hacked ${t.place}\n> planting bugs in your old levels...`, 22);
-  await bhWait(300);
-  return bhOffer(term, t, "glitch");
+/* ── When it happens ──
+   After clearing a level (or opening the game), if there are older levels to test and the last fight was
+   3+ days ago, there's a chance a countdown of 6–24 hours starts. */
+function bossHackMaybeSchedule(chance = 0.35) {
+  if (!S.hero || S.mode === "cloud") return;
+  const b = bhState();
+  if (b.due || daysSince(b.last) < 3 || !bossPicks()) return;
+  if (Math.random() >= chance) return;
+  b.due = Date.now() + (6 + Math.random() * 18) * 3600e3;
+  save();
 }
-
-/* The countdown banner shown before the boss arrives (it starts at a random time). */
-function bossHackBanner(seconds = 23 * 3600 + 59 * 60 + 41) {
+let bhAutoShown = false, bhClock = null;
+/* The countdown banner over the map, then the takeover when it reaches zero (once per visit on its own;
+   after "Not now" the banner offers the fight). */
+function bossHackBanner() {
+  clearInterval(bhClock);
   $$(".bh-banner").forEach((x) => x.remove());
-  const t = bhLines(), end = Date.now() + seconds * 1000;
-  const el = document.createElement("div");
+  if (!S.hero || S.route.name !== "map" || $(".bh")) return;
+  const b = bhState();
+  if (!b.due) return;
+  const t = bhLines(), el = document.createElement("div");
   el.className = "bh-banner";
   el.innerHTML = `<div class="wrap bh-banner-in"><span class="bh-mini">${bossSvg()}</span>
-    <span class="bh-banner-txt"><b data-glitch="SIGNAL DETECTED">SIGNAL DETECTED</b><span>${esc(t.boss)} is breaking into ${esc(t.place)}</span></span>
-    <span class="bh-clock" aria-live="off">--:--:--</span><button class="bh-x" type="button" aria-label="Hide">×</button></div>`;
+    <span class="bh-banner-txt"><b data-glitch="SIGNAL DETECTED">SIGNAL DETECTED</b><span></span></span>
+    <span class="bh-clock" aria-live="off"></span></div>`;
   const view = $("#view"); view.parentNode.insertBefore(el, view);
-  const clock = $(".bh-clock", el);
+  const txt = $(".bh-banner-txt span", el), clock = $(".bh-clock", el);
   const tick = () => {
-    if (!document.body.contains(el)) return clearInterval(timer);
-    const s = Math.max(0, Math.round((end - Date.now()) / 1000));
-    clock.textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, "0")).join(":");
+    if (!document.body.contains(el)) return clearInterval(bhClock);
+    const s = Math.max(0, Math.round((b.due - Date.now()) / 1000));
+    if (s > 0) {
+      txt.textContent = `${t.boss} is breaking into ${t.place}`;
+      clock.textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, "0")).join(":");
+      return;
+    }
+    clearInterval(bhClock);
+    txt.textContent = `${t.boss} has broken in and is waiting for you`;
+    clock.innerHTML = `<button class="btn sm bh-fight" type="button">Face him</button>`;
+    $(".bh-fight", el).addEventListener("click", () => bossHackTakeover());
+    if (!bhAutoShown) { bhAutoShown = true; setTimeout(() => { if (S.route.name === "map" && !$(".bh") && !$("#modalBg")) bossHackTakeover(); }, 900); }
   };
-  const timer = setInterval(tick, 1000); tick();
-  $(".bh-x", el).addEventListener("click", () => el.remove());
+  bhClock = setInterval(tick, 1000); tick();
 }
 
 /* Online backend settings (Supabase). The project URL and the public anon / publishable key are safe
@@ -16340,10 +16501,10 @@ const CQ_BACKEND = {
    • attempts, mistakes and hints are logged to help improve the game;
    • players can send feedback from any screen.
    Tables and security rules live in supabase/schema.sql, hardening.sql and sessions.sql. */
-const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null, session: null, lastLog: 0, noSession: false, chatTimer: null, chatChan: null };
+const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null, session: null, lastLog: 0, noSession: false, pageChat: null, pageGuild: null, panelChat: null, panelGuild: null, allChat: null, unread: 0 };
 const netConfigured = () => !!(CQ_BACKEND.url && CQ_BACKEND.key);
 const netOn = () => netConfigured() && S.mode === "local";
-const NET_PRIVACY = "Online, the game stores your hero name, progress and attempts (including code you check) to improve the game. No email or real name is needed, so please don't type personal details.";
+const NET_PRIVACY = "Online, the game stores your hero name, progress, attempts (including code you check) and how long each step takes, to improve the game. No email or real name is needed, so please don't type personal details.";
 
 function netLoad() {
   if (!NET.lib) NET.lib = (window.supabase ? Promise.resolve() : loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js")).then(() => window.supabase);
@@ -16358,6 +16519,8 @@ async function netStart() {
   try {
     const lib = await netLoad();
     if (NET.slot !== slot || !NET.sb) {
+      if (NET.allChat && NET.sb) { NET.sb.removeChannel(NET.allChat); }
+      NET.allChat = null; NET.unread = 0;
       NET.sb = lib.createClient(CQ_BACKEND.url, CQ_BACKEND.key, { auth: { storageKey: "cq.net.slot" + slot, persistSession: true, autoRefreshToken: true } });
       NET.slot = slot; NET.uid = null; S.others = {};
     }
@@ -16383,6 +16546,7 @@ async function netStart() {
     setSync("ok", "Saved online");
     netFlushEvents();
     netRefreshBoard();
+    netWatchChat(); netCountUnread();
     return true;
   } catch (e) {
     console.warn("Online save unavailable:", (e && e.message) || e);
@@ -16421,7 +16585,7 @@ async function netDeleteMe(slot) {
     await NET.sb.auth.signOut({ scope: "local" }).catch(() => {});
   }
   try { localStorage.removeItem(loginKey); } catch (_) {}
-  if (NET.slot === slot) { NET.sb = null; NET.slot = null; NET.uid = null; S.others = {}; }
+  if (NET.slot === slot) { closeChatPanel(); NET.sb = null; NET.slot = null; NET.uid = null; NET.allChat = null; NET.unread = 0; S.others = {}; }
   return true;
 }
 
@@ -16490,9 +16654,17 @@ async function netRefreshBoard(guildId) {
 }
 function netGuildMsg(e) { return esc(String((e && e.message) || e || "Something went wrong").replace(/^.*?: /, "")); }
 function netStopGuild() {
-  clearInterval(NET.boardTimer); clearInterval(NET.chatTimer);
-  if (NET.chatChan) { NET.sb.removeChannel(NET.chatChan); NET.chatChan = null; }
+  clearInterval(NET.boardTimer);
+  if (NET.pageChat) { NET.pageChat.stop(); NET.pageChat = null; NET.pageGuild = null; }
 }
+const MASTER_TAG = `<span class="gm-tag">${ICON.crown}Guild Master</span>`;
+/* The chat box, used on the Guild page and in the floating chat panel. */
+const chatHtml = () => `<div class="card chat"><div class="chat-head"><h3>Guild chat</h3><span class="muted chat-live">connecting…</span></div>
+  <div class="chat-list" aria-live="polite"><p class="muted chat-empty">Loading messages…</p></div>
+  <form class="chat-send"><textarea rows="1" maxlength="500" aria-label="Message" placeholder="Say hi, ask for help, share a win…"></textarea>
+    <button class="btn primary" type="submit">Send</button></form>
+  <p class="fb-err chat-err" hidden></p>
+  <p class="muted chat-note">Be kind. Never share your real name, school, phone number or address here.</p></div>`;
 const guildPick = () => "cq.guild.slot" + (S.slot || 1);
 
 async function renderNetGuild(v, pickId) {
@@ -16542,13 +16714,7 @@ async function renderNetGuild(v, pickId) {
   }
   status.innerHTML = `<b>${esc(g.name)}</b> · ${g.members} player${g.members === 1 ? "" : "s"}${g.is_owner ? " · you started it" : ""}`;
   body.innerHTML = `<div class="g-grid">
-    <div class="card chat" id="gChat"><div class="chat-head"><h3>Guild chat</h3><span class="muted" id="chatLive">connecting…</span></div>
-      <div class="chat-list" id="chatList" aria-live="polite"><p class="muted chat-empty">Loading messages…</p></div>
-      <form class="chat-send" id="chatForm"><label class="sr" for="chatIn">Message</label>
-        <textarea id="chatIn" rows="1" maxlength="500" placeholder="Say hi, ask for help, share a win…"></textarea>
-        <button class="btn primary" id="chatBtn" type="submit">Send</button></form>
-      <p class="fb-err" id="chatErr" hidden></p>
-      <p class="muted chat-note">Be kind. Never share your real name, school, phone number or address here.</p></div>
+    <div id="gChat">${chatHtml()}</div>
     <div class="card" style="padding:6px 0" id="gBoard"></div>
     <div class="card side-card prose"><h3 style="margin-top:0">Invite friends</h3><p>Share this code. They open the game, go to <b>Guild</b> and type it in.</p>
       <p class="guild-code"><code>${esc(g.code)}</code> <button class="btn sm" id="gCopy">Copy</button></p>
@@ -16566,25 +16732,28 @@ async function renderNetGuild(v, pickId) {
     el.innerHTML = `<div class="table-scroll"><table class="lb">
       <thead><tr><th>#</th><th>Hero</th><th>Where</th><th class="n">Stars</th><th class="n">Streak</th><th class="n">XP</th></tr></thead>
       <tbody>${rows.map((r, i) => { const p = { name: r.nickname, pix: r.pix, color: r.color, xp: r.xp, stars: r.stars, streak: r.streak, cur: r.cur, last: r.last_played || "" };
-        return `<tr class="${r.is_me ? "me" : ""}"><td class="r">${i + 1}</td><td><span class="who">${avatarHtml(p, "sm")}<span>${esc(p.name)}${r.is_me ? " (you)" : ""}<br><span class="muted" style="font-weight:400;font-size:12px">${esc(rankFor(p.xp).r.name)}</span></span></span></td><td>${esc(placeOf(p).label)}</td><td class="n">${p.stars | 0}</td><td class="n">${p.streak | 0}</td><td class="n pixel" style="font-size:17px">${p.xp | 0}</td></tr>`; }).join("")}</tbody>
+        return `<tr class="${r.is_me ? "me" : ""}"><td class="r">${i + 1}</td><td><span class="who">${avatarHtml(p, "sm")}<span>${esc(p.name)}${r.is_me ? " (you)" : ""}${r.is_master ? MASTER_TAG : ""}<br><span class="muted" style="font-weight:400;font-size:12px">${esc(rankFor(p.xp).r.name)}</span></span></span></td><td>${esc(placeOf(p).label)}</td><td class="n">${p.stars | 0}</td><td class="n">${p.streak | 0}</td><td class="n pixel" style="font-size:17px">${p.xp | 0}</td></tr>`; }).join("")}</tbody>
     </table></div>`;
   };
   drawBoard(await netRefreshBoard(g.id));
   NET.boardTimer = setInterval(async () => { if (S.route.name !== "guild") return netStopGuild(); drawBoard(await netRefreshBoard(g.id)); }, 30000);
-  netChat(v, g);
+  NET.pageGuild = g.id;
+  NET.pageChat = netChat($("#gChat", v), g);
 }
 
 /* Guild chat: the latest 100 messages, live. New messages arrive through Supabase Realtime, with a
-   slow refresh as a fallback. Everything is shown as plain text (esc), so links and code can't run. */
-function netChat(v, g) {
-  const list = $("#chatList", v), input = $("#chatIn", v), form = $("#chatForm", v), errEl = $("#chatErr", v), live = $("#chatLive", v);
-  let lastKey = null;
+   slow refresh as a fallback. Everything is shown as plain text (esc), so links and code can't run.
+   Works inside any box made by chatHtml(); returns { stop } to disconnect it. */
+function netChat(root, g) {
+  const list = $(".chat-list", root), input = $(".chat-send textarea", root), form = $(".chat-send", root), errEl = $(".chat-err", root), live = $(".chat-live", root);
+  let lastKey = null, chan = null, timer = null, stopped = false;
+  const stop = () => { stopped = true; clearInterval(timer); if (chan && NET.sb) NET.sb.removeChannel(chan); chan = null; };
   const when = (t) => {
     const d = new Date(t), hm = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
     return d.toDateString() === new Date().toDateString() ? hm : d.toLocaleDateString([], { day: "numeric", month: "short" }) + " " + hm;
   };
   const load = async () => {
-    if (S.route.name !== "guild" || !document.body.contains(list)) return netStopGuild();
+    if (stopped || !document.body.contains(list)) return stop();
     const { data, error } = await NET.sb.rpc("guild_chat", { p_guild: g.id });
     if (error) { live.textContent = "can't reach chat"; return; }
     const key = (data || []).map((m) => m.id).join(",");
@@ -16593,9 +16762,10 @@ function netChat(v, g) {
     lastKey = key;
     list.innerHTML = data.length ? data.map((m) => `<div class="msg${m.is_me ? " me" : ""}" data-id="${m.id}">
         ${m.is_me ? "" : avatarHtml({ pix: m.pix, color: m.color }, "sm")}
-        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b> <span>${esc(when(m.at))}</span>${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
+        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b>${m.from_master ? MASTER_TAG : ""} <span>${esc(when(m.at))}</span>${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
       : `<p class="muted chat-empty">No messages yet. Say hi to your guild!</p>`;
     if (first || atBottom) list.scrollTop = list.scrollHeight;
+    if (data.length) { chatSeen(g.id, data[data.length - 1].id); netCountUnread(); }
   };
   list.addEventListener("click", async (e) => {
     const del = e.target.closest(".msg-del"); if (!del) return;
@@ -16607,7 +16777,7 @@ function netChat(v, g) {
   const send = async () => {
     const text = input.value.trim();
     if (!text) return;
-    const btn = $("#chatBtn", v); btn.disabled = true;
+    const btn = $("button[type=submit]", form); btn.disabled = true;
     const { error } = await NET.sb.from("guild_messages").insert({ guild_id: g.id, body: text.slice(0, 500) });
     btn.disabled = false;
     if (error) { errEl.textContent = /Slow down|a lot of chat/.test(error.message || "") ? error.message : "Couldn't send it. Check your internet and try again."; errEl.hidden = false; return; }
@@ -16618,10 +16788,84 @@ function netChat(v, g) {
   input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
   input.addEventListener("input", () => { errEl.hidden = true; input.style.height = ""; input.style.height = Math.min(input.scrollHeight, 120) + "px"; });
   load();
-  NET.chatChan = NET.sb.channel("guild-chat-" + g.id)
+  chan = NET.sb.channel("guild-chat-" + g.id + "-" + Math.random().toString(36).slice(2, 7))
     .on("postgres_changes", { event: "*", schema: "public", table: "guild_messages", filter: "guild_id=eq." + g.id }, () => load())
     .subscribe((st) => { const on = st === "SUBSCRIBED"; live.textContent = on ? "● live" : "refreshing every 15s"; live.classList.toggle("on", on); });
-  NET.chatTimer = setInterval(load, 15000);
+  timer = setInterval(load, 15000);
+  return { stop };
+}
+
+/* ───────── Floating chat button (top bar) ─────────
+   Opens the chat of any of my guilds over whatever screen you're on, with a badge for messages that
+   arrived while you were elsewhere. Seen = the newest message id you've had on screen, per guild. */
+const chatSeenKey = () => "cq.chatSeen.slot" + (S.slot || 1);
+function chatSeen(gid, id) {
+  const seen = lsGet(chatSeenKey()) || {};
+  if (id == null) return seen[gid] || 0;
+  if (id > (seen[gid] || 0)) { seen[gid] = id; lsSet(chatSeenKey(), seen); }
+}
+function renderChatBtn() {
+  const slot = $("#chatBtnSlot"); if (!slot) return;
+  if (!S.hero || !netOn()) { slot.innerHTML = ""; return; }
+  const n = NET.unread | 0;
+  slot.innerHTML = `<button class="chat-fab${chatPanelOpen() ? " on" : ""}" id="chatFab" type="button" aria-label="Guild chat${n ? ", " + n + " new" : ""}" title="Guild chat">${ICON.talk}${n ? `<span class="badge">${n > 9 ? "9+" : n}</span>` : ""}</button>`;
+  $("#chatFab").addEventListener("click", () => (chatPanelOpen() ? closeChatPanel() : openChatPanel()));
+}
+let unreadBusy = false;
+async function netCountUnread() {
+  if (!NET.uid || unreadBusy) return;
+  unreadBusy = true;
+  try {
+    let n = 0;
+    for (const g of await netGuilds()) {
+      const { data } = await NET.sb.rpc("guild_chat", { p_guild: g.id });
+      const seen = chatSeen(g.id);
+      n += (data || []).filter((m) => !m.is_me && m.id > seen).length;
+    }
+    NET.unread = n; renderChatBtn();
+  } catch (_) {} finally { unreadBusy = false; }
+}
+/* One live channel for all my guilds (Realtime only sends rows I'm allowed to read). */
+function netWatchChat() {
+  if (NET.allChat || !NET.sb) return;
+  NET.allChat = NET.sb.channel("my-guild-chat").on("postgres_changes", { event: "INSERT", schema: "public", table: "guild_messages" }, (p) => {
+    const m = p.new || {};
+    if (m.user_id === NET.uid || NET.panelGuild === m.guild_id || NET.pageGuild === m.guild_id) return;
+    NET.unread = (NET.unread | 0) + 1; renderChatBtn();
+  }).subscribe();
+}
+const chatPanelOpen = () => !!$("#chatPanel");
+function closeChatPanel() {
+  if (NET.panelChat) { NET.panelChat.stop(); NET.panelChat = null; }
+  NET.panelGuild = null;
+  $$("#chatPanel, #chatPanelBg").forEach((x) => x.remove());
+  document.body.classList.remove("cp-on");
+  renderChatBtn();
+}
+async function openChatPanel(gid) {
+  closeChatPanel();
+  if (!NET.uid && !(await netStart())) return toast("Chat needs an internet connection.");
+  let gs;
+  try { gs = await netGuilds(); } catch (_) { return toast("Couldn't reach the guild hall. Try again in a minute."); }
+  if (!gs.length) { toast("Join or start a guild to chat with friends."); return go({ name: "guild" }); }
+  const g = gs.find((x) => x.id === (gid || lsGet(guildPick()))) || gs[0];
+  document.body.insertAdjacentHTML("beforeend", `<div class="chat-panel-bg" id="chatPanelBg"></div>
+    <aside class="chat-panel" id="chatPanel" role="dialog" aria-label="Guild chat">
+      <div class="cp-head">${gs.length > 1 ? `<select class="cp-pick" aria-label="Which guild">${gs.map((x) => `<option value="${esc(x.id)}" ${x.id === g.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>` : `<b class="cp-name">${esc(g.name)}</b>`}
+        <button class="btn sm ghost cp-open" type="button">Guild page</button><button class="cp-x" type="button" aria-label="Close chat">×</button></div>
+      ${chatHtml()}</aside>`);
+  const panel = $("#chatPanel");
+  document.body.classList.add("cp-on");
+  $(".cp-x", panel).addEventListener("click", closeChatPanel);
+  $("#chatPanelBg").addEventListener("click", closeChatPanel);
+  $(".cp-open", panel).addEventListener("click", () => { lsSet(guildPick(), g.id); closeChatPanel(); go({ name: "guild" }); });
+  panel.addEventListener("keydown", (e) => { if (e.key === "Escape") closeChatPanel(); });
+  const pick = $(".cp-pick", panel);
+  if (pick) pick.addEventListener("change", () => { lsSet(guildPick(), pick.value); openChatPanel(pick.value); });
+  NET.panelGuild = g.id;
+  NET.panelChat = netChat(panel, g);
+  renderChatBtn();
+  if (!matchMedia("(pointer: coarse)").matches) $(".chat-send textarea", panel).focus();   // no surprise keyboard on phones
 }
 
 /* ───────── Feedback ───────── */
@@ -16869,7 +17113,8 @@ function enterGame(hero) {
   leaveTitle();
   recompute();
   save();
-  go({ name: "map" });
+  bossHackMaybeSchedule(0.3);
+  go(hashRoute(location.hash) || { name: "map" }, { replace: true });   // after a refresh, back to the same screen
   netStart().then((ok) => { if (ok && S.hero) { save(); render(); } });
 }
 
@@ -16971,11 +17216,13 @@ function pinPad(ui, n) {
 
 function logOut() {
   flush();
+  closeChatPanel();
   if (S.mode === "cloud") S.cloudHero = S.hero;
   S.hero = null;
   S.slot = null;
   try { sessionStorage.removeItem("cq.unlocked"); } catch (_) {}
   S.route = { name: "map" };
+  try { history.replaceState(null, "", location.pathname + location.search); } catch (_) {}
   render();
   titleStep("files");
 }
@@ -17033,11 +17280,19 @@ function renderProfile(v) {
         </div>
         <div id="danger" style="margin-top:6px"><button class="btn ghost sm" id="pReset" style="color:var(--danger)">${S.mode === "cloud" ? "Reset all progress" : "Delete profile"}</button></div>
 
+        ${S.mode === "local" && netConfigured() ? `<hr class="sep">
+        <h3 class="sub">Your data</h3>
+        <div class="ai-consent">
+          <p>We're building an AI tutor for Code Quest. It learns best from how real players solve problems: the code you run, the mistakes you make and fix, and how long things take.</p>
+          <label class="dev-row"><input type="checkbox" id="pAi" ${h.ai && h.ai.on ? "checked" : ""}><span><b>Help train Code Quest's AI tutor with my play</b><br>
+            <span class="muted">Shares the code you run and what happened, only to train and improve Code Quest's own teaching AI. No real name or contact details. You can switch it off any time.${h.ai && h.ai.at ? ` Last changed ${esc(h.ai.at)}.` : ""}</span></span></label>
+          <label class="dev-row" id="pAiAge" ${h.ai && h.ai.on ? "hidden" : ""}><input type="checkbox" id="pAiAdult"><span>I'm 18 or older, or my parent or guardian has said yes.</span></label>
+        </div>` : ""}
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
-          <div class="dev-row dev-bh"><span><b>Boss Hack previews</b><br><span class="muted">Plays over the map. Pick the takeover you like best.</span>
-            <span class="dev-bh-btns"><button class="btn sm" data-bh="swarm">A · Pixel Swarm</button><button class="btn sm" data-bh="glitch">B · Glitch Breach</button><button class="btn sm" data-bh="corrupt">C · Corruption</button><button class="btn sm" data-bh="mix">D · A + B mix</button><button class="btn sm ghost" data-bh="banner">Countdown banner</button></span></span></div>
+          <div class="dev-row dev-bh"><span><b>Boss Hack</b><br><span class="muted">Test the surprise review event. "Now" uses any cleared levels except your newest.</span>
+            <span class="dev-bh-btns"><button class="btn sm" data-bh="now">Boss Hack now</button><button class="btn sm" data-bh="soon">30-second countdown</button><button class="btn sm ghost" data-bh="preview">Takeover only</button></span></span></div>
         </details>
       </div>
     </div>
@@ -17061,6 +17316,7 @@ function renderProfile(v) {
         <div><b class="num">${h.best}</b><span>Best streak</span></div>
         <div><b class="num">${readiness()}%</b><span>Job-ready</span></div>
       </div>
+      ${h.badges && h.badges.firewall ? `<p class="badges"><span class="dev-tag">BADGE</span> Firewall${h.badges.firewall > 1 ? ` ×${h.badges.firewall}` : ""} <span class="muted">· beat the Boss Hack</span></p>` : ""}
       <p class="muted" style="font-size:12.5px">Questing since ${esc(h.created)}. ${S.mode === "cloud" ? "Saved to your Claude account." : "Saved in this browser, file " + S.slot + "."}</p>`;
     $$("#pChars .char").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.pix === draft.pix)));
     $$("#pCols .swatch").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.col === draft.color)));
@@ -17119,10 +17375,25 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  const aiBox = $("#pAi", v);
+  if (aiBox) aiBox.addEventListener("change", () => {
+    if (aiBox.checked && !$("#pAiAdult", v).checked) {
+      aiBox.checked = false;
+      toast("Please tick the box below first: you need to be 18+, or have a parent's or guardian's OK.");
+      $("#pAiAdult", v).focus();
+      return;
+    }
+    S.hero.ai = { on: aiBox.checked, at: today(), v: 1 };
+    save();
+    netLog("consent", null, null, aiBox.checked, { ai: aiBox.checked, v: 1 });
+    toast(aiBox.checked ? "Thank you! Your play now helps train the AI tutor." : "Switched off. Nothing more will be shared for the AI tutor.");
+    $("#pAiAge", v).hidden = aiBox.checked;
+  });
   $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
-    const run = { swarm: bossHackSwarm, glitch: bossHackGlitch, corrupt: bossHackCorrupt, mix: bossHackMix, banner: () => bossHackBanner() }[b.dataset.bh];
+    const kind = b.dataset.bh;
     go({ name: "map" });
-    setTimeout(run, 350);
+    if (kind === "soon") { bhState().due = Date.now() + 30e3; bhAutoShown = false; save(); bossHackBanner(); }
+    else setTimeout(() => bossHackTakeover({ preview: kind === "preview" }), 350);
   }));
   $$("[data-feat]", v).forEach((box) => box.addEventListener("change", () => {
     FEATURES[box.dataset.feat] = box.checked;
@@ -17189,6 +17460,9 @@ function mergeInto(h, o) {
   else if (o.last === h.last) h.streak = Math.max(h.streak, o.streak);
   if (o.created && (!h.created || o.created < h.created)) h.created = o.created;
   for (const [d, x] of Object.entries(o.days || {})) h.days[d] = Math.max(h.days[d] || 0, x);
+  if (o.ai && (!h.ai || (o.ai.at || "") > (h.ai.at || ""))) h.ai = o.ai;
+  if (o.badges) { h.badges = h.badges || {}; for (const [k, n] of Object.entries(o.badges)) h.badges[k] = Math.max(h.badges[k] | 0, n | 0); }
+  if (o.bh && (o.bh.last || "") >= ((h.bh && h.bh.last) || "")) h.bh = Object.assign({}, h.bh, o.bh, { fights: Math.max((h.bh && h.bh.fights) | 0, o.bh.fights | 0), wins: Math.max((h.bh && h.bh.wins) | 0, o.bh.wins | 0) });
   for (const [id, b] of Object.entries(o.lv || {})) {
     const a = (h.lv[id] = h.lv[id] || {});
     if (b.l) a.l = 1;
@@ -17197,6 +17471,8 @@ function mergeInto(h, o) {
     if (Array.isArray(b.t)) { a.t = a.t || []; b.t.forEach((v, i) => { if (v && (!a.t[i] || v < a.t[i])) a.t[i] = v; }); }
     if (b.c && b.c.ok) a.c = { ok: 1, s: Math.max((a.c && a.c.ok && a.c.s) || 0, b.c.s || 1) };
     if (typeof b.e === "string" && b.e.length > (a.e || "").length) a.e = b.e;
+    if (b.dt && (!a.dt || b.dt < a.dt)) a.dt = b.dt;
+    if (b.bh && (!a.bh || b.bh > a.bh)) a.bh = b.bh;
     if (b.lc && typeof b.lc === "object") {   // Learn cards: keep every guess, run and "your turn" done
       a.lc = a.lc || {};
       for (const [k, x] of Object.entries(b.lc)) {

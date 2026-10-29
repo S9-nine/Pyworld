@@ -212,7 +212,8 @@ function enterGame(hero) {
   leaveTitle();
   recompute();
   save();
-  go({ name: "map" });
+  bossHackMaybeSchedule(0.3);
+  go(hashRoute(location.hash) || { name: "map" }, { replace: true });   // after a refresh, back to the same screen
   netStart().then((ok) => { if (ok && S.hero) { save(); render(); } });
 }
 
@@ -314,11 +315,13 @@ function pinPad(ui, n) {
 
 function logOut() {
   flush();
+  closeChatPanel();
   if (S.mode === "cloud") S.cloudHero = S.hero;
   S.hero = null;
   S.slot = null;
   try { sessionStorage.removeItem("cq.unlocked"); } catch (_) {}
   S.route = { name: "map" };
+  try { history.replaceState(null, "", location.pathname + location.search); } catch (_) {}
   render();
   titleStep("files");
 }
