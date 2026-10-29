@@ -1,9 +1,9 @@
 import requests
 
-URL = "https://pokeapi.co/api/v2/pokemon/"
+URL = "https://api.critterdex.example/v1/critter/"
 
 
-def pokemon_card(name):
+def critter_card(name):
     name = name
     try:
         r = requests.get(URL + name, timeout=10)
@@ -20,4 +20,4 @@ def pokemon_card(name):
     return f"{data['name'].title()} #{data['id']} | {types} | HP {hp}"
 
 
-print(pokemon_card("pikachu"))
+print(critter_card("zappip"))

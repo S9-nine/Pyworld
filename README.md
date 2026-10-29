@@ -29,7 +29,7 @@ Every level has five stages:
 4. **Debug**: find and fix a bug in someone else's code.
 5. **Explain**: describe your solution in your own words, as you would in an interview.
 
-On top of that: a **Memory Dungeon** of review cards on a spaced-repetition schedule (1, 3, 7, 14 and 30 days), XP, stars, streaks, a daily goal, a job-ready meter, and "take it home" projects at the end of every world.
+On top of that: a **Memory Dungeon** of review cards on a spaced-repetition schedule (1, 3, 7, 14 and 30 days), XP, stars, streaks, a daily goal, a skills meter, and "take it home" projects at the end of every world.
 
 ## How answers are checked
 

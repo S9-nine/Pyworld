@@ -86,7 +86,7 @@ function bhStart(variant) {
 function bhEnd(o) {
   (o ? [o] : $$(".bh")).forEach((x) => x.remove());
   document.body.classList.remove("bh-on", "bh-shake");
-  if (S.hero && S.route.name === "map") bossHackBanner();
+  if (S.hero && ["map", "hub"].includes(S.route.name)) bossHackBanner();
 }
 async function bossHackTakeover({ preview = false } = {}) {
   const picks = preview ? null : bossPicks(4, true);
@@ -184,7 +184,7 @@ let bhAutoShown = false, bhClock = null;
 function bossHackBanner() {
   clearInterval(bhClock);
   $$(".bh-banner").forEach((x) => x.remove());
-  if (!S.hero || S.route.name !== "map" || $(".bh")) return;
+  if (!S.hero || !["map", "hub"].includes(S.route.name) || $(".bh")) return;
   const b = bhState();
   if (!b.due) return;
   const t = bhLines(), el = document.createElement("div");
@@ -206,7 +206,7 @@ function bossHackBanner() {
     txt.textContent = `${t.boss} has broken in and is waiting for you`;
     clock.innerHTML = `<button class="btn sm bh-fight" type="button">Face him</button>`;
     $(".bh-fight", el).addEventListener("click", () => bossHackTakeover());
-    if (!bhAutoShown) { bhAutoShown = true; setTimeout(() => { if (S.route.name === "map" && !$(".bh") && !$("#modalBg")) bossHackTakeover(); }, 900); }
+    if (!bhAutoShown) { bhAutoShown = true; setTimeout(() => { if (["map", "hub"].includes(S.route.name) && !$(".bh") && !$("#modalBg")) bossHackTakeover(); }, 900); }
   };
   bhClock = setInterval(tick, 1000); tick();
 }

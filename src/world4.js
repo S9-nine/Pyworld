@@ -385,10 +385,10 @@ print(load("hero.json"))`,
   id: "4-3", world: 4, n: 3, title: "Calling Faraway Lands", concept: "web APIs with requests",
   learn: [
     { h: "An API is a website for programs",
-      p: "Websites send pages for people. <b>APIs</b> send data, usually JSON, for programs. You send a <b>request</b> to a URL and get back a <b>response</b> with a <b>status code</b> and a body. The <code>requests</code> library does this in one line. In the game, a practice internet answers a few real API addresses, so the same code works on your own computer.",
+      p: "Websites send pages for people. <b>APIs</b> send data, usually JSON, for programs. You send a <b>request</b> to a URL and get back a <b>response</b> with a <b>status code</b> and a body. The <code>requests</code> library does this in one line. In the game, a practice internet answers a few addresses: Open-Meteo is a real free weather API (that code works on your own computer too), and Critterdex is a made-up creature API that only exists here.",
       code: `import requests
 
-r = requests.get("https://pokeapi.co/api/v2/pokemon/pikachu", timeout=10)
+r = requests.get("https://api.critterdex.example/v1/critter/zappip", timeout=10)
 print(r.status_code)
 data = r.json()
 print(data["name"], "is number", data["id"])
@@ -397,8 +397,8 @@ print("Type:", data["types"][0]["type"]["name"])` },
       p: "<b>200</b> means OK. <b>201</b> means created: your POST made something new. <b>404</b> means not found. <b>400</b> means your request was wrong. <b>500</b> means the server broke. Always check before you trust the body. <code>r.ok</code> is True for codes below 400, and <code>r.raise_for_status()</code> raises an error for bad ones.",
       code: `import requests
 
-for name in ["eevee", "agumon"]:
-    r = requests.get(f"https://pokeapi.co/api/v2/pokemon/{name}", timeout=10)
+for name in ["fluffox", "unicorn"]:
+    r = requests.get(f"https://api.critterdex.example/v1/critter/{name}", timeout=10)
     if r.status_code == 200:
         print(name, "weighs", r.json()["weight"])
     else:
@@ -417,7 +417,7 @@ print("Delhi now:", r.json()["current"]["temperature_2m"], "°C")` },
       code: `import requests
 
 try:
-    r = requests.get("https://pokeapi.co.typo/api", timeout=10)
+    r = requests.get("https://api.critterdex.typo/v1", timeout=10)
     print(r.status_code)
 except requests.exceptions.RequestException as e:
     print("Network problem:", type(e).__name__)` }
@@ -427,33 +427,33 @@ except requests.exceptions.RequestException as e:
       why: "2xx means success, 4xx means the client (you) made a mistake, and 5xx means the server did." },
     { type: "mcq", q: "Why add <code>timeout=10</code> to every request?", options: ["It makes requests faster", "So the program doesn't wait forever if the server never answers", "The API requires it", "It retries 10 times"], answer: 1,
       why: "Without a timeout, a request to a server that never answers can freeze your program forever. requests has no timeout by default." },
-    { type: "predict", q: "The practice API says Snorlax weighs 4600. What does this print?", code: `import requests
-r = requests.get("https://pokeapi.co/api/v2/pokemon/snorlax", timeout=10)
+    { type: "predict", q: "The practice API says Dozebear weighs 4600. What does this print?", code: `import requests
+r = requests.get("https://api.critterdex.example/v1/critter/dozebear", timeout=10)
 data = r.json()
-print(data["name"].title(), data["weight"] / 10, "kg")`, answer: "Snorlax 460.0 kg",
-      why: "PokeAPI gives weight in tenths of a kilogram, so divide by 10. Reading the API's documentation tells you units like this." }
+print(data["name"].title(), data["weight"] / 10, "kg")`, answer: "Dozebear 460.0 kg",
+      why: "Critterdex gives weight in tenths of a kilogram (like many real APIs), so divide by 10. Reading the API's documentation tells you units like this." }
   ],
   code: {
-    brief: "Build a Pokédex card using the PokeAPI at <code>https://pokeapi.co/api/v2/pokemon/NAME</code>.<br>• <code>pokemon_card(name)</code> returns a line like <code>Pikachu #25 | electric | HP 35</code>: the name with a capital first letter, the id, the types joined with <code>/</code> (like <code>grass/poison</code>), and the base stat called <code>hp</code>.<br>• Lowercase the name before asking the API.<br>• If the API says 404, return <code>Not found: agumon</code> (the name as given, lowercased).<br>• If there's a network error, return <code>Network error</code>.",
-    sample: ">>> pokemon_card(\"Bulbasaur\")\n'Bulbasaur #1 | grass/poison | HP 45'",
+    brief: "Build a creature card using the Critterdex API at <code>https://api.critterdex.example/v1/critter/NAME</code>.<br>• <code>critter_card(name)</code> returns a line like <code>Zappip #12 | electric | HP 38</code>: the name with a capital first letter, the id, the types joined with <code>/</code> (like <code>grass/poison</code>), and the base stat called <code>hp</code>.<br>• Lowercase the name before asking the API.<br>• If the API says 404, return <code>Not found: unicorn</code> (the name as given, lowercased).<br>• If there's a network error, return <code>Network error</code>.",
+    sample: ">>> critter_card(\"Sproutle\")\n'Sproutle #3 | grass/poison | HP 47'",
     starter: `import requests
 
-URL = "https://pokeapi.co/api/v2/pokemon/"
+URL = "https://api.critterdex.example/v1/critter/"
 
 
-def pokemon_card(name):
+def critter_card(name):
     pass
 
 
-print(pokemon_card("pikachu"))
+print(critter_card("zappip"))
 `,
     tests: [
-      { call: "pokemon_card('pikachu')", expect: "'Pikachu #25 | electric | HP 35'", silent: true },
-      { call: "pokemon_card('Bulbasaur')", expect: "'Bulbasaur #1 | grass/poison | HP 45'" },
-      { call: "pokemon_card('SNORLAX')", expect: "'Snorlax #143 | normal | HP 160'" },
-      { call: "pokemon_card('gengar')", expect: "'Gengar #94 | ghost/poison | HP 60'" },
-      { call: "pokemon_card('Agumon')", expect: "'Not found: agumon'" },
-      { call: "pokemon_card('pikachu')", offline: true, expect: "'Network error'", label: "When the network is down" }
+      { call: "critter_card('zappip')", expect: "'Zappip #12 | electric | HP 38'", silent: true },
+      { call: "critter_card('Sproutle')", expect: "'Sproutle #3 | grass/poison | HP 47'" },
+      { call: "critter_card('DOZEBEAR')", expect: "'Dozebear #77 | normal | HP 160'" },
+      { call: "critter_card('gloomwisp')", expect: "'Gloomwisp #42 | ghost/poison | HP 58'" },
+      { call: "critter_card('Unicorn')", expect: "'Not found: unicorn'" },
+      { call: "critter_card('zappip')", offline: true, expect: "'Network error'", label: "When the network is down" }
     ],
     must: [["requests\\.get\\(", "Use <code>requests.get()</code>."], ["timeout\\s*=", "Pass <code>timeout=</code> so the request can't hang forever."]],
     hints: [
@@ -463,10 +463,10 @@ print(pokemon_card("pikachu"))
     ],
     solution: `import requests
 
-URL = "https://pokeapi.co/api/v2/pokemon/"
+URL = "https://api.critterdex.example/v1/critter/"
 
 
-def pokemon_card(name):
+def critter_card(name):
     name = name.lower()
     try:
         r = requests.get(URL + name, timeout=10)
@@ -483,11 +483,11 @@ def pokemon_card(name):
     return f"{data['name'].title()} #{data['id']} | {types} | HP {hp}"
 
 
-print(pokemon_card("pikachu"))`,
+print(critter_card("zappip"))`,
     wrong: [{ code: `import requests
 
-def pokemon_card(name):
-    data = requests.get("https://pokeapi.co/api/v2/pokemon/" + name.lower(), timeout=10).json()
+def critter_card(name):
+    data = requests.get("https://api.critterdex.example/v1/critter/" + name.lower(), timeout=10).json()
     return f"{data['name'].title()} #{data['id']} | {data['types'][0]['type']['name']} | HP {data['stats'][0]['base_stat']}"`, why: "only first type; crashes on 404" }]
   },
   bug: {
@@ -1213,7 +1213,7 @@ if __name__ == "__main__":
     tasks: [
       { t: "Run the habit tracker locally", d: "Save it as <code>habits.py</code>, run it for a few days, and open <code>habits.db</code> with the free \"DB Browser for SQLite\" app to see your tables.", skill: "sql" },
       { t: "Finish SQLBolt lessons 1–12", d: "sqlbolt.com. Short, interactive, and covers everything in this world.", skill: "sql" },
-      { t: "Call a real API", d: "Run your Pokédex card against the real PokeAPI. Then try another free API, such as Open-Meteo for your city's weather.", skill: "web" },
+      { t: "Call a real API", d: "Point your creature card at a real free API: PokeAPI (pokeapi.co) sends the same shape of data, so you mostly change the URL. Then try Open-Meteo for your city's weather.", skill: "web" },
       { t: "Export data as JSON", d: "Add a command to the habit tracker that saves all habits and streaks to <code>export.json</code>.", skill: "python" },
       { t: "Push it to GitHub", d: "Add a README with the table design and example commands. Add <code>habits.db</code> to <code>.gitignore</code>: never commit real user data.", skill: "git" },
       { t: "Explain JOIN out loud", d: "Explain INNER vs LEFT JOIN to someone with two hand-drawn tables. You'll be asked this in interviews.", skill: "talk" }

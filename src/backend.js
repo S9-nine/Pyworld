@@ -8,7 +8,7 @@
    Tables and security rules live in supabase/schema.sql, hardening.sql and sessions.sql. */
 const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null, session: null, lastLog: 0, noSession: false, pageChat: null, pageGuild: null, panelChat: null, panelGuild: null, allChat: null, unread: 0 };
 const netConfigured = () => !!(CQ_BACKEND.url && CQ_BACKEND.key);
-const netOn = () => netConfigured() && S.mode === "local";
+const netOn = () => netConfigured() && S.mode === "local" && onlineAllowed();   // adults, or a parent agreed (legal.js)
 const NET_PRIVACY = "Online, the game stores your hero name, progress, attempts (including code you check) and how long each step takes, to improve the game. No email or real name is needed, so please don't type personal details.";
 
 function netLoad() {
@@ -18,8 +18,10 @@ function netLoad() {
 
 /* Called when a hero enters the game: sign in (anonymously, once per save slot), merge the online save
    in, and push the result back up. */
-async function netStart() {
-  if (!netOn() || !S.hero) return false;
+/* force: connect even when online features are off. Only Delete profile uses it: erasing your data is
+   always allowed. */
+async function netStart({ force = false } = {}) {
+  if (!(force ? netConfigured() && S.mode === "local" : netOn()) || !S.hero) return false;
   const slot = S.slot || 1;
   try {
     const lib = await netLoad();
@@ -83,7 +85,7 @@ async function netDeleteMe(slot) {
   if (NET.sb) netStopGuild();
   if (netConfigured() && hasLogin) {
     clearTimeout(NET.saveTimer); clearTimeout(NET.timer); NET.queue = [];
-    if (NET.slot !== slot || !NET.uid) await netStart();
+    if (NET.slot !== slot || !NET.uid) await netStart({ force: true });
     if (!NET.uid) return false;
     const { error } = await NET.sb.rpc("delete_me");
     if (error) { console.warn("Delete profile:", error.message); return false; }
@@ -261,18 +263,26 @@ function netChat(root, g) {
     if (stopped || !document.body.contains(list)) return stop();
     const { data, error } = await NET.sb.rpc("guild_chat", { p_guild: g.id });
     if (error) { live.textContent = "can't reach chat"; return; }
-    const key = (data || []).map((m) => m.id).join(",");
+    const blocked = chatBlocked(), shown = (data || []).filter((m) => !(m.sender && blocked[m.sender]));
+    const key = shown.map((m) => m.id).join(",");
     if (key === lastKey) return;
     const first = lastKey === null, atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
     lastKey = key;
-    list.innerHTML = data.length ? data.map((m) => `<div class="msg${m.is_me ? " me" : ""}" data-id="${m.id}">
+    list.innerHTML = shown.length ? shown.map((m) => `<div class="msg${m.is_me ? " me" : ""}" data-id="${m.id}" data-sender="${esc(m.sender || "")}" data-name="${esc(m.nickname)}">
         ${m.is_me ? "" : avatarHtml({ pix: m.pix, color: m.color }, "sm")}
-        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b>${m.from_master ? MASTER_TAG : ""} <span>${esc(when(m.at))}</span>${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
+        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b>${m.from_master ? MASTER_TAG : ""} <span>${esc(when(m.at))}</span><span class="msg-acts">${m.is_me ? "" : `<button class="msg-act" type="button" data-act="report" title="Report this message" aria-label="Report this message">⚑</button>${m.sender ? `<button class="msg-act" type="button" data-act="block" title="Block ${esc(m.nickname)}" aria-label="Block ${esc(m.nickname)}">⊘</button>` : ""}`}${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</span></div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
       : `<p class="muted chat-empty">No messages yet. Say hi to your guild!</p>`;
     if (first || atBottom) list.scrollTop = list.scrollHeight;
     if (data.length) { chatSeen(g.id, data[data.length - 1].id); netCountUnread(); }
   };
+  const refresh = () => { lastKey = null; load(); };
   list.addEventListener("click", async (e) => {
+    const act = e.target.closest(".msg-act");
+    if (act) {
+      const m = act.closest(".msg");
+      if (act.dataset.act === "report") return reportMessage(+m.dataset.id, refresh);
+      return blockSender(m.dataset.sender, m.dataset.name, refresh);
+    }
     const del = e.target.closest(".msg-del"); if (!del) return;
     if (!confirm("Delete this message for everyone?")) return;
     const { error } = await NET.sb.from("guild_messages").delete().eq("id", del.closest(".msg").dataset.id);
@@ -285,7 +295,7 @@ function netChat(root, g) {
     const btn = $("button[type=submit]", form); btn.disabled = true;
     const { error } = await NET.sb.from("guild_messages").insert({ guild_id: g.id, body: text.slice(0, 500) });
     btn.disabled = false;
-    if (error) { errEl.textContent = /Slow down|a lot of chat/.test(error.message || "") ? error.message : "Couldn't send it. Check your internet and try again."; errEl.hidden = false; return; }
+    if (error) { errEl.textContent = /Slow down|a lot of chat|allowed|private|kind/.test(error.message || "") ? error.message : "Couldn't send it. Check your internet and try again."; errEl.hidden = false; return; }
     errEl.hidden = true; input.value = ""; input.style.height = "";
     await load(); list.scrollTop = list.scrollHeight; input.focus();
   };
@@ -298,6 +308,31 @@ function netChat(root, g) {
     .subscribe((st) => { const on = st === "SUBSCRIBED"; live.textContent = on ? "● live" : "refreshing every 15s"; live.classList.toggle("on", on); });
   timer = setInterval(load, 15000);
   return { stop };
+}
+
+/* ───────── Report and block ─────────
+   Report: sends the message to you for review; when 2 different members report it, it's hidden for
+   everyone. Block: hides that player's messages for you in every guild (kept on this device). */
+const chatBlockKey = () => "cq.blocked.slot" + (S.slot || 1);
+const chatBlocked = () => lsGet(chatBlockKey()) || {};
+function reportMessage(id, after) {
+  openModal(`<div class="report-sheet"><h2>Report this message</h2><p>What's wrong with it? Reports go to the Code Quest team. When two players report a message, it's hidden for everyone.</p>
+      ${["Mean or bullying", "Asks for or shares personal details", "Rude or not suitable for kids", "Spam or a scam", "Something else"].map((r) => `<button class="btn" data-why="${esc(r)}">${esc(r)}</button>`).join("")}
+      <p class="muted" style="font-size:13px">If someone is making you feel unsafe, also tell a trusted adult.</p><button class="btn ghost" data-close>Cancel</button></div>`,
+    { onOpen: (bg) => $$("[data-why]", bg).forEach((b) => b.addEventListener("click", async () => {
+      const { data, error } = await NET.sb.rpc("report_message", { p_message: id, p_reason: b.dataset.why });
+      closeModal();
+      if (error) return toast(/report|delete your own/.test(error.message || "") ? esc(error.message) : "Couldn't send the report. Try again in a minute.");
+      toast(data ? "Thanks for reporting. We'll take a look." : "That message is already gone.");
+      if (after) after();
+    })) });
+}
+function blockSender(sender, name, after) {
+  if (!sender) return;
+  if (!confirm(`Block ${name}? You won't see their messages in any guild. You can unblock them in Profile.`)) return;
+  const b = chatBlocked(); b[sender] = String(name || "Player").slice(0, 24); lsSet(chatBlockKey(), b);
+  toast(`${esc(name)} is blocked.`);
+  if (after) after();
 }
 
 /* ───────── Floating chat button (top bar) ─────────
@@ -392,7 +427,7 @@ function openFeedback() {
       $("#fbSend", bg).addEventListener("click", async () => {
         const text = msg.value.trim();
         if (!text) { errEl.textContent = "Write a few words first."; errEl.hidden = false; msg.focus(); return; }
-        if (!netOn() || (!NET.uid && !(await netStart()))) { errEl.textContent = "Feedback needs an internet connection. Copy your message and try again later."; errEl.hidden = false; return; }
+        if (!netOn() || (!NET.uid && !(await netStart()))) { errEl.textContent = !onlineAllowed() ? "Feedback is an online feature. A parent or guardian can switch online features on in Profile." : "Feedback needs an internet connection. Copy your message and try again later."; errEl.hidden = false; return; }
         const send = $("#fbSend", bg);
         send.disabled = true;
         const { error } = await NET.sb.from("feedback").insert({ level: r.name === "level" ? r.id : null, stage: r.stage || r.name, rating: rating || null, message: text.slice(0, 2000) });

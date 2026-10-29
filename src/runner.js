@@ -293,7 +293,7 @@ function diffReasons(want, got) {
 }
 /* Little jokes for players who change the text on purpose. */
 const OUTPUT_JOKES = [
-  [/job.?ready in (a|one|1) (day|hour|minute|second)/i, "Job-ready in a day? Bold! The quest says 8 weeks, though."],
+  [/(real code|job.?ready) in (a|one|1) (day|hour|minute|second)/i, "In a day? Bold! The quest says 8 weeks, though."],
   [/\b(hacked|hacker|pwned|lol|lmao|haha)\b/i, "Ha, nice try. The checker has seen it all."],
   [/^(test|testing|asdf|qwerty)$/i, "Testing the checker? Respect. Now back to the quest."]
 ];

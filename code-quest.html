@@ -891,6 +891,8 @@ body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2)
 /* ───────── Phones: bottom tab bar, wrapped code, stage tabs that fit ───────── */
 .nav .nav-more { display: none; }
 .nav-ic { display: none; }
+.more-sheet .more-pro { display: none; }
+.more-sheet .more-pro svg { width: 20px; height: 20px; }
 .ed-mirror { position: absolute; left: 0; right: 0; top: 0; visibility: hidden; pointer-events: none; padding: 12px 16px 12px 4px; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
 .more-sheet { display: grid; gap: 10px; }
 .more-sheet h2 { margin: 0 0 4px; }
@@ -906,8 +908,9 @@ body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2)
   .nav button { flex-direction: column; gap: 3px; padding: 6px 2px 5px; border-radius: 10px; font-size: 11px; position: relative; min-width: 0; }
   .nav button[aria-current="page"] { box-shadow: none; background: var(--surface-2); color: var(--ink); }
   .nav button[aria-current="page"] .nav-ic { color: var(--sun); }
-  .nav .nav-extra { display: none; }
+  .nav .nav-extra, .nav .nav-pro { display: none; }
   .nav .nav-more { display: inline-flex; }
+  .more-sheet .more-pro { display: flex; }
   .nav-ic { display: grid; place-items: center; width: 24px; height: 24px; }
   .nav-ic svg { width: 22px; height: 22px; }
   .nav-tx { font-size: 0; }
@@ -981,6 +984,152 @@ body.cp-on { overflow: hidden; }
 @media (max-width: 640px) { .bh-term-body { grid-template-columns: 52px 1fr; } .bh-term-boss { width: 52px; height: 58px; } .bh-term-log { font-size: 12.5px; } }
 .ai-consent p { margin: 0 0 6px; font-size: 14px; }
 .ai-consent .dev-row[hidden] { display: none; }
+
+/* ───────── Privacy, Terms, age and parent's OK ───────── */
+.modal.wide { width: min(720px, 100%); }
+.legal { display: grid; gap: 12px; }
+.legal-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.legal-body h2 { margin: 2px 0 8px; }
+.legal-body h3 { margin: 18px 0 6px; font-size: 16px; }
+.legal-body p, .legal-body li { font-size: 14.5px; line-height: 1.55; }
+.legal-body ul { padding-left: 20px; margin: 6px 0; }
+.legal-sum { background: var(--surface-2); border-left: 3px solid var(--sun); border-radius: 0 10px 10px 0; padding: 10px 12px; font-size: 14.5px; line-height: 1.5; }
+.age-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.age-btn { padding: 9px 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 13.5px var(--font-body); cursor: pointer; }
+.age-btn[aria-checked="true"] { background: var(--sun); border-color: var(--sun); color: var(--sun-ink); }
+.agree { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; margin-top: 6px; cursor: pointer; }
+.agree input { margin-top: 2px; width: 17px; height: 17px; accent-color: var(--sun); flex: none; }
+.agree a, .legal-links a, .data-status a { color: var(--sun); }
+/* On the pixel title screen */
+.creator-form .age-btn { border-radius: 0; background: #29366f; color: #f4f4f4; border: 0; box-shadow: inset 0 0 0 2px #566c86; font-family: var(--font-display); font-size: 17px; }
+.creator-form .age-btn[aria-checked="true"] { background: #ffcd75; color: #1a1c2c; box-shadow: none; }
+.creator-form .agree { color: #f4f4f4; }
+.creator-form .agree a { color: #ffcd75; }
+.legal-links { font-size: 13px; }
+.parent-ok, .qcheck { display: grid; gap: 10px; }
+.parent-ok ul { margin: 0; padding-left: 20px; }
+.parent-ok li, .parent-ok p { font-size: 14.5px; }
+.plabel-s { font-size: 13px; font-weight: 600; margin-top: 4px; }
+.po-input { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.data-status { display: grid; gap: 6px; margin-bottom: 8px; }
+.data-status p { margin: 0; }
+.data-status .btn { width: fit-content; }
+.ai-consent[hidden] { display: none; }
+/* Chat report / block */
+.msg-acts { margin-left: auto; display: inline-flex; gap: 2px; align-items: center; }
+.msg-act { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px 3px; opacity: 0; transition: opacity .15s; }
+.msg:hover .msg-act, .msg-act:focus-visible { opacity: 1; }
+@media (hover: none) { .msg-act { opacity: .7; } }
+.msg-act:hover { color: var(--danger); }
+.msg-meta .msg-del { margin-left: 0; }
+.report-sheet { display: grid; gap: 8px; }
+.report-sheet h2 { margin: 0; }
+.report-sheet .btn { justify-content: flex-start; }
+.blocked-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); font-size: 13px; }
+.blocked-chip .msg-act { opacity: 1; font-size: 12px; color: var(--sun); }
+
+/* ───────── Main screen (hub.js) and the sign-in sample ───────── */
+body.hs-on { overflow: hidden; }
+.hs { position: fixed; inset: 0; z-index: 90; overflow-y: auto; color: #f4f4f4; background: #1a1c2c; font-family: var(--font-body); }
+.hs-bar { position: sticky; top: 0; z-index: 3; display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: #ffcd75; color: #1a1c2c; font: 600 13px var(--font-code); }
+.hs-x { border: 0; background: #1a1c2c; color: #ffcd75; width: 30px; height: 30px; font-size: 20px; cursor: pointer; }
+.hs-cont { display: flex; align-items: center; gap: 12px; margin: 18px auto 28px; padding: 12px 22px; border: 0; background: #ffcd75; color: #1a1c2c; cursor: pointer; text-align: left;
+  box-shadow: inset -4px -4px 0 #ef7d57, -3px 0 0 0 #1a1c2c, 3px 0 0 0 #1a1c2c, 0 -3px 0 0 #1a1c2c, 0 3px 0 0 #1a1c2c; font-family: var(--font-display); font-size: 20px; }
+.hs-cont svg { width: 22px; height: 22px; }
+.hs-cont small { display: block; font-size: 13px; color: #5d275d; font-family: var(--font-body); font-weight: 600; }
+.hs-cont:active { transform: translate(2px, 2px); }
+[data-hs-go] { cursor: pointer; }
+
+/* Main screen (arcade): spotlit hero, TV on a console (Bug Dash), cartridges on a shelf */
+.hub { position: relative; overflow: hidden; min-height: calc(100vh - 64px); color: #f4f4f4; background: radial-gradient(ellipse at 50% 0%, #29366f, #12132a 55%, #0b0c16); }
+.hub::before { content: ""; position: absolute; left: -20%; right: -20%; bottom: 0; height: 42%; pointer-events: none;
+  background: linear-gradient(transparent 0 92%, rgb(115 239 247 / .28) 92%) 0 0 / 100% 30px, linear-gradient(90deg, transparent 0 95%, rgb(115 239 247 / .28) 95%) 0 0 / 52px 100%;
+  transform: perspective(260px) rotateX(58deg); transform-origin: bottom; -webkit-mask-image: linear-gradient(transparent, #000 70%); mask-image: linear-gradient(transparent, #000 70%); }
+.b2 { position: relative; display: grid; grid-template-columns: minmax(0, 270px) minmax(0, 1fr); gap: 28px; padding: 26px; max-width: 1060px; margin: 0 auto; }
+.b2-hero { display: grid; gap: 14px; align-content: start; justify-items: center; }
+.b2-stage { position: relative; width: 220px; height: 200px; display: grid; place-items: end center; }
+.b2-spot { position: absolute; top: -26px; left: 50%; width: 190px; height: 216px; transform: translateX(-50%); background: linear-gradient(rgb(255 205 117 / 0), rgb(255 205 117 / .3)); clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); animation: b2-spot 3s ease-in-out infinite; }
+@keyframes b2-spot { 50% { opacity: .65; } }
+.b2-actor { position: relative; z-index: 1; width: 140px; height: 118px; margin-bottom: 22px; }
+.b2-actor .act { width: 100%; height: 100%; overflow: visible; }
+.b2-pedestal { position: absolute; bottom: 0; width: 172px; height: 28px; background: #566c86; box-shadow: inset 0 6px 0 #94b0c2, inset 0 -6px 0 #333c57, 0 0 0 3px #1a1c2c, 0 -14px 30px rgb(255 205 117 / .25); }
+.b2-plate { text-align: center; display: grid; gap: 5px; width: 100%; background: #1a1c2c; padding: 12px; box-shadow: 0 0 0 3px #ffcd75, 0 0 0 6px #1a1c2c; }
+.b2-plate b { font-family: var(--font-display); font-size: 30px; color: #ffcd75; line-height: 1; text-shadow: 2px 2px 0 #b13e53; }
+.b2-plate span { font-size: 13px; color: #c2d1dc; }
+.b2-xp, .b2-prog { display: block; height: 8px; background: #333c57; box-shadow: 0 0 0 2px #1a1c2c; }
+.b2-xp i, .b2-prog i { display: block; height: 100%; background: linear-gradient(90deg, #ffcd75, #a7f070); }
+.b2-leds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
+.b2-leds span { display: grid; justify-items: center; gap: 2px; background: #0b0c16; padding: 8px 2px 6px; box-shadow: inset 0 0 0 2px #333c57; }
+.b2-leds b { font-family: var(--font-display); font-size: 26px; line-height: 1; color: #ff9a3c; text-shadow: 0 0 8px rgb(255 140 60 / .85); letter-spacing: .06em; }
+.b2-leds svg { width: 14px; height: 14px; color: #ffcd75; }
+.b2-leds small { font-size: 10px; color: #94b0c2; text-transform: uppercase; letter-spacing: .1em; }
+.b2-arcade { display: grid; justify-items: center; }
+.b2-tv { width: min(580px, 100%); background: #566c86; padding: 14px 14px 8px; border-radius: 8px; box-shadow: inset -6px -6px 0 #333c57, inset 6px 6px 0 #94b0c2, 0 0 0 4px #1a1c2c, 0 0 60px rgb(115 239 247 / .12); }
+.b2-bezel { position: relative; background: #0b0c16; padding: 10px; border-radius: 22px / 16px; box-shadow: inset 0 0 0 3px #1a1c2c; overflow: hidden; }
+.b2-screen { display: block; width: 100%; aspect-ratio: 160 / 72; image-rendering: pixelated; border-radius: 12px; cursor: pointer; outline: none; touch-action: manipulation; }
+.b2-screen:focus-visible { box-shadow: 0 0 0 3px #73eff7; }
+.b2-glare { position: absolute; inset: 10px; border-radius: 12px; pointer-events: none; box-shadow: inset 0 0 34px rgb(0 0 0 / .65);
+  background: linear-gradient(135deg, rgb(255 255 255 / .12), transparent 38%), repeating-linear-gradient(0deg, rgb(0 0 0 / .2) 0 1px, transparent 1px 3px); }
+.b2-flash { position: absolute; inset: 10px; border-radius: 12px; background: #f4f4f4; opacity: 0; pointer-events: none; }
+.b2-bezel.power .b2-flash { animation: b2-power .9s steps(7) both; }
+@keyframes b2-power { 0% { opacity: 1; transform: scale(1, .02); } 35% { opacity: 1; transform: scale(1, 1); } 100% { opacity: 0; } }
+.b2-tv-foot { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 2px; font: 700 12px var(--font-code); color: #1a1c2c; letter-spacing: .06em; }
+.b2-knob { width: 14px; height: 14px; border-radius: 50%; background: #333c57; box-shadow: inset -2px -2px 0 #1a1c2c, 0 0 0 2px #1a1c2c; }
+.b2-console { position: relative; width: min(430px, 88%); height: 48px; margin-top: -2px; background: #94b0c2; display: flex; align-items: center; padding: 0 18px;
+  box-shadow: inset -6px -6px 0 #566c86, inset 6px 6px 0 #c2d1dc, 0 0 0 4px #1a1c2c; }
+.b2-slot { position: absolute; left: 50%; top: 9px; transform: translateX(-50%); width: 44%; height: 11px; background: #0b0c16; box-shadow: inset 0 3px 0 #000, 0 0 0 2px #566c86; }
+.b2-led { width: 10px; height: 10px; background: #333c57; box-shadow: 0 0 0 2px #1a1c2c; transition: background .2s, box-shadow .2s; }
+.b2-led.on { background: #a7f070; box-shadow: 0 0 0 2px #1a1c2c, 0 0 12px #a7f070; }
+.b2-brand { margin-left: auto; font: 700 14px var(--font-display); color: #333c57; letter-spacing: .14em; }
+.b2-h { justify-self: start; font-family: var(--font-display); font-size: 28px; color: #ffcd75; text-shadow: 2px 2px 0 #b13e53; margin: 28px 0 14px; }
+.b2-shelf { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 0 4px 16px; border-bottom: 10px solid #5d3a26; box-shadow: 0 4px 0 #1a1c2c; }
+.b2-cart { position: relative; border: 0; padding: 8px 8px 10px; background: var(--shell); color: #f4f4f4; display: grid; gap: 8px; text-align: left; cursor: pointer;
+  clip-path: polygon(0 0, 86% 0, 100% 9%, 100% 100%, 0 100%); transition: transform .2s cubic-bezier(.3, 1.6, .5, 1), filter .2s;
+  box-shadow: inset -5px -5px 0 rgb(0 0 0 / .3), inset 5px 5px 0 rgb(255 255 255 / .25); }
+.b2-ridges { height: 9px; background: repeating-linear-gradient(90deg, rgb(0 0 0 / .3) 0 5px, transparent 5px 9px); }
+.b2-label { display: grid; gap: 4px; padding: 10px; background: #f4f4f4; color: #1a1c2c; min-height: 140px; align-content: start; box-shadow: inset 0 0 0 3px #1a1c2c; }
+.b2-art { width: 54px; }
+.b2-label b { font-family: var(--font-display); font-size: 23px; line-height: 1; }
+.b2-label small { font-size: 12px; color: #333c57; }
+.b2-foot { display: grid; gap: 5px; font: 700 12px var(--font-code); color: #f4f4f4; text-shadow: 1px 1px 0 #1a1c2c; }
+.b2-foot svg { width: 12px; height: 12px; vertical-align: -1px; }
+.b2-cart.live:hover, .b2-cart.live:focus-visible { transform: translateY(-12px) rotate(-1.5deg); filter: drop-shadow(0 0 16px rgb(167 240 112 / .55)); outline: none; }
+.b2-cart.soon { filter: saturate(.3) brightness(.75); }
+.b2-wrap { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / .22) 40%, transparent 52%), rgb(255 255 255 / .05); }
+.b2-sticker { position: absolute; top: 36%; right: 4px; transform: rotate(12deg); background: #ef7d57; color: #1a1c2c; font: 700 14px var(--font-display); letter-spacing: .08em; padding: 3px 10px; box-shadow: 0 0 0 2px #1a1c2c; }
+.b2-ghost { position: fixed; z-index: 95; margin: 0; pointer-events: none; }
+.hub .hs-cont { margin: 22px 0 10px; }
+.hub.loading .b2-cart { pointer-events: none; }
+@media (max-width: 760px) {
+  .b2 { grid-template-columns: minmax(0, 1fr); padding: 14px; gap: 16px; }
+  .b2-hero { grid-template-columns: 116px minmax(0, 1fr); align-items: center; justify-items: stretch; }
+  .b2-stage { width: 116px; height: 112px; }
+  .b2-spot { width: 104px; height: 128px; top: -14px; }
+  .b2-actor { width: 84px; height: 72px; margin-bottom: 14px; }
+  .b2-pedestal { width: 100px; height: 18px; }
+  .b2-plate b { font-size: 24px; }
+  .b2-leds { grid-column: 1 / -1; }
+  .b2-h { font-size: 24px; margin: 20px 0 10px; }
+  .b2-shelf { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 68%; overflow-x: auto; scroll-snap-type: x mandatory; padding: 14px 4px 16px; }
+  .b2-cart { scroll-snap-align: start; }
+}
+@media (prefers-reduced-motion: reduce) { .b2-spot, .b2-bezel.power .b2-flash { animation: none; } .b2-cart { transition: none; } }
+
+/* Sign-in sample */
+.hsl-screen { min-height: calc(100% - 46px); }
+.hsl-box { max-width: 460px; }
+.hsl-me { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; border: 0; padding: 12px; background: #29366f; color: #f4f4f4; text-align: left; box-shadow: 0 0 0 3px #ffcd75; }
+.hsl-me .avatar.hero { width: 64px; height: 64px; }
+.hsl-me b { font-family: var(--font-display); font-size: 24px; display: block; line-height: 1; }
+.hsl-me span span { font-size: 12.5px; color: #c2d1dc; }
+.hsl-opts { display: grid; gap: 12px; }
+.hsl-opt { width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; }
+.hsl-g { display: inline-grid; place-items: center; width: 22px; height: 22px; background: #f4f4f4; color: #3b5dc9; font: 700 15px var(--font-body); }
+.hsl-small { font-size: 12px; }
+.hsl-small a { color: #ffcd75; }
+/* Age/Terms question for heroes made before it existed: a quiet banner, not a pop-up */
+.legal-banner { background: var(--sun-soft); border-bottom: 1px solid color-mix(in srgb, var(--sun) 50%, var(--line)); }
+.legal-banner .wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 8px; font-size: 14px; flex-wrap: wrap; }
 
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
@@ -1165,10 +1314,10 @@ print(3 + 4)`,
   ],
   code: {
     brief: "Write a program that prints these three lines. Use your own name on line 2.",
-    sample: "Hello, world!\nMy name is Kai\nI will be job-ready in 8 weeks.",
+    sample: "Hello, world!\nMy name is Kai\nI will write real code in 8 weeks.",
     starter: `# Write your code below. Each line of output needs its own print().
 `,
-    tests: [ { in: [], out: ["Hello, world!", "I will be job-ready in 8 weeks."], check: "name" } ],
+    tests: [ { in: [], out: ["Hello, world!", "I will write real code in 8 weeks."], check: "name" } ],
     hints: [
       "You need three <code>print()</code> lines, one for each line of output.",
       "Text goes inside quotes: <code>print(\"Hello, world!\")</code>",
@@ -1176,7 +1325,7 @@ print(3 + 4)`,
     ],
     solution: `print("Hello, world!")
 print("My name is Kai")
-print("I will be job-ready in 8 weeks.")`
+print("I will write real code in 8 weeks.")`
   },
   bug: {
     brief: "The village crier's script crashes before it says anything. Find the bug and fix it.",
@@ -4923,10 +5072,10 @@ print(load("hero.json"))`,
   id: "4-3", world: 4, n: 3, title: "Calling Faraway Lands", concept: "web APIs with requests",
   learn: [
     { h: "An API is a website for programs",
-      p: "Websites send pages for people. <b>APIs</b> send data, usually JSON, for programs. You send a <b>request</b> to a URL and get back a <b>response</b> with a <b>status code</b> and a body. The <code>requests</code> library does this in one line. In the game, a practice internet answers a few real API addresses, so the same code works on your own computer.",
+      p: "Websites send pages for people. <b>APIs</b> send data, usually JSON, for programs. You send a <b>request</b> to a URL and get back a <b>response</b> with a <b>status code</b> and a body. The <code>requests</code> library does this in one line. In the game, a practice internet answers a few addresses: Open-Meteo is a real free weather API (that code works on your own computer too), and Critterdex is a made-up creature API that only exists here.",
       code: `import requests
 
-r = requests.get("https://pokeapi.co/api/v2/pokemon/pikachu", timeout=10)
+r = requests.get("https://api.critterdex.example/v1/critter/zappip", timeout=10)
 print(r.status_code)
 data = r.json()
 print(data["name"], "is number", data["id"])
@@ -4935,8 +5084,8 @@ print("Type:", data["types"][0]["type"]["name"])` },
       p: "<b>200</b> means OK. <b>201</b> means created: your POST made something new. <b>404</b> means not found. <b>400</b> means your request was wrong. <b>500</b> means the server broke. Always check before you trust the body. <code>r.ok</code> is True for codes below 400, and <code>r.raise_for_status()</code> raises an error for bad ones.",
       code: `import requests
 
-for name in ["eevee", "agumon"]:
-    r = requests.get(f"https://pokeapi.co/api/v2/pokemon/{name}", timeout=10)
+for name in ["fluffox", "unicorn"]:
+    r = requests.get(f"https://api.critterdex.example/v1/critter/{name}", timeout=10)
     if r.status_code == 200:
         print(name, "weighs", r.json()["weight"])
     else:
@@ -4955,7 +5104,7 @@ print("Delhi now:", r.json()["current"]["temperature_2m"], "°C")` },
       code: `import requests
 
 try:
-    r = requests.get("https://pokeapi.co.typo/api", timeout=10)
+    r = requests.get("https://api.critterdex.typo/v1", timeout=10)
     print(r.status_code)
 except requests.exceptions.RequestException as e:
     print("Network problem:", type(e).__name__)` }
@@ -4965,33 +5114,33 @@ except requests.exceptions.RequestException as e:
       why: "2xx means success, 4xx means the client (you) made a mistake, and 5xx means the server did." },
     { type: "mcq", q: "Why add <code>timeout=10</code> to every request?", options: ["It makes requests faster", "So the program doesn't wait forever if the server never answers", "The API requires it", "It retries 10 times"], answer: 1,
       why: "Without a timeout, a request to a server that never answers can freeze your program forever. requests has no timeout by default." },
-    { type: "predict", q: "The practice API says Snorlax weighs 4600. What does this print?", code: `import requests
-r = requests.get("https://pokeapi.co/api/v2/pokemon/snorlax", timeout=10)
+    { type: "predict", q: "The practice API says Dozebear weighs 4600. What does this print?", code: `import requests
+r = requests.get("https://api.critterdex.example/v1/critter/dozebear", timeout=10)
 data = r.json()
-print(data["name"].title(), data["weight"] / 10, "kg")`, answer: "Snorlax 460.0 kg",
-      why: "PokeAPI gives weight in tenths of a kilogram, so divide by 10. Reading the API's documentation tells you units like this." }
+print(data["name"].title(), data["weight"] / 10, "kg")`, answer: "Dozebear 460.0 kg",
+      why: "Critterdex gives weight in tenths of a kilogram (like many real APIs), so divide by 10. Reading the API's documentation tells you units like this." }
   ],
   code: {
-    brief: "Build a Pokédex card using the PokeAPI at <code>https://pokeapi.co/api/v2/pokemon/NAME</code>.<br>• <code>pokemon_card(name)</code> returns a line like <code>Pikachu #25 | electric | HP 35</code>: the name with a capital first letter, the id, the types joined with <code>/</code> (like <code>grass/poison</code>), and the base stat called <code>hp</code>.<br>• Lowercase the name before asking the API.<br>• If the API says 404, return <code>Not found: agumon</code> (the name as given, lowercased).<br>• If there's a network error, return <code>Network error</code>.",
-    sample: ">>> pokemon_card(\"Bulbasaur\")\n'Bulbasaur #1 | grass/poison | HP 45'",
+    brief: "Build a creature card using the Critterdex API at <code>https://api.critterdex.example/v1/critter/NAME</code>.<br>• <code>critter_card(name)</code> returns a line like <code>Zappip #12 | electric | HP 38</code>: the name with a capital first letter, the id, the types joined with <code>/</code> (like <code>grass/poison</code>), and the base stat called <code>hp</code>.<br>• Lowercase the name before asking the API.<br>• If the API says 404, return <code>Not found: unicorn</code> (the name as given, lowercased).<br>• If there's a network error, return <code>Network error</code>.",
+    sample: ">>> critter_card(\"Sproutle\")\n'Sproutle #3 | grass/poison | HP 47'",
     starter: `import requests
 
-URL = "https://pokeapi.co/api/v2/pokemon/"
+URL = "https://api.critterdex.example/v1/critter/"
 
 
-def pokemon_card(name):
+def critter_card(name):
     pass
 
 
-print(pokemon_card("pikachu"))
+print(critter_card("zappip"))
 `,
     tests: [
-      { call: "pokemon_card('pikachu')", expect: "'Pikachu #25 | electric | HP 35'", silent: true },
-      { call: "pokemon_card('Bulbasaur')", expect: "'Bulbasaur #1 | grass/poison | HP 45'" },
-      { call: "pokemon_card('SNORLAX')", expect: "'Snorlax #143 | normal | HP 160'" },
-      { call: "pokemon_card('gengar')", expect: "'Gengar #94 | ghost/poison | HP 60'" },
-      { call: "pokemon_card('Agumon')", expect: "'Not found: agumon'" },
-      { call: "pokemon_card('pikachu')", offline: true, expect: "'Network error'", label: "When the network is down" }
+      { call: "critter_card('zappip')", expect: "'Zappip #12 | electric | HP 38'", silent: true },
+      { call: "critter_card('Sproutle')", expect: "'Sproutle #3 | grass/poison | HP 47'" },
+      { call: "critter_card('DOZEBEAR')", expect: "'Dozebear #77 | normal | HP 160'" },
+      { call: "critter_card('gloomwisp')", expect: "'Gloomwisp #42 | ghost/poison | HP 58'" },
+      { call: "critter_card('Unicorn')", expect: "'Not found: unicorn'" },
+      { call: "critter_card('zappip')", offline: true, expect: "'Network error'", label: "When the network is down" }
     ],
     must: [["requests\\.get\\(", "Use <code>requests.get()</code>."], ["timeout\\s*=", "Pass <code>timeout=</code> so the request can't hang forever."]],
     hints: [
@@ -5001,10 +5150,10 @@ print(pokemon_card("pikachu"))
     ],
     solution: `import requests
 
-URL = "https://pokeapi.co/api/v2/pokemon/"
+URL = "https://api.critterdex.example/v1/critter/"
 
 
-def pokemon_card(name):
+def critter_card(name):
     name = name.lower()
     try:
         r = requests.get(URL + name, timeout=10)
@@ -5021,11 +5170,11 @@ def pokemon_card(name):
     return f"{data['name'].title()} #{data['id']} | {types} | HP {hp}"
 
 
-print(pokemon_card("pikachu"))`,
+print(critter_card("zappip"))`,
     wrong: [{ code: `import requests
 
-def pokemon_card(name):
-    data = requests.get("https://pokeapi.co/api/v2/pokemon/" + name.lower(), timeout=10).json()
+def critter_card(name):
+    data = requests.get("https://api.critterdex.example/v1/critter/" + name.lower(), timeout=10).json()
     return f"{data['name'].title()} #{data['id']} | {data['types'][0]['type']['name']} | HP {data['stats'][0]['base_stat']}"`, why: "only first type; crashes on 404" }]
   },
   bug: {
@@ -5751,7 +5900,7 @@ if __name__ == "__main__":
     tasks: [
       { t: "Run the habit tracker locally", d: "Save it as <code>habits.py</code>, run it for a few days, and open <code>habits.db</code> with the free \"DB Browser for SQLite\" app to see your tables.", skill: "sql" },
       { t: "Finish SQLBolt lessons 1–12", d: "sqlbolt.com. Short, interactive, and covers everything in this world.", skill: "sql" },
-      { t: "Call a real API", d: "Run your Pokédex card against the real PokeAPI. Then try another free API, such as Open-Meteo for your city's weather.", skill: "web" },
+      { t: "Call a real API", d: "Point your creature card at a real free API: PokeAPI (pokeapi.co) sends the same shape of data, so you mostly change the URL. Then try Open-Meteo for your city's weather.", skill: "web" },
       { t: "Export data as JSON", d: "Add a command to the habit tracker that saves all habits and streaks to <code>export.json</code>.", skill: "python" },
       { t: "Push it to GitHub", d: "Add a README with the table design and example commands. Add <code>habits.db</code> to <code>.gitignore</code>: never commit real user data.", skill: "git" },
       { t: "Explain JOIN out loud", d: "Explain INNER vs LEFT JOIN to someone with two hand-drawn tables. You'll be asked this in interviews.", skill: "talk" }
@@ -13230,29 +13379,30 @@ const CQ_JS = {
 };
 
 /* ── Practice internet for requests ── */
-const CQ_POKEMON = {
-  pikachu: [25, 4, 60, 112, ["electric"], [35, 55, 40, 50, 50, 90], ["static", "lightning-rod"]],
-  bulbasaur: [1, 7, 69, 64, ["grass", "poison"], [45, 49, 49, 65, 65, 45], ["overgrow", "chlorophyll"]],
-  charmander: [4, 6, 85, 62, ["fire"], [39, 52, 43, 60, 50, 65], ["blaze", "solar-power"]],
-  squirtle: [7, 5, 90, 63, ["water"], [44, 48, 65, 50, 64, 43], ["torrent", "rain-dish"]],
-  gengar: [94, 15, 405, 250, ["ghost", "poison"], [60, 65, 60, 130, 75, 110], ["cursed-body"]],
-  eevee: [133, 3, 65, 65, ["normal"], [55, 55, 50, 45, 65, 55], ["run-away", "adaptability", "anticipation"]],
-  snorlax: [143, 21, 4600, 189, ["normal"], [160, 110, 65, 65, 110, 30], ["immunity", "thick-fat", "gluttony"]]
+/* Critterdex: a made-up creature API (only in the game), shaped like real public APIs such as PokeAPI. */
+const CQ_CRITTERS = {
+  zappip: [12, 4, 58, 110, ["electric"], [38, 52, 41, 48, 50, 88], ["spark", "quick-charge"]],
+  sproutle: [3, 7, 71, 66, ["grass", "poison"], [47, 48, 50, 63, 64, 44], ["leaf-guard", "sun-soak"]],
+  embercub: [5, 6, 83, 60, ["fire"], [41, 54, 42, 58, 51, 63], ["warm-up", "ember-heart"]],
+  bubblet: [8, 5, 92, 61, ["water"], [46, 47, 63, 51, 62, 42], ["splash", "rain-song"]],
+  gloomwisp: [42, 15, 410, 245, ["ghost", "poison"], [58, 63, 61, 128, 74, 108], ["fade-out"]],
+  fluffox: [57, 3, 65, 66, ["normal"], [55, 54, 51, 46, 64, 56], ["cozy", "curious", "quick-ears"]],
+  dozebear: [77, 21, 4600, 185, ["normal"], [160, 108, 66, 64, 108, 31], ["deep-sleep", "snack-time", "thick-fur"]]
 };
-function cqPokemon(key) {
-  const name = Object.keys(CQ_POKEMON).find((n) => n === key || String(CQ_POKEMON[n][0]) === key);
+function cqCritter(key) {
+  const name = Object.keys(CQ_CRITTERS).find((n) => n === key || String(CQ_CRITTERS[n][0]) === key);
   if (!name) return null;
-  const [id, height, weight, xp, types, st, ab] = CQ_POKEMON[name];
+  const [id, height, weight, xp, types, st, ab] = CQ_CRITTERS[name];
   const statNames = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
   return {
     id, name, height, weight, base_experience: xp,
-    types: types.map((t, i) => ({ slot: i + 1, type: { name: t, url: "https://pokeapi.co/api/v2/type/" + t + "/" } })),
+    types: types.map((t, i) => ({ slot: i + 1, type: { name: t, url: "https://api.critterdex.example/v1/type/" + t + "/" } })),
     abilities: ab.map((a, i) => ({ ability: { name: a }, is_hidden: i === ab.length - 1 && ab.length > 1, slot: i + 1 })),
     stats: st.map((v, i) => ({ base_stat: v, effort: 0, stat: { name: statNames[i] } }))
   };
 }
 const CQ_API_DEFAULT = [
-  { url: /^https:\/\/pokeapi\.co\/api\/v2\/pokemon\/([^/?]+)\/?$/, fn: (m) => { const p = cqPokemon(m[1]); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
+  { url: /^https:\/\/api\.critterdex\.example\/v1\/critter\/([^/?]+)\/?$/, fn: (m) => { const p = cqCritter(m[1]); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
   { url: /^https:\/\/api\.open-meteo\.com\/v1\/forecast$/, fn: (m, q) => {
     if (q.latitude == null || q.longitude == null || isNaN(+q.latitude) || isNaN(+q.longitude)) return { status: 400, json: { error: true, reason: "Parameter 'latitude' and 'longitude' must have the same number of elements" } };
     const lat = +q.latitude, lon = +q.longitude;
@@ -13795,7 +13945,7 @@ function diffReasons(want, got) {
 }
 /* Little jokes for players who change the text on purpose. */
 const OUTPUT_JOKES = [
-  [/job.?ready in (a|one|1) (day|hour|minute|second)/i, "Job-ready in a day? Bold! The quest says 8 weeks, though."],
+  [/(real code|job.?ready) in (a|one|1) (day|hour|minute|second)/i, "In a day? Bold! The quest says 8 weeks, though."],
   [/\b(hacked|hacker|pwned|lol|lmao|haha)\b/i, "Ha, nice try. The checker has seen it all."],
   [/^(test|testing|asdf|qwerty)$/i, "Testing the checker? Respect. Now back to the quest."]
 ];
@@ -14310,8 +14460,8 @@ function cleanHero(d) {
   h.motto = typeof d.motto === "string" ? d.motto.slice(0, 40) : "";
   h.role = clampInt(d.role, 0, 5);
   for (const k of ["xp", "streak", "best", "stars", "done", "spent"]) h[k] = clampInt(d[k], 0, 1e7);
-  for (const k of ["last", "cur", "created"]) if (typeof d[k] === "string") h[k] = d[k].slice(0, 12);
-  for (const k of ["days", "lv", "cards", "home", "ext", "bh", "badges", "ai"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
+  for (const k of ["last", "cur", "created", "age"]) if (typeof d[k] === "string") h[k] = d[k].slice(0, 12);
+  for (const k of ["days", "lv", "cards", "home", "ext", "bh", "badges", "ai", "terms", "parent"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
   return h;
 }
 function clampInt(v, lo, hi) { v = Math.round(Number(v)); return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo; }
@@ -14540,7 +14690,7 @@ function confetti() {
 const routeHash = (r) => "#" + [r.name, r.id, r.stage].filter((x) => x != null && x !== "").join("/");
 function hashRoute(h) {
   const [name, id, stage] = String(h || "").replace(/^#\/?/, "").split("/").map(decodeURIComponent);
-  if (!name || !/^(map|world|level|review|guild|profile)$/.test(name)) return null;
+  if (!name || !/^(hub|map|world|level|review|guild|profile)$/.test(name)) return null;
   const r = { name };
   if (id) r.id = name === "world" ? +id : id;
   if (stage) r.stage = stage;
@@ -14604,7 +14754,8 @@ function render() {
   renderChatBtn();
   const r = S.route, v = $("#view");
   if (!S.hero) return renderTitle(v);
-  if (r.name === "map") renderHome(v);
+  if (r.name === "hub") renderHub(v);
+  else if (r.name === "map") renderHome(v);
   else if (r.name === "world") renderWorld(v, r.id);
   else if (r.name === "level") renderLevel(v, r.id, r.stage);
   else if (r.name === "review") renderReview(v);
@@ -14613,6 +14764,7 @@ function render() {
   else renderHome(v);
   fixSvgVars(v);
   bossHackBanner();
+  legalBanner();
   ttTrack();
 }
 /* Move CSS variables out of SVG presentation attributes into style, where every browser resolves them. */
@@ -14635,10 +14787,11 @@ function renderNav() {
   const tab = (n, icon, long, short, extra = "") => `<button data-nav="${n}" ${cur === n ? 'aria-current="page"' : ""}><span class="nav-ic">${icon}</span><span class="nav-tx" data-short="${short}">${long}</span>${extra}</button>`;
   const fb = netConfigured() && S.mode === "local";
   nav.innerHTML =
+    tab("hub", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>`, "Home", "Home") +
     tab("map", ICON.map, "Map", "Map") +
     tab("review", ICON.cards, "Memory Dungeon", "Dungeon", due ? `<span class="badge">${due}</span>` : "") +
     tab("guild", ICON.people, "Guild", "Guild") +
-    tab("profile", pixelSvg(S.hero.pix), "Profile", "Profile") +
+    tab("profile", pixelSvg(S.hero.pix), "Profile", "Profile").replace("<button ", '<button class="nav-pro" ') +
     `<button class="nav-extra" data-nav="guide">How to play</button>` +
     (fb ? `<button class="nav-extra" data-nav="feedback">Feedback</button>` : "") +
     `<button class="nav-more" data-nav="more" aria-label="More"><span class="nav-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></span><span class="nav-tx">More</span></button>`;
@@ -14647,9 +14800,11 @@ function renderNav() {
     if (n === "guide") openGuide();
     else if (n === "feedback") openFeedback();
     else if (n === "more") openModal(`<div class="more-sheet"><h2>More</h2>
+        <button class="btn more-pro" data-m="profile">${pixelSvg(S.hero.pix)} Profile</button>
         <button class="btn" data-m="guide">${ICON.help} How to play</button>
         ${fb ? `<button class="btn" data-m="feedback">${ICON.talk} Send feedback</button>` : ""}
-        <button class="btn ghost" data-close>Close</button></div>`, { onOpen: (bg) => $$("[data-m]", bg).forEach((x) => x.addEventListener("click", () => { closeModal(); x.dataset.m === "guide" ? openGuide() : openFeedback(); })) });
+        ${legalNeeded() ? `<button class="btn" data-m="legal">${ICON.book} Privacy &amp; Terms</button>` : ""}
+        <button class="btn ghost" data-close>Close</button></div>`, { onOpen: (bg) => $$("[data-m]", bg).forEach((x) => x.addEventListener("click", () => { closeModal(); ({ guide: openGuide, feedback: openFeedback, legal: () => openLegal("privacy"), profile: () => go({ name: "profile" }) })[x.dataset.m](); })) });
     else go({ name: n });
   }));
 }
@@ -14722,7 +14877,7 @@ function renderHome(v) {
         ${players().length < 2 ? `<p class="muted" style="font-size:13px;margin-top:10px">${netOn() ? "Playing solo for now. Open <b>Guild</b> to start one and share the code, or join your friends with theirs." : "Playing solo for now. Send friends the game's link so they can start their own quest."}</p>` : ""}
       </div>
       <div class="card side-card">
-        <div class="panel-h"><h2>Job-ready meter</h2></div>
+        <div class="panel-h"><h2>Skills meter</h2></div>
         <div class="ready-total"><b class="num">${ready}%</b><span class="muted">of the 8-week plan</span></div>
         <div class="skills">${skillScores().map((s) => `<div class="skill"><span>${s.name}</span><span class="pct num">${s.pct}%</span><span class="bar"><i style="width:${s.pct}%"></i></span></div>`).join("")}</div>
       </div>
@@ -16115,6 +16270,13 @@ function runDeck(dz, keys, counts) {
 /* ───────── Guild ───────── */
 function renderGuild(v) {
   if (netOn()) return renderNetGuild(v);
+  if (legalNeeded() && !onlineAllowed()) {   // online features are off: under 18 without a parent's OK, or terms not agreed
+    v.innerHTML = `<div class="wrap"><div class="guild"><div><p class="eyebrow">Play together</p><h1>Guild</h1></div>
+      <div class="card prose" style="padding:18px"><p>Guilds and chat are online features. ${isMinor() ? "Because you're under 18, a parent or guardian needs to say yes first. It takes a minute." : "Agree to the Terms to switch them on."}</p>
+      <button class="btn primary" id="gAsk">${isMinor() && S.hero.terms ? "Ask a parent" : "Review and agree"}</button></div></div></div>`;
+    $("#gAsk").addEventListener("click", () => (needsQuickCheck() ? openQuickCheck(() => legalOnEnter(render)) : openParentOk(render)));
+    return;
+  }
   const ps = players();
   v.innerHTML = `
   <div class="wrap"><div class="guild">
@@ -16203,7 +16365,7 @@ function openWelcome() {
     <h2 class="wl-title">Your adventure starts now, ${name}!</h2>
     <p>In 8 weeks you'll go from your very first <code>print()</code> to acing a coding interview, one island at a time. No experience needed: just curiosity and a little practice every day.</p>
     <ul class="wl-steps">
-      <li>${pixIcon("map")}<span><b>Follow the map.</b> Start on the glowing island in the bottom-left, Basics Village.</span></li>
+      <li>${pixIcon("map")}<span><b>Pick the Python cartridge,</b> then follow the map. Start on the glowing island in the bottom-left, Basics Village.</span></li>
       <li>${pixIcon("sword")}<span><b>Five stages per level:</b> Learn, Think, the Forge, Bug Hunt and Tavern Talk.</span></li>
       <li>${pixIcon("flame")}<span><b>Come back every day.</b> Keep your streak alive and earn XP, stars and ranks.</span></li>
       ${netConfigured() && S.mode === "local" ? `<li>${pixIcon("shield")}<span><b>Bring your friends.</b> Join their guild with a code, or start your own.</span></li>` : ""}
@@ -16259,7 +16421,7 @@ function loadScript(src) {
     .catch(() => toast("The Python engine could not load. Check your connection and reload."));
   const hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(() => ({ route: S.route }));
-  $("#brand").addEventListener("click", () => S.hero && go({ name: "map" }));
+  $("#brand").addEventListener("click", () => S.hero && go({ name: "hub" }));
   if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
 })();
 
@@ -16351,7 +16513,7 @@ function bhStart(variant) {
 function bhEnd(o) {
   (o ? [o] : $$(".bh")).forEach((x) => x.remove());
   document.body.classList.remove("bh-on", "bh-shake");
-  if (S.hero && S.route.name === "map") bossHackBanner();
+  if (S.hero && ["map", "hub"].includes(S.route.name)) bossHackBanner();
 }
 async function bossHackTakeover({ preview = false } = {}) {
   const picks = preview ? null : bossPicks(4, true);
@@ -16449,7 +16611,7 @@ let bhAutoShown = false, bhClock = null;
 function bossHackBanner() {
   clearInterval(bhClock);
   $$(".bh-banner").forEach((x) => x.remove());
-  if (!S.hero || S.route.name !== "map" || $(".bh")) return;
+  if (!S.hero || !["map", "hub"].includes(S.route.name) || $(".bh")) return;
   const b = bhState();
   if (!b.due) return;
   const t = bhLines(), el = document.createElement("div");
@@ -16471,7 +16633,7 @@ function bossHackBanner() {
     txt.textContent = `${t.boss} has broken in and is waiting for you`;
     clock.innerHTML = `<button class="btn sm bh-fight" type="button">Face him</button>`;
     $(".bh-fight", el).addEventListener("click", () => bossHackTakeover());
-    if (!bhAutoShown) { bhAutoShown = true; setTimeout(() => { if (S.route.name === "map" && !$(".bh") && !$("#modalBg")) bossHackTakeover(); }, 900); }
+    if (!bhAutoShown) { bhAutoShown = true; setTimeout(() => { if (["map", "hub"].includes(S.route.name) && !$(".bh") && !$("#modalBg")) bossHackTakeover(); }, 900); }
   };
   bhClock = setInterval(tick, 1000); tick();
 }
@@ -16482,7 +16644,10 @@ function bossHackBanner() {
    Leave url empty and the game plays fully offline, saving in the browser only. */
 const CQ_BACKEND = {
   url: "https://uivurucifxyrfzasqnqz.supabase.co",
-  key: "sb_publishable_obNKyewOHnxhyjCSnKwKIw_CbjJYK-p"
+  key: "sb_publishable_obNKyewOHnxhyjCSnKwKIw_CbjJYK-p",
+  // Where players send privacy and safety questions (shown in the Privacy Policy and Terms). This repo is
+  // public, so use an address made for the game, not a personal one. Empty = the in-game Feedback button.
+  contact: ""
 };
 
 /* ───────── Online backend (Supabase) ─────────
@@ -16495,7 +16660,7 @@ const CQ_BACKEND = {
    Tables and security rules live in supabase/schema.sql, hardening.sql and sessions.sql. */
 const NET = { sb: null, uid: null, slot: null, queue: [], timer: null, saveTimer: null, boardTimer: null, lib: null, session: null, lastLog: 0, noSession: false, pageChat: null, pageGuild: null, panelChat: null, panelGuild: null, allChat: null, unread: 0 };
 const netConfigured = () => !!(CQ_BACKEND.url && CQ_BACKEND.key);
-const netOn = () => netConfigured() && S.mode === "local";
+const netOn = () => netConfigured() && S.mode === "local" && onlineAllowed();   // adults, or a parent agreed (legal.js)
 const NET_PRIVACY = "Online, the game stores your hero name, progress, attempts (including code you check) and how long each step takes, to improve the game. No email or real name is needed, so please don't type personal details.";
 
 function netLoad() {
@@ -16505,8 +16670,10 @@ function netLoad() {
 
 /* Called when a hero enters the game: sign in (anonymously, once per save slot), merge the online save
    in, and push the result back up. */
-async function netStart() {
-  if (!netOn() || !S.hero) return false;
+/* force: connect even when online features are off. Only Delete profile uses it: erasing your data is
+   always allowed. */
+async function netStart({ force = false } = {}) {
+  if (!(force ? netConfigured() && S.mode === "local" : netOn()) || !S.hero) return false;
   const slot = S.slot || 1;
   try {
     const lib = await netLoad();
@@ -16570,7 +16737,7 @@ async function netDeleteMe(slot) {
   if (NET.sb) netStopGuild();
   if (netConfigured() && hasLogin) {
     clearTimeout(NET.saveTimer); clearTimeout(NET.timer); NET.queue = [];
-    if (NET.slot !== slot || !NET.uid) await netStart();
+    if (NET.slot !== slot || !NET.uid) await netStart({ force: true });
     if (!NET.uid) return false;
     const { error } = await NET.sb.rpc("delete_me");
     if (error) { console.warn("Delete profile:", error.message); return false; }
@@ -16748,18 +16915,26 @@ function netChat(root, g) {
     if (stopped || !document.body.contains(list)) return stop();
     const { data, error } = await NET.sb.rpc("guild_chat", { p_guild: g.id });
     if (error) { live.textContent = "can't reach chat"; return; }
-    const key = (data || []).map((m) => m.id).join(",");
+    const blocked = chatBlocked(), shown = (data || []).filter((m) => !(m.sender && blocked[m.sender]));
+    const key = shown.map((m) => m.id).join(",");
     if (key === lastKey) return;
     const first = lastKey === null, atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
     lastKey = key;
-    list.innerHTML = data.length ? data.map((m) => `<div class="msg${m.is_me ? " me" : ""}" data-id="${m.id}">
+    list.innerHTML = shown.length ? shown.map((m) => `<div class="msg${m.is_me ? " me" : ""}" data-id="${m.id}" data-sender="${esc(m.sender || "")}" data-name="${esc(m.nickname)}">
         ${m.is_me ? "" : avatarHtml({ pix: m.pix, color: m.color }, "sm")}
-        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b>${m.from_master ? MASTER_TAG : ""} <span>${esc(when(m.at))}</span>${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
+        <div class="bubble"><div class="msg-meta"><b>${m.is_me ? "You" : esc(m.nickname)}</b>${m.from_master ? MASTER_TAG : ""} <span>${esc(when(m.at))}</span><span class="msg-acts">${m.is_me ? "" : `<button class="msg-act" type="button" data-act="report" title="Report this message" aria-label="Report this message">⚑</button>${m.sender ? `<button class="msg-act" type="button" data-act="block" title="Block ${esc(m.nickname)}" aria-label="Block ${esc(m.nickname)}">⊘</button>` : ""}`}${m.can_delete ? `<button class="msg-del" type="button" title="Delete message" aria-label="Delete message">×</button>` : ""}</span></div><div class="msg-body">${esc(m.body)}</div></div></div>`).join("")
       : `<p class="muted chat-empty">No messages yet. Say hi to your guild!</p>`;
     if (first || atBottom) list.scrollTop = list.scrollHeight;
     if (data.length) { chatSeen(g.id, data[data.length - 1].id); netCountUnread(); }
   };
+  const refresh = () => { lastKey = null; load(); };
   list.addEventListener("click", async (e) => {
+    const act = e.target.closest(".msg-act");
+    if (act) {
+      const m = act.closest(".msg");
+      if (act.dataset.act === "report") return reportMessage(+m.dataset.id, refresh);
+      return blockSender(m.dataset.sender, m.dataset.name, refresh);
+    }
     const del = e.target.closest(".msg-del"); if (!del) return;
     if (!confirm("Delete this message for everyone?")) return;
     const { error } = await NET.sb.from("guild_messages").delete().eq("id", del.closest(".msg").dataset.id);
@@ -16772,7 +16947,7 @@ function netChat(root, g) {
     const btn = $("button[type=submit]", form); btn.disabled = true;
     const { error } = await NET.sb.from("guild_messages").insert({ guild_id: g.id, body: text.slice(0, 500) });
     btn.disabled = false;
-    if (error) { errEl.textContent = /Slow down|a lot of chat/.test(error.message || "") ? error.message : "Couldn't send it. Check your internet and try again."; errEl.hidden = false; return; }
+    if (error) { errEl.textContent = /Slow down|a lot of chat|allowed|private|kind/.test(error.message || "") ? error.message : "Couldn't send it. Check your internet and try again."; errEl.hidden = false; return; }
     errEl.hidden = true; input.value = ""; input.style.height = "";
     await load(); list.scrollTop = list.scrollHeight; input.focus();
   };
@@ -16785,6 +16960,31 @@ function netChat(root, g) {
     .subscribe((st) => { const on = st === "SUBSCRIBED"; live.textContent = on ? "● live" : "refreshing every 15s"; live.classList.toggle("on", on); });
   timer = setInterval(load, 15000);
   return { stop };
+}
+
+/* ───────── Report and block ─────────
+   Report: sends the message to you for review; when 2 different members report it, it's hidden for
+   everyone. Block: hides that player's messages for you in every guild (kept on this device). */
+const chatBlockKey = () => "cq.blocked.slot" + (S.slot || 1);
+const chatBlocked = () => lsGet(chatBlockKey()) || {};
+function reportMessage(id, after) {
+  openModal(`<div class="report-sheet"><h2>Report this message</h2><p>What's wrong with it? Reports go to the Code Quest team. When two players report a message, it's hidden for everyone.</p>
+      ${["Mean or bullying", "Asks for or shares personal details", "Rude or not suitable for kids", "Spam or a scam", "Something else"].map((r) => `<button class="btn" data-why="${esc(r)}">${esc(r)}</button>`).join("")}
+      <p class="muted" style="font-size:13px">If someone is making you feel unsafe, also tell a trusted adult.</p><button class="btn ghost" data-close>Cancel</button></div>`,
+    { onOpen: (bg) => $$("[data-why]", bg).forEach((b) => b.addEventListener("click", async () => {
+      const { data, error } = await NET.sb.rpc("report_message", { p_message: id, p_reason: b.dataset.why });
+      closeModal();
+      if (error) return toast(/report|delete your own/.test(error.message || "") ? esc(error.message) : "Couldn't send the report. Try again in a minute.");
+      toast(data ? "Thanks for reporting. We'll take a look." : "That message is already gone.");
+      if (after) after();
+    })) });
+}
+function blockSender(sender, name, after) {
+  if (!sender) return;
+  if (!confirm(`Block ${name}? You won't see their messages in any guild. You can unblock them in Profile.`)) return;
+  const b = chatBlocked(); b[sender] = String(name || "Player").slice(0, 24); lsSet(chatBlockKey(), b);
+  toast(`${esc(name)} is blocked.`);
+  if (after) after();
 }
 
 /* ───────── Floating chat button (top bar) ─────────
@@ -16879,7 +17079,7 @@ function openFeedback() {
       $("#fbSend", bg).addEventListener("click", async () => {
         const text = msg.value.trim();
         if (!text) { errEl.textContent = "Write a few words first."; errEl.hidden = false; msg.focus(); return; }
-        if (!netOn() || (!NET.uid && !(await netStart()))) { errEl.textContent = "Feedback needs an internet connection. Copy your message and try again later."; errEl.hidden = false; return; }
+        if (!netOn() || (!NET.uid && !(await netStart()))) { errEl.textContent = !onlineAllowed() ? "Feedback is an online feature. A parent or guardian can switch online features on in Profile." : "Feedback needs an internet connection. Copy your message and try again later."; errEl.hidden = false; return; }
         const send = $("#fbSend", bg);
         send.disabled = true;
         const { error } = await NET.sb.from("feedback").insert({ level: r.name === "level" ? r.id : null, stage: r.stage || r.name, rating: rating || null, message: text.slice(0, 2000) });
@@ -17080,6 +17280,7 @@ function localFiles(ui) {
     <div class="pbox">
       <h2 class="ptitle">Select a save file</h2>
       <p class="pnote">One file per player on this computer. Lock yours with a PIN so nobody else plays your save.</p>
+      ${legalNeeded() ? `<p class="pnote legal-links"><a href="#" data-open-legal="privacy">Privacy Policy</a> · <a href="#" data-open-legal="terms">Terms of Use</a></p>` : ""}
       <div class="files">${slots.map((s) => s.hero
         ? `<button class="file" data-slot="${s.n}">${fileCard(s.hero, "File " + s.n, `<span class="file-go">${s.locked ? `<span class="lock-ico">${ICON.lock}</span>` : ""}Play ▸</span>`)}</button>`
         : `<button class="file empty" data-new="${s.n}"><span class="file-plus">+</span><span class="file-meta"><span class="file-label">File ${s.n}</span><b>Empty</b><span>Start a new game</span></span></button>`).join("")}</div>
@@ -17091,6 +17292,7 @@ function localFiles(ui) {
     else enterSlot(n);
   }));
   $$("[data-new]", ui).forEach((b) => b.addEventListener("click", () => titleStep("create", { slot: +b.dataset.new })));
+  $$("[data-open-legal]", ui).forEach((x) => x.addEventListener("click", (e) => { e.preventDefault(); openLegal(x.dataset.openLegal); }));
   $("#back").addEventListener("click", () => titleStep("start"));
   const first = $(".file", ui); if (first) first.focus();
 }
@@ -17106,8 +17308,8 @@ function enterGame(hero) {
   recompute();
   save();
   bossHackMaybeSchedule(0.3);
-  go(hashRoute(location.hash) || { name: "map" }, { replace: true });   // after a refresh, back to the same screen
-  netStart().then((ok) => { if (ok && S.hero) { save(); render(); } });
+  go(hashRoute(location.hash) || { name: "hub" }, { replace: true });   // the main screen, or after a refresh the same screen as before
+  legalOnEnter();   // asks age/terms if missing, then goes online if allowed
 }
 
 function createHero(ui, opt) {
@@ -17127,6 +17329,7 @@ function createHero(ui, opt) {
           <div class="char-grid" id="chars">${SPRITES.map((s, i) => `<button class="char" data-pix="${i}" aria-label="${s.name}" title="${s.name}">${pixelSvg(i)}</button>`).join("")}</div>
           <span class="plabel">Background</span>
           <div class="swatches" id="cols">${HERO_COLORS.map((c, i) => `<button class="swatch" data-col="${i}" aria-label="Colour ${i + 1}" style="background:${c}"></button>`).join("")}</div>
+          ${legalNeeded() && !opt.cloud ? `<span class="plabel">How old are you?</span>${ageAgreeHtml("", false)}` : ""}
           ${opt.cloud ? "" : `<label class="plabel" for="cPin">PIN lock</label>
           <span class="pnote" style="font-size:12.5px">Optional. 4 digits so nobody else on this computer plays your file.</span>
           <input class="pinput pin" id="cPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">`}
@@ -17145,6 +17348,8 @@ function createHero(ui, opt) {
   $("#cName").addEventListener("input", drawPrev);
   $$(".char", ui).forEach((b) => b.addEventListener("click", () => { pick.pix = +b.dataset.pix; drawPrev(); }));
   $$(".swatch", ui).forEach((b) => b.addEventListener("click", () => { pick.color = +b.dataset.col; drawPrev(); }));
+  const legal = { age: "" };
+  if (legalNeeded() && !opt.cloud) bindAgeAgree(ui, legal);
   const pinEl = $("#cPin");
   if (pinEl) pinEl.addEventListener("input", () => { pinEl.value = pinEl.value.replace(/\D/g, "").slice(0, 4); });
   $("#cBack").addEventListener("click", () => titleStep("files"));
@@ -17154,14 +17359,19 @@ function createHero(ui, opt) {
     if (!name) { err.textContent = "Every hero needs a name."; $("#cName").focus(); return; }
     const pin = pinEl ? pinEl.value : "";
     if (pin && pin.length !== 4) { err.textContent = "A PIN needs exactly 4 digits, or leave it empty."; pinEl.focus(); return; }
+    if (legalNeeded() && !opt.cloud) {
+      if (!legal.age) { err.textContent = "Pick your age group."; return; }
+      if (!$("#agreeBox").checked) { err.textContent = "Tick the box to agree to the Terms and Privacy Policy."; return; }
+    }
     const hero = blankHero(name.slice(0, 16), pick.pix, pick.color);
+    if (legal.age) { hero.age = legal.age; hero.terms = { v: LEGAL_VERSION, at: today() }; }
     if (opt.cloud) { S.cloudHero = hero; enterGame(hero); setTimeout(openWelcome, 400); return; }
     S.slot = opt.slot;
     if (pin) lsSet(pinKey(opt.slot), await hashPin(opt.slot, pin));
     else lsSet(pinKey(opt.slot), null);
     lsSet(slotKey(opt.slot), hero);
     enterSlot(opt.slot);
-    setTimeout(openWelcome, 400);
+    setTimeout(() => (isMinor(hero) && legalNeeded() ? openParentOk(openWelcome) : openWelcome()), 400);
   });
 }
 
@@ -17274,7 +17484,13 @@ function renderProfile(v) {
 
         ${S.mode === "local" && netConfigured() ? `<hr class="sep">
         <h3 class="sub">Your data</h3>
-        <div class="ai-consent">
+        <div class="data-status">${!onlineAllowed()
+          ? `<p><b>Online features are off.</b> Everything stays on this device. ${isMinor() ? "A parent or guardian can switch on cloud backup, guilds, chat and feedback." : ""}</p><button class="btn sm primary" id="pOnline">${isMinor() ? "Ask a parent" : "Switch online features on"}</button>`
+          : isMinor() ? `<p><b>Online features are on.</b> A parent or guardian agreed on ${esc(h.parent.at)}.</p><button class="btn sm" id="pOffline">Switch online features off</button>`
+          : `<p><b>Online features are on.</b></p>`}
+          ${Object.keys(chatBlocked()).length ? `<p><b>Blocked players:</b> ${Object.entries(chatBlocked()).map(([k, n]) => `<span class="blocked-chip">${esc(n)} <button class="msg-act" data-unblock="${esc(k)}" aria-label="Unblock ${esc(n)}">Unblock</button></span>`).join(" ")}</p>` : ""}
+          <p class="muted" style="font-size:13px">Read the <a href="#" data-open-legal="privacy">Privacy Policy</a> and <a href="#" data-open-legal="terms">Terms of Use</a>. <b>Delete profile</b> above erases everything, online too.</p></div>
+        <div class="ai-consent" ${onlineAllowed() ? "" : "hidden"}>
           <p>We're building an AI tutor for Code Quest. It learns best from how real players solve problems: the code you run, the mistakes you make and fix, and how long things take.</p>
           <label class="dev-row"><input type="checkbox" id="pAi" ${h.ai && h.ai.on ? "checked" : ""}><span><b>Help train Code Quest's AI tutor with my play</b><br>
             <span class="muted">Shares the code you run and what happened, only to train and improve Code Quest's own teaching AI. No real name or contact details. You can switch it off any time.${h.ai && h.ai.at ? ` Last changed ${esc(h.ai.at)}.` : ""}</span></span></label>
@@ -17283,6 +17499,8 @@ function renderProfile(v) {
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+          <div class="dev-row dev-bh"><span><b>Sign-in sample</b><br><span class="muted">The planned sign-in screen (Google, email code, guest). Not wired up yet.</span>
+            <span class="dev-bh-btns"><button class="btn sm ghost" data-hs="l">Sign-in screen</button></span></span></div>
           <div class="dev-row dev-bh"><span><b>Boss Hack</b><br><span class="muted">Test the surprise review event. "Now" uses any cleared levels except your newest.</span>
             <span class="dev-bh-btns"><button class="btn sm" data-bh="now">Boss Hack now</button><button class="btn sm" data-bh="soon">30-second countdown</button><button class="btn sm ghost" data-bh="preview">Takeover only</button></span></span></div>
         </details>
@@ -17306,7 +17524,7 @@ function renderProfile(v) {
         <div><b class="num">${cleared}/${LEVELS.length}</b><span>Levels cleared</span></div>
         <div><b class="num">${liveStreak(h)}</b><span>Day streak</span></div>
         <div><b class="num">${h.best}</b><span>Best streak</span></div>
-        <div><b class="num">${readiness()}%</b><span>Job-ready</span></div>
+        <div><b class="num">${readiness()}%</b><span>Plan done</span></div>
       </div>
       ${h.badges && h.badges.firewall ? `<p class="badges"><span class="dev-tag">BADGE</span> Firewall${h.badges.firewall > 1 ? ` ×${h.badges.firewall}` : ""} <span class="muted">· beat the Boss Hack</span></p>` : ""}
       <p class="muted" style="font-size:12.5px">Questing since ${esc(h.created)}. ${S.mode === "cloud" ? "Saved to your Claude account." : "Saved in this browser, file " + S.slot + "."}</p>`;
@@ -17367,6 +17585,21 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  $$("[data-open-legal]", v).forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openLegal(a.dataset.openLegal); }));
+  $$("[data-unblock]", v).forEach((b) => b.addEventListener("click", () => {
+    const list = chatBlocked(); delete list[b.dataset.unblock]; lsSet(chatBlockKey(), list); renderProfile(v);
+  }));
+  const pOn = $("#pOnline", v);
+  if (pOn) pOn.addEventListener("click", () => (needsQuickCheck() ? openQuickCheck(() => legalOnEnter(() => renderProfile(v)))
+    : openParentOk(() => renderProfile(v))));
+  const pOff = $("#pOffline", v);
+  if (pOff) pOff.addEventListener("click", () => {
+    if (!confirm("Switch online features off? Cloud backup, guilds, chat and feedback stop. What's already online stays until you use Delete profile.")) return;
+    netLog("consent", null, null, false, { parent: false, v: LEGAL_VERSION }); netFlushEvents();
+    S.hero.parent = { ok: false, at: today() };
+    closeChatPanel(); save(); render();
+    toast("Online features are off. The game keeps working on this device.");
+  });
   const aiBox = $("#pAi", v);
   if (aiBox) aiBox.addEventListener("change", () => {
     if (aiBox.checked && !$("#pAiAdult", v).checked) {
@@ -17381,6 +17614,7 @@ function renderProfile(v) {
     toast(aiBox.checked ? "Thank you! Your play now helps train the AI tutor." : "Switched off. Nothing more will be shared for the AI tutor.");
     $("#pAiAge", v).hidden = aiBox.checked;
   });
+  $$("[data-hs]", v).forEach((b) => b.addEventListener("click", () => signInSample()));
   $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
     const kind = b.dataset.bh;
     go({ name: "map" });
@@ -17453,6 +17687,9 @@ function mergeInto(h, o) {
   if (o.created && (!h.created || o.created < h.created)) h.created = o.created;
   for (const [d, x] of Object.entries(o.days || {})) h.days[d] = Math.max(h.days[d] || 0, x);
   if (o.ai && (!h.ai || (o.ai.at || "") > (h.ai.at || ""))) h.ai = o.ai;
+  if (o.age && !h.age) h.age = o.age;
+  if (o.terms && (!h.terms || (o.terms.v | 0) > (h.terms.v | 0))) h.terms = o.terms;
+  if (o.parent && (!h.parent || (o.parent.at || "") > (h.parent.at || ""))) h.parent = o.parent;
   if (o.badges) { h.badges = h.badges || {}; for (const [k, n] of Object.entries(o.badges)) h.badges[k] = Math.max(h.badges[k] | 0, n | 0); }
   if (o.bh && (o.bh.last || "") >= ((h.bh && h.bh.last) || "")) h.bh = Object.assign({}, h.bh, o.bh, { fights: Math.max((h.bh && h.bh.fights) | 0, o.bh.fights | 0), wins: Math.max((h.bh && h.bh.wins) | 0, o.bh.wins | 0) });
   for (const [id, b] of Object.entries(o.lv || {})) {
@@ -17488,6 +17725,394 @@ function mergeInto(h, o) {
   if (!h.motto && o.motto) h.motto = o.motto;
   if (!h.role && o.role) h.role = o.role;
   recompute();
+}
+
+/* ───────── Privacy Policy and Terms ─────────
+   Plain-language versions shown in the game (More → Privacy & Terms, Profile, and when creating a hero).
+   LEGAL_VERSION goes up when either changes in a way players should agree to again. These were written
+   to match what the game really does; have them reviewed by a lawyer before charging money. */
+const LEGAL_VERSION = 1;
+const LEGAL_UPDATED = "29 October 2026";
+const legalContact = () => (CQ_BACKEND.contact
+  ? `email <a href="mailto:${esc(CQ_BACKEND.contact)}">${esc(CQ_BACKEND.contact)}</a>`
+  : `use the <b>Feedback</b> button in the game and start your message with "Privacy" or "Safety"`);
+
+const LEGAL = {
+  privacy: () => `
+    <p class="eyebrow">Last updated ${LEGAL_UPDATED}</p><h2>Privacy Policy</h2>
+    <div class="legal-sum"><b>In short:</b> no email, phone number or real name is needed. Your progress lives in your browser.
+      Online features (cloud backup, guilds, chat, feedback) store your hero name, progress and play data on servers in India,
+      to run the game and make the lessons better. We never sell data or show ads. Players under 18 need a parent's or guardian's OK for online features.
+      You can delete everything with <b>Delete profile</b>.</div>
+
+    <h3>Who we are</h3>
+    <p>Code Quest is a learning game made by an independent developer in India ("we", "us"). To ask anything about your data, ${legalContact()}.</p>
+
+    <h3>What we collect</h3>
+    <p><b>On your device only.</b> Your hero (name, character, progress), your drafts and your optional PIN are saved in your browser. They don't leave your device unless online features are on.</p>
+    <p><b>When online features are on</b> (adults, or players whose parent or guardian agreed):</p>
+    <ul>
+      <li>an anonymous account ID made by the game. No email, phone or password.</li>
+      <li>your hero name, character, XP, stars, streak and where you are in the game (shown to your guild mates), and a backup copy of your save.</li>
+      <li>play data: which checks pass or fail, the code you check, hints you use, your Think and Explain answers, how long each step takes, and when you play.</li>
+      <li>feedback you send, your guilds, and the messages you write in guild chat (your guild mates can read these).</li>
+    </ul>
+    <p><b>Only if you switch it on</b> (Profile → Your data → "Help train Code Quest's AI tutor"): the code from each Run, what it printed or which error it hit, and how far into the step you were.</p>
+    <p><b>Technical data.</b> The services that deliver the website see your IP address and browser details, like any website: GitHub Pages (hosting), Google Fonts and jsDelivr (fonts and a code library), and Supabase (our database).</p>
+
+    <h3>Why we use it</h3>
+    <ul>
+      <li>to run the game: back up your progress, show guild boards, deliver chat.</li>
+      <li>to improve the lessons: find the steps people get stuck on, and the mistakes they make.</li>
+      <li>to keep players safe: limits on spam, and reports of messages that break the rules.</li>
+      <li>to train Code Quest's own AI tutor, only with your permission (above).</li>
+    </ul>
+    <p>We don't sell your data, show ads, or build profiles for advertising.</p>
+
+    <h3>Children</h3>
+    <p>Anyone can play. If you're under 18, online features stay off until your parent or guardian agrees in the game. Until then, everything stays on your device and nothing about how you play is sent to us. A parent or guardian can withdraw their OK at any time from Profile.</p>
+
+    <h3>Where it's stored, and for how long</h3>
+    <p>Online data is stored by Supabase, our database provider, on servers in Mumbai, India. Play data and chat messages are deleted automatically after 12 months. Your profile and save stay until you delete them. Feedback is kept up to 24 months.</p>
+
+    <h3>Your rights</h3>
+    <ul>
+      <li><b>Delete:</b> Profile → <b>Delete profile</b> erases your hero on this device and everything about it online (save, progress, play data, chat messages, feedback).</li>
+      <li><b>Correct:</b> change your hero name and details in Profile.</li>
+      <li><b>Withdraw consent:</b> switch off the AI tutor option, or the parent OK, in Profile at any time.</li>
+      <li><b>Ask or complain:</b> ${legalContact()}. We aim to reply within 7 days. If you're not satisfied, you can complain to India's Data Protection Board.</li>
+    </ul>
+
+    <h3>Security</h3>
+    <p>Data travels over encrypted connections (HTTPS). The database only lets each player read and change their own data, and only guild members can read their guild's chat. If a breach ever affects your data, we'll tell you and the authorities as the law requires.</p>
+
+    <h3>Changes</h3>
+    <p>If we change this policy in a way that matters, the game will ask you to agree again.</p>`,
+
+  terms: () => `
+    <p class="eyebrow">Last updated ${LEGAL_UPDATED}</p><h2>Terms of Use</h2>
+    <div class="legal-sum"><b>In short:</b> be kind, keep personal details private, don't break the game, and remember it's a learning game, not a job guarantee.</div>
+
+    <h3>Using Code Quest</h3>
+    <p>By creating a hero you agree to these terms and the Privacy Policy. If you're under 18, a parent or guardian needs to agree before you use online features (cloud backup, guilds, chat, feedback).</p>
+
+    <h3>Learning, not a promise</h3>
+    <p>Code Quest teaches programming through practice. It doesn't promise a job, a grade or any other result, and lessons may contain mistakes. The game is provided "as is", and features may change or stop.</p>
+
+    <h3>Guilds and chat rules</h3>
+    <ul>
+      <li>Be kind. No bullying, hate, threats, sexual content, scams or spam.</li>
+      <li>Never share personal details: your real full name, school, address, phone number, social media or photos. Links and phone numbers are blocked in chat.</li>
+      <li>Never arrange to meet someone from the game, and tell a trusted adult if anyone makes you uncomfortable.</li>
+      <li>Report messages that break these rules. Messages reported by several players are hidden, guild masters can delete messages in their guild, and we may remove content, heroes or guilds that break the rules.</li>
+    </ul>
+
+    <h3>Your work</h3>
+    <p>Your code and answers are yours. You let us store and show them to run the game (for example, guild mates see your chat messages), and use them to improve the lessons. We use them to train our AI tutor only if you switch that option on.</p>
+
+    <h3>Our work</h3>
+    <p>The lessons, art, characters and code of Code Quest belong to us. Please don't copy or republish them without permission. Open-source parts (fonts and libraries) keep their own licences.</p>
+
+    <h3>Fair play</h3>
+    <p>Don't attack, overload or reverse-engineer the servers, get around the safety limits, or use bots or scripts to play or collect data.</p>
+
+    <h3>Payments</h3>
+    <p>Code Quest is free right now. If paid features are added, their price and refund policy will be shown clearly before you pay.</p>
+
+    <h3>Ending</h3>
+    <p>You can stop at any time and delete your profile. We may suspend online features for players who break these rules.</p>
+
+    <h3>Law and contact</h3>
+    <p>These terms are governed by the laws of India. Questions or complaints: ${legalContact()}.</p>`
+};
+
+function openLegal(which = "privacy") {
+  openModal(`<div class="legal">
+      <div class="legal-tabs"><button class="btn sm${which === "privacy" ? " primary" : ""}" data-legal="privacy">Privacy Policy</button><button class="btn sm${which === "terms" ? " primary" : ""}" data-legal="terms">Terms of Use</button></div>
+      <div class="legal-body">${LEGAL[which]()}</div>
+      <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Close</button></div></div>`,
+    { onOpen: (bg) => {
+      $(".modal", bg).classList.add("wide");
+      $$("[data-legal]", bg).forEach((b) => b.addEventListener("click", () => openLegal(b.dataset.legal)));
+    } });
+}
+
+/* ───────── Age and a parent's OK ─────────
+   Players say their age when they create a hero (existing heroes are asked once). Online features
+   (cloud backup, guilds, chat, feedback, play data) only switch on for adults, or for under-18s whose
+   parent or guardian agrees on the parent screen. Without that, the game runs fully on the device. */
+const AGE_BANDS = [["u13", "Under 13"], ["teen", "13 to 17"], ["adult", "18 or older"]];
+const isMinor = (h = S.hero) => !!h && h.age !== "adult";
+function onlineAllowed(h = S.hero) {
+  return !!h && !!h.terms && (h.terms.v | 0) >= LEGAL_VERSION && (h.age === "adult" || !!(h.parent && h.parent.ok));
+}
+const legalNeeded = () => S.mode === "local" && netConfigured();
+function needsQuickCheck(h = S.hero) { return legalNeeded() && !!h && (!h.age || !h.terms || (h.terms.v | 0) < LEGAL_VERSION); }
+const ageAgreeHtml = (age, agreed) => `
+  <div class="age-pick" role="radiogroup" aria-label="How old are you?">${AGE_BANDS.map(([k, t]) => `<button type="button" class="age-btn" role="radio" aria-checked="${age === k}" data-age="${k}">${t}</button>`).join("")}</div>
+  <label class="agree"><input type="checkbox" id="agreeBox" ${agreed ? "checked" : ""}><span>I agree to the <a href="#" data-open-legal="terms">Terms of Use</a> and <a href="#" data-open-legal="privacy">Privacy Policy</a>.</span></label>`;
+function bindAgeAgree(root, state) {
+  $$(".age-btn", root).forEach((b) => b.addEventListener("click", () => {
+    state.age = b.dataset.age;
+    $$(".age-btn", root).forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+  }));
+  $$("[data-open-legal]", root).forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openLegal(a.dataset.openLegal); }));
+}
+/* Asked once of heroes made before ages were asked (or after the terms change). */
+function openQuickCheck(then) {
+  const h = S.hero, st = { age: h.age || "" };
+  openModal(`<div class="qcheck"><p class="eyebrow">Quick check</p><h2>Before you carry on, ${esc(h.name)}</h2>
+      <p>To keep cloud backup, guilds and chat on, we need your age group and your OK to our Terms. How old are you?</p>
+      ${ageAgreeHtml(st.age, false)}<p class="fb-err" id="qcErr" hidden></p>
+      <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Not now</button><button class="btn primary" id="qcGo">Continue</button></div></div>`,
+    { onOpen: (bg) => {
+      bindAgeAgree(bg, st);
+      $("#qcGo", bg).addEventListener("click", () => {
+        const err = $("#qcErr", bg);
+        if (!st.age) { err.textContent = "Pick your age group."; err.hidden = false; return; }
+        if (!$("#agreeBox", bg).checked) { err.textContent = "Tick the box to agree to the Terms and Privacy Policy."; err.hidden = false; return; }
+        h.age = st.age; h.terms = { v: LEGAL_VERSION, at: today() };
+        save(); closeModal();
+        if (isMinor() && !(h.parent && h.parent.ok)) openParentOk(then); else then();
+      });
+    } });
+}
+/* The parent screen: what online features are, and a parent or guardian agreeing (or playing offline). */
+function openParentOk(then) {
+  const h = S.hero;
+  openModal(`<div class="parent-ok"><p class="eyebrow">For a parent or guardian</p><h2>Can ${esc(h.name)} use online features?</h2>
+      <p>Code Quest works fully offline on this device. Online features add:</p>
+      <ul><li><b>Cloud backup</b> of progress</li><li><b>Guilds and chat</b> with friends who share a guild code (links and phone numbers are blocked, and messages can be reported)</li>
+        <li><b>Play data</b> (answers, mistakes, time per step) used only to improve the lessons</li></ul>
+      <p>No email, phone number or real name is collected. Read the <a href="#" data-open-legal="privacy">Privacy Policy</a> and <a href="#" data-open-legal="terms">Terms</a>. You can switch this off, or delete everything, from Profile at any time.</p>
+      <label class="plabel-s" for="poName">Parent or guardian's name</label>
+      <input id="poName" class="po-input" maxlength="40" autocomplete="off" placeholder="Your name">
+      <label class="agree"><input type="checkbox" id="poBox"><span>I'm ${esc(h.name)}'s parent or guardian, and I agree to these online features.</span></label>
+      <p class="fb-err" id="poErr" hidden></p>
+      <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn" id="poNo">Play offline for now</button><button class="btn primary" id="poYes">Parent agrees</button></div></div>`,
+    { dismiss: false, onOpen: (bg) => {
+      $$("[data-open-legal]", bg).forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openLegal(a.dataset.openLegal); }));
+      $("#poNo", bg).addEventListener("click", () => { h.parent = { ok: false, at: today() }; save(); closeModal(); toast("Playing offline. A parent can switch online features on from Profile."); then(); });
+      $("#poYes", bg).addEventListener("click", async () => {
+        const name = $("#poName", bg).value.trim(), err = $("#poErr", bg);
+        if (name.length < 2 || !$("#poBox", bg).checked) { err.textContent = "Please type your name and tick the box."; err.hidden = false; return; }
+        h.parent = { ok: true, by: name.slice(0, 40), at: today() };   // the name stays on this device only
+        save(); closeModal();
+        if (await netStart()) { netLog("consent", null, null, true, { parent: true, age: h.age, v: LEGAL_VERSION }); save(); render(); }
+        toast("Thank you! Online features are on.");
+        then();
+      });
+    } });
+}
+/* Called when a hero enters the game: ask anything missing, then go online if allowed. */
+function legalOnEnter(then = () => {}) {
+  if (!legalNeeded() || !S.hero) return then();
+  if (needsQuickCheck()) return then();   // no pop-up: legalBanner() asks, and online features wait
+  netStart().then((ok) => { if (ok && S.hero) { save(); render(); } });
+  then();
+}
+/* Heroes made before ages were asked go straight in. This small banner asks when they're ready;
+   until then the game works fully and only online features (backup, guild, chat) wait. */
+function legalBanner() {
+  $$(".legal-banner").forEach((x) => x.remove());
+  if (!S.hero || !needsQuickCheck()) return;
+  const el = document.createElement("div");
+  el.className = "legal-banner";
+  el.innerHTML = `<div class="wrap"><span>Quick question to keep your cloud backup, guild and chat on.</span><button class="btn sm primary" type="button">Answer (2 taps)</button></div>`;
+  $("#view").parentNode.insertBefore(el, $("#view"));
+  $("button", el).addEventListener("click", () => openQuickCheck(() => { legalBanner(); legalOnEnter(); }));
+}
+
+/* ───────── Main screen (the arcade) ─────────
+   Where players land after picking their hero: the hero on a spotlit pedestal with their stats, a pixel
+   TV on a console playing Bug Dash (a tiny endless runner), and one cartridge per course. Python's
+   cartridge (or Continue) slides into the console and opens the game; future courses say "soon".
+   Also here: a sample of the planned sign-in screen (Profile → DEV). */
+const HS_PAL = { k: "#1a1c2c", g: "#38b764", y: "#a7f070", w: "#f4f4f4", r: "#b13e53", b: "#3b5dc9", B: "#41a6f6", t: "#257179", o: "#ef7d57", s: "#566c86" };
+const HS_ART = {
+  // A friendly pixel snake for Python (not the official Python logo).
+  snake: ["....kkkkkk....", "...kggggggk...", "..kgwkggwkgk..", "..kggggggggk..", "..kggyyyyggk..", "...kggggggk.rr", "....kkggkk.r..",
+          "..kkkggggkkk..", ".kgggggyyggggk", ".kgyyggggggyyk", "..kkggggggggk.", "....kkkkkkkk.."],
+  barrel: ["..kkkkkkkk..", ".kbbbbbbbbk.", "kbBBBBBBBBbk", ".kbbbbbbbbk.", "kbkkkkkkkkbk", "kbBBBBBBBBbk", "kbkkkkkkkkbk", "kbBBBBBBBBbk", ".kbbbbbbbbk.", "..kkkkkkkk.."],
+  globe: ["...kkkkkk...", "..kbbggbbk..", ".kbggggbbbk.", "kbbgggbbbbbk", "kbbbggbbgggk", "kbbbbbbggggk", "kbgggbbbgggk", "kbbggggbbbbk", ".kbbgggbbbk.", "..kbbbbbbk..", "...kkkkkk..."]
+};
+const hsArt = (name) => { const rows = HS_ART[name], w = rows[0].length; return `<svg viewBox="-1 -1 ${w + 2} ${rows.length + 2}" shape-rendering="crispEdges" aria-hidden="true">${PX.sprite(rows, 0, 0, 1, HS_PAL)}</svg>`; };
+const HS_COURSES = [
+  { id: "python", name: "Python", line: "From your first print() to interview practice", art: "snake", shell: "#38b764", live: true },
+  { id: "sql", name: "SQL & Data", line: "Ask questions of real data", art: "barrel", shell: "#3b5dc9", live: false },
+  { id: "web", name: "JavaScript & Web", line: "Build pages people can click", art: "globe", shell: "#8e4fc9", live: false }
+];
+function hsData() {
+  const h = S.hero || blankHero("Asha", 0, 1);
+  const cleared = LEVELS.filter((l) => levelClear(l.id)).length, nx = LEVELS.find((l) => !levelClear(l.id));
+  const { r, next } = rankFor(h.xp);
+  const xpPct = next ? Math.round(((h.xp - r.xp) / (next.xp - r.xp)) * 100) : 100;
+  return { h, cleared, total: LEVELS.length, nx, rank: r.name, xpPct, streak: liveStreak(h), today: Math.min(100, Math.round(((h.days || {})[today()] || 0) / DAILY_GOAL * 100)) };
+}
+function hsOpen(kind, title, html) {
+  hsClose();
+  const o = document.createElement("div");
+  o.className = "hs hs-" + kind;
+  o.innerHTML = `<div class="hs-bar"><span>${esc(title)}</span><button class="hs-x" type="button" aria-label="Close sample">×</button></div>${html}`;
+  document.body.appendChild(o);
+  document.body.classList.add("hs-on");
+  $(".hs-x", o).addEventListener("click", hsClose);
+  return o;
+}
+function hsClose() {
+  if ($(".hs .scene") && sceneRaf) { cancelAnimationFrame(sceneRaf); sceneRaf = null; }
+  $$(".hs").forEach((x) => x.remove());
+  document.body.classList.remove("hs-on");
+}
+
+/* ── Bug Dash: a tiny endless runner on the TV ──
+   Your hero runs; jump over bugs (tap, click, Space or ↑). Until you tap, it plays itself as a demo.
+   Drawn on a 160×72 canvas and scaled up, so every pixel stays crisp. Best score is kept on this device. */
+const DASH_FONT = {
+  0: ["111", "101", "101", "101", "111"], 1: ["010", "110", "010", "010", "111"], 2: ["111", "001", "111", "100", "111"], 3: ["111", "001", "111", "001", "111"],
+  4: ["101", "101", "111", "001", "001"], 5: ["111", "100", "111", "001", "111"], 6: ["111", "100", "111", "101", "111"], 7: ["111", "001", "010", "010", "010"],
+  8: ["111", "101", "111", "101", "111"], 9: ["111", "101", "111", "001", "111"], A: ["010", "101", "111", "101", "101"], B: ["110", "101", "110", "101", "110"],
+  C: ["011", "100", "100", "100", "011"], D: ["110", "101", "101", "101", "110"], E: ["111", "100", "110", "100", "111"], G: ["011", "100", "101", "101", "011"],
+  H: ["101", "101", "111", "101", "101"], I: ["111", "010", "010", "010", "111"], L: ["100", "100", "100", "100", "111"], O: ["010", "101", "101", "101", "010"],
+  P: ["110", "101", "110", "100", "100"], R: ["110", "101", "110", "101", "101"], S: ["011", "100", "010", "001", "110"], T: ["111", "010", "010", "010", "010"],
+  U: ["101", "101", "101", "101", "111"], Y: ["101", "101", "010", "010", "010"], "!": ["010", "010", "010", "000", "010"], "·": ["000", "000", "010", "000", "000"]
+};
+const BUG_ROWS = [["..k..k..", "...kk...", ".krrrrk.", "krwkkwrk", "krrrrrrk", ".k.kk.k."], ["..k..k..", "...kk...", ".krrrrk.", "krwkkwrk", "krrrrrrk", "k.k..k.k"]];
+function bugDash(canvas, pix, { onBest } = {}) {
+  const W = 160, H = 72, GROUND = 58, ctx = canvas.getContext("2d");
+  canvas.width = W; canvas.height = H; ctx.imageSmoothingEnabled = false;
+  const sp = SPRITES[((pix | 0) % SPRITES.length + SPRITES.length) % SPRITES.length], pal = Object.assign({}, PIX_BASE, sp.pal);
+  const paint = (rows, colors) => { const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length; const g = c.getContext("2d");
+    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== "." && colors[ch]) { g.fillStyle = colors[ch]; g.fillRect(x, y, 1, 1); } })); return c; };
+  const hero = paint(sp.rows, pal);
+  const bugs = [BUG_ROWS.map((r) => paint(r, { k: "#1a1c2c", r: "#b13e53", w: "#f4f4f4" })), BUG_ROWS.map((r) => paint(r, { k: "#1a1c2c", r: "#38b764", w: "#f4f4f4" }))];
+  const stars = Array.from({ length: 14 }, () => [Math.random() * W, Math.random() * 40]);
+  let best = +(lsGet("cq.bugdash.best") || 0), mode = "demo", raf = 0, t = 0, stopped = false;
+  let y, vy, speed, dist, obs, nextGap;
+  const reset = () => { y = GROUND; vy = 0; speed = 1.3; dist = 0; obs = []; nextGap = 60; };
+  const jump = () => { if (y >= GROUND) vy = -3.4; };
+  const press = () => { if (mode === "play") jump(); else { reset(); mode = "play"; jump(); } };
+  canvas.addEventListener("pointerdown", (e) => { e.preventDefault(); press(); });
+  canvas.addEventListener("keydown", (e) => { if ([" ", "ArrowUp", "Enter"].includes(e.key)) { e.preventDefault(); press(); } });
+  // Text in a tiny 3×5 pixel font, so it stays as crisp as the sprites when the screen is scaled up.
+  const text = (s, cx, top, color = "#ffcd75", k = 1) => {
+    const w = s.length * 4 * k - k;
+    for (const [dx, col] of [[k, "#1a1c2c"], [0, color]]) {
+      ctx.fillStyle = col;
+      [...s.toUpperCase()].forEach((ch, i) => (DASH_FONT[ch] || []).forEach((row, ry) => [...row].forEach((b, rx) => {
+        if (b === "1") ctx.fillRect(Math.round(cx - w / 2) + (i * 4 + rx) * k + dx, top + ry * k + dx, k, k);
+      })));
+    }
+  };
+  const step = () => {
+    if (stopped || !document.body.contains(canvas)) return;
+    t++;
+    if (mode !== "over") {
+      dist += speed; speed = Math.min(3.2, 1.3 + dist / 2500);
+      vy += 0.2; y = Math.min(GROUND, y + vy); if (y >= GROUND) vy = 0;
+      nextGap -= speed;
+      if (nextGap <= 0) { obs.push({ x: W + 4, kind: Math.random() < 0.5 ? 0 : 1 }); if (Math.random() < 0.2) obs.push({ x: W + 14, kind: 1 }); nextGap = 55 + Math.random() * 70 + speed * 10; }
+      obs.forEach((o) => { o.x -= speed; }); obs = obs.filter((o) => o.x > -10);
+      if (mode === "demo" && obs.some((o) => o.x > 26 && o.x < 26 + 10 + speed * 3)) jump();
+      if (obs.some((o) => o.x < 32 && o.x + 8 > 22 && y > GROUND - 6)) {
+        if (mode === "demo") { reset(); } else { mode = "over"; const sc = Math.floor(dist / 10); if (sc > best) { best = sc; lsSet("cq.bugdash.best", best); if (onBest) onBest(best); } }
+      }
+    }
+    // Draw: night sky, stars, scrolling ground, hero, bugs, score.
+    ctx.fillStyle = "#1a1c2c"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#29366f"; ctx.fillRect(0, 40, W, GROUND - 40 + 1);
+    stars.forEach(([sx, sy], i) => { ctx.fillStyle = (t / 20 + i) % 7 < 1 ? "#f4f4f4" : "#566c86"; ctx.fillRect(Math.floor((sx - dist * 0.05) % W + W) % W, sy, 1, 1); });
+    ctx.fillStyle = "#38b764"; ctx.fillRect(0, GROUND + 1, W, 2);
+    ctx.fillStyle = "#257179"; ctx.fillRect(0, GROUND + 3, W, H - GROUND);
+    ctx.fillStyle = "#1a1c2c"; for (let gx = -(dist % 12); gx < W; gx += 12) ctx.fillRect(Math.floor(gx), GROUND + 6, 4, 1);
+    const bob = y >= GROUND && mode !== "over" ? (Math.floor(t / 6) % 2) : 0;
+    ctx.drawImage(hero, 22, Math.floor(y) - 12 + 1 - bob);
+    obs.forEach((o) => ctx.drawImage(bugs[o.kind][Math.floor(t / 8) % 2], Math.floor(o.x), GROUND - 5));
+    const score = Math.floor(dist / 10);
+    text(String(score).padStart(4, "0"), W - 14, 4, "#f4f4f4"); text(`HI ${best}`, W - 44, 4, "#94b0c2");
+    if (mode === "demo" && Math.floor(t / 30) % 2 === 0) text("TAP TO PLAY", W / 2, 24, "#ffcd75", 2);
+    if (mode === "over") { text("BUGGED!", W / 2, 16, "#ff4a4a", 2); text(`SCORE ${score} · TAP TO RETRY`, W / 2, 32, "#ffcd75"); }
+    raf = requestAnimationFrame(step);
+  };
+  reset(); raf = requestAnimationFrame(step);
+  return { stop() { stopped = true; cancelAnimationFrame(raf); }, best: () => best };
+}
+
+let hubGame = null;
+function renderHub(v) {
+  if (hubGame) hubGame.stop();
+  const d = hsData();
+  v.innerHTML = `<section class="hub"><div class="b2">
+    <aside class="b2-hero">
+      <div class="b2-stage"><span class="b2-spot"></span><div class="b2-actor">${heroActorSvg(d.h.pix)}</div><span class="b2-pedestal"></span></div>
+      <div class="b2-plate"><b>${esc(d.h.name)}</b><span>${esc(d.rank)} · ${d.h.xp} XP</span><span class="b2-xp"><i style="width:${d.xpPct}%"></i></span></div>
+      <div class="b2-leds"><span>${ICON.flame}<b>${String(d.streak).padStart(2, "0")}</b><small>streak</small></span><span>${ICON.star}<b>${String(d.h.stars | 0).padStart(2, "0")}</b><small>stars</small></span><span><b>${d.today}%</b><small>today</small></span></div>
+    </aside>
+    <section class="b2-arcade">
+      <div class="b2-tv"><div class="b2-bezel"><canvas class="b2-screen" tabindex="0" aria-label="Bug Dash mini-game. Press Space or tap to jump."></canvas><span class="b2-glare"></span><span class="b2-flash"></span></div>
+        <div class="b2-tv-foot"><span class="b2-knob"></span><span class="b2-tv-name">BUG DASH · <span class="b2-best">HI ${+(lsGet("cq.bugdash.best") || 0)}</span></span><span class="b2-knob"></span></div></div>
+      <div class="b2-console"><span class="b2-led" id="b2Led"></span><span class="b2-slot" id="b2Slot"></span><span class="b2-brand">CQ·ONE</span></div>
+      <h2 class="b2-h">Pick a cartridge</h2>
+      <div class="b2-shelf">${HS_COURSES.map((c) => `<button class="b2-cart ${c.live ? "live" : "soon"}" type="button" data-course="${c.id}" style="--shell:${c.shell}">
+          <span class="b2-ridges"></span><span class="b2-label"><span class="b2-art">${hsArt(c.art)}</span><b>${esc(c.name)}</b><small>${esc(c.line)}</small></span>
+          <span class="b2-foot">${c.live ? `<span class="b2-prog"><i style="width:${Math.round(d.cleared / d.total * 100)}%"></i></span><span>${d.cleared}/${d.total} levels · PLAY ▸</span>` : `<span>${ICON.lock} COMING SOON</span>`}</span>
+          ${c.live ? "" : `<span class="b2-wrap"></span><span class="b2-sticker">SOON</span>`}</button>`).join("")}</div>
+      ${d.nx ? `<button class="hs-cont" type="button" data-course="python" data-continue="1">${ICON.play}<span><small>Continue Python</small>${esc(d.nx.world + "-" + d.nx.n)} ${esc(d.nx.title)}</span></button>` : ""}
+    </section></div></section>`;
+  const root = $(".hub", v);
+  hubGame = bugDash($(".b2-screen", root), d.h.pix, { onBest: (b) => { $(".b2-best", root).textContent = "HI " + b; } });
+  $$("[data-course]", root).forEach((b) => b.addEventListener("click", () => {
+    if (b.dataset.course !== "python") return toast("That course is coming soon. Want it sooner? Tell us with Feedback!");
+    const open = () => (b.dataset.continue && d.nx ? go({ name: "level", id: d.nx.id, stage: nextStageOf(d.nx.id) }) : go({ name: "map" }));
+    hubInsert(root, $('.b2-cart[data-course="python"]', root), open);
+  }));
+}
+/* The cartridge flies to the console, slides into the slot, the LED lights and the TV flickers on. */
+function hubInsert(o, cart, done) {
+  if (o.classList.contains("loading")) return;
+  o.classList.add("loading");
+  const slot = $("#b2Slot", o).getBoundingClientRect(), r = cart.getBoundingClientRect();
+  const ghost = cart.cloneNode(true);
+  ghost.classList.add("b2-ghost");
+  Object.assign(ghost.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" });
+  document.body.appendChild(ghost);
+  cart.style.visibility = "hidden";
+  const dx = slot.left + slot.width / 2 - (r.left + r.width / 2), dy = slot.top - (r.top + r.height * 0.15), s = Math.min(1, (slot.width * 0.9) / r.width);
+  const still = bhStill();
+  const fly = ghost.animate([
+    { transform: "translate(0, 0) scale(1) rotate(0)" },
+    { transform: `translate(${dx}px, ${dy - 60}px) scale(${s}) rotate(-4deg)`, offset: 0.55 },
+    { transform: `translate(${dx}px, ${dy - 40}px) scale(${s}) rotate(0)`, offset: 0.7 },
+    { transform: `translate(${dx}px, ${dy + r.height * s * 0.7}px) scale(${s})`, clipPath: "inset(0 0 75% 0)" }
+  ], { duration: still ? 1 : 1100, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" });
+  fly.onfinish = () => {
+    ghost.remove();
+    $("#b2Led", o).classList.add("on");
+    $(".b2-bezel", o).classList.add("power");
+    setTimeout(done, still ? 0 : 650);
+  };
+}
+
+/* Sign-in sample: the real title-screen scene behind it. One account per person, quick to switch on a
+   shared phone, and a guest start. */
+function signInSample() {
+  const d = hsData();
+  const o = hsOpen("l", "Sample · Sign in", `<section class="title-screen hsl-screen"><canvas class="scene" aria-hidden="true"></canvas>
+    <div class="title-ui hsl">${logoHtml}
+    <div class="pbox hsl-box">
+      <h2 class="ptitle">Welcome back</h2>
+      <button class="hsl-me" type="button">${avatarHtml(d.h, "hero")}<span><b>${esc(d.h.name)}</b><span>${esc(d.rank)} · ${d.h.xp} XP</span></span><span class="file-go">Continue ▸</span></button>
+      <p class="pnote">Not you? Sign in with your own account:</p>
+      <div class="hsl-opts">
+        <button class="pbtn alt hsl-opt" type="button"><span class="hsl-g">G</span> Continue with Google</button>
+        <button class="pbtn alt hsl-opt" type="button">✉ Email me a sign-in code</button>
+        <button class="pbtn hsl-opt" type="button">▸ Try it first (no account)</button>
+      </div>
+      <p class="pnote hsl-small">Under 18? We'll ask a parent or guardian to confirm by email. <a href="#" data-open-legal="privacy">Privacy</a> · <a href="#" data-open-legal="terms">Terms</a></p>
+    </div></div></section>`);
+  startScene($(".scene", o));
+  $$("[data-open-legal]", o).forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openLegal(a.dataset.openLegal); }));
+  $$(".hsl-me, .hsl-opt", o).forEach((b) => b.addEventListener("click", () => toast("Sample: sign-in isn't wired up yet.")));
 }
 
 </script>

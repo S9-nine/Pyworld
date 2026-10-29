@@ -1119,29 +1119,30 @@ const CQ_JS = {
 };
 
 /* ── Practice internet for requests ── */
-const CQ_POKEMON = {
-  pikachu: [25, 4, 60, 112, ["electric"], [35, 55, 40, 50, 50, 90], ["static", "lightning-rod"]],
-  bulbasaur: [1, 7, 69, 64, ["grass", "poison"], [45, 49, 49, 65, 65, 45], ["overgrow", "chlorophyll"]],
-  charmander: [4, 6, 85, 62, ["fire"], [39, 52, 43, 60, 50, 65], ["blaze", "solar-power"]],
-  squirtle: [7, 5, 90, 63, ["water"], [44, 48, 65, 50, 64, 43], ["torrent", "rain-dish"]],
-  gengar: [94, 15, 405, 250, ["ghost", "poison"], [60, 65, 60, 130, 75, 110], ["cursed-body"]],
-  eevee: [133, 3, 65, 65, ["normal"], [55, 55, 50, 45, 65, 55], ["run-away", "adaptability", "anticipation"]],
-  snorlax: [143, 21, 4600, 189, ["normal"], [160, 110, 65, 65, 110, 30], ["immunity", "thick-fat", "gluttony"]]
+/* Critterdex: a made-up creature API (only in the game), shaped like real public APIs such as PokeAPI. */
+const CQ_CRITTERS = {
+  zappip: [12, 4, 58, 110, ["electric"], [38, 52, 41, 48, 50, 88], ["spark", "quick-charge"]],
+  sproutle: [3, 7, 71, 66, ["grass", "poison"], [47, 48, 50, 63, 64, 44], ["leaf-guard", "sun-soak"]],
+  embercub: [5, 6, 83, 60, ["fire"], [41, 54, 42, 58, 51, 63], ["warm-up", "ember-heart"]],
+  bubblet: [8, 5, 92, 61, ["water"], [46, 47, 63, 51, 62, 42], ["splash", "rain-song"]],
+  gloomwisp: [42, 15, 410, 245, ["ghost", "poison"], [58, 63, 61, 128, 74, 108], ["fade-out"]],
+  fluffox: [57, 3, 65, 66, ["normal"], [55, 54, 51, 46, 64, 56], ["cozy", "curious", "quick-ears"]],
+  dozebear: [77, 21, 4600, 185, ["normal"], [160, 108, 66, 64, 108, 31], ["deep-sleep", "snack-time", "thick-fur"]]
 };
-function cqPokemon(key) {
-  const name = Object.keys(CQ_POKEMON).find((n) => n === key || String(CQ_POKEMON[n][0]) === key);
+function cqCritter(key) {
+  const name = Object.keys(CQ_CRITTERS).find((n) => n === key || String(CQ_CRITTERS[n][0]) === key);
   if (!name) return null;
-  const [id, height, weight, xp, types, st, ab] = CQ_POKEMON[name];
+  const [id, height, weight, xp, types, st, ab] = CQ_CRITTERS[name];
   const statNames = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
   return {
     id, name, height, weight, base_experience: xp,
-    types: types.map((t, i) => ({ slot: i + 1, type: { name: t, url: "https://pokeapi.co/api/v2/type/" + t + "/" } })),
+    types: types.map((t, i) => ({ slot: i + 1, type: { name: t, url: "https://api.critterdex.example/v1/type/" + t + "/" } })),
     abilities: ab.map((a, i) => ({ ability: { name: a }, is_hidden: i === ab.length - 1 && ab.length > 1, slot: i + 1 })),
     stats: st.map((v, i) => ({ base_stat: v, effort: 0, stat: { name: statNames[i] } }))
   };
 }
 const CQ_API_DEFAULT = [
-  { url: /^https:\/\/pokeapi\.co\/api\/v2\/pokemon\/([^/?]+)\/?$/, fn: (m) => { const p = cqPokemon(m[1]); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
+  { url: /^https:\/\/api\.critterdex\.example\/v1\/critter\/([^/?]+)\/?$/, fn: (m) => { const p = cqCritter(m[1]); return p ? { json: p } : { status: 404, text: "Not Found" }; } },
   { url: /^https:\/\/api\.open-meteo\.com\/v1\/forecast$/, fn: (m, q) => {
     if (q.latitude == null || q.longitude == null || isNaN(+q.latitude) || isNaN(+q.longitude)) return { status: 400, json: { error: true, reason: "Parameter 'latitude' and 'longitude' must have the same number of elements" } };
     const lat = +q.latitude, lon = +q.longitude;

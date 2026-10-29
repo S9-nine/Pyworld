@@ -53,7 +53,13 @@ function renderProfile(v) {
 
         ${S.mode === "local" && netConfigured() ? `<hr class="sep">
         <h3 class="sub">Your data</h3>
-        <div class="ai-consent">
+        <div class="data-status">${!onlineAllowed()
+          ? `<p><b>Online features are off.</b> Everything stays on this device. ${isMinor() ? "A parent or guardian can switch on cloud backup, guilds, chat and feedback." : ""}</p><button class="btn sm primary" id="pOnline">${isMinor() ? "Ask a parent" : "Switch online features on"}</button>`
+          : isMinor() ? `<p><b>Online features are on.</b> A parent or guardian agreed on ${esc(h.parent.at)}.</p><button class="btn sm" id="pOffline">Switch online features off</button>`
+          : `<p><b>Online features are on.</b></p>`}
+          ${Object.keys(chatBlocked()).length ? `<p><b>Blocked players:</b> ${Object.entries(chatBlocked()).map(([k, n]) => `<span class="blocked-chip">${esc(n)} <button class="msg-act" data-unblock="${esc(k)}" aria-label="Unblock ${esc(n)}">Unblock</button></span>`).join(" ")}</p>` : ""}
+          <p class="muted" style="font-size:13px">Read the <a href="#" data-open-legal="privacy">Privacy Policy</a> and <a href="#" data-open-legal="terms">Terms of Use</a>. <b>Delete profile</b> above erases everything, online too.</p></div>
+        <div class="ai-consent" ${onlineAllowed() ? "" : "hidden"}>
           <p>We're building an AI tutor for Code Quest. It learns best from how real players solve problems: the code you run, the mistakes you make and fix, and how long things take.</p>
           <label class="dev-row"><input type="checkbox" id="pAi" ${h.ai && h.ai.on ? "checked" : ""}><span><b>Help train Code Quest's AI tutor with my play</b><br>
             <span class="muted">Shares the code you run and what happened, only to train and improve Code Quest's own teaching AI. No real name or contact details. You can switch it off any time.${h.ai && h.ai.at ? ` Last changed ${esc(h.ai.at)}.` : ""}</span></span></label>
@@ -62,6 +68,8 @@ function renderProfile(v) {
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+          <div class="dev-row dev-bh"><span><b>Sign-in sample</b><br><span class="muted">The planned sign-in screen (Google, email code, guest). Not wired up yet.</span>
+            <span class="dev-bh-btns"><button class="btn sm ghost" data-hs="l">Sign-in screen</button></span></span></div>
           <div class="dev-row dev-bh"><span><b>Boss Hack</b><br><span class="muted">Test the surprise review event. "Now" uses any cleared levels except your newest.</span>
             <span class="dev-bh-btns"><button class="btn sm" data-bh="now">Boss Hack now</button><button class="btn sm" data-bh="soon">30-second countdown</button><button class="btn sm ghost" data-bh="preview">Takeover only</button></span></span></div>
         </details>
@@ -85,7 +93,7 @@ function renderProfile(v) {
         <div><b class="num">${cleared}/${LEVELS.length}</b><span>Levels cleared</span></div>
         <div><b class="num">${liveStreak(h)}</b><span>Day streak</span></div>
         <div><b class="num">${h.best}</b><span>Best streak</span></div>
-        <div><b class="num">${readiness()}%</b><span>Job-ready</span></div>
+        <div><b class="num">${readiness()}%</b><span>Plan done</span></div>
       </div>
       ${h.badges && h.badges.firewall ? `<p class="badges"><span class="dev-tag">BADGE</span> Firewall${h.badges.firewall > 1 ? ` ×${h.badges.firewall}` : ""} <span class="muted">· beat the Boss Hack</span></p>` : ""}
       <p class="muted" style="font-size:12.5px">Questing since ${esc(h.created)}. ${S.mode === "cloud" ? "Saved to your Claude account." : "Saved in this browser, file " + S.slot + "."}</p>`;
@@ -146,6 +154,21 @@ function renderProfile(v) {
     $("#useMsg").textContent = `Combined. Was ${before.xp} XP and ${before.done}, now ${h.xp} XP and ${lvls()}.`;
   });
   $("#pOut").addEventListener("click", logOut);
+  $$("[data-open-legal]", v).forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openLegal(a.dataset.openLegal); }));
+  $$("[data-unblock]", v).forEach((b) => b.addEventListener("click", () => {
+    const list = chatBlocked(); delete list[b.dataset.unblock]; lsSet(chatBlockKey(), list); renderProfile(v);
+  }));
+  const pOn = $("#pOnline", v);
+  if (pOn) pOn.addEventListener("click", () => (needsQuickCheck() ? openQuickCheck(() => legalOnEnter(() => renderProfile(v)))
+    : openParentOk(() => renderProfile(v))));
+  const pOff = $("#pOffline", v);
+  if (pOff) pOff.addEventListener("click", () => {
+    if (!confirm("Switch online features off? Cloud backup, guilds, chat and feedback stop. What's already online stays until you use Delete profile.")) return;
+    netLog("consent", null, null, false, { parent: false, v: LEGAL_VERSION }); netFlushEvents();
+    S.hero.parent = { ok: false, at: today() };
+    closeChatPanel(); save(); render();
+    toast("Online features are off. The game keeps working on this device.");
+  });
   const aiBox = $("#pAi", v);
   if (aiBox) aiBox.addEventListener("change", () => {
     if (aiBox.checked && !$("#pAiAdult", v).checked) {
@@ -160,6 +183,7 @@ function renderProfile(v) {
     toast(aiBox.checked ? "Thank you! Your play now helps train the AI tutor." : "Switched off. Nothing more will be shared for the AI tutor.");
     $("#pAiAge", v).hidden = aiBox.checked;
   });
+  $$("[data-hs]", v).forEach((b) => b.addEventListener("click", () => signInSample()));
   $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
     const kind = b.dataset.bh;
     go({ name: "map" });
@@ -232,6 +256,9 @@ function mergeInto(h, o) {
   if (o.created && (!h.created || o.created < h.created)) h.created = o.created;
   for (const [d, x] of Object.entries(o.days || {})) h.days[d] = Math.max(h.days[d] || 0, x);
   if (o.ai && (!h.ai || (o.ai.at || "") > (h.ai.at || ""))) h.ai = o.ai;
+  if (o.age && !h.age) h.age = o.age;
+  if (o.terms && (!h.terms || (o.terms.v | 0) > (h.terms.v | 0))) h.terms = o.terms;
+  if (o.parent && (!h.parent || (o.parent.at || "") > (h.parent.at || ""))) h.parent = o.parent;
   if (o.badges) { h.badges = h.badges || {}; for (const [k, n] of Object.entries(o.badges)) h.badges[k] = Math.max(h.badges[k] | 0, n | 0); }
   if (o.bh && (o.bh.last || "") >= ((h.bh && h.bh.last) || "")) h.bh = Object.assign({}, h.bh, o.bh, { fights: Math.max((h.bh && h.bh.fights) | 0, o.bh.fights | 0), wins: Math.max((h.bh && h.bh.wins) | 0, o.bh.wins | 0) });
   for (const [id, b] of Object.entries(o.lv || {})) {

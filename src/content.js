@@ -150,10 +150,10 @@ print(3 + 4)`,
   ],
   code: {
     brief: "Write a program that prints these three lines. Use your own name on line 2.",
-    sample: "Hello, world!\nMy name is Kai\nI will be job-ready in 8 weeks.",
+    sample: "Hello, world!\nMy name is Kai\nI will write real code in 8 weeks.",
     starter: `# Write your code below. Each line of output needs its own print().
 `,
-    tests: [ { in: [], out: ["Hello, world!", "I will be job-ready in 8 weeks."], check: "name" } ],
+    tests: [ { in: [], out: ["Hello, world!", "I will write real code in 8 weeks."], check: "name" } ],
     hints: [
       "You need three <code>print()</code> lines, one for each line of output.",
       "Text goes inside quotes: <code>print(\"Hello, world!\")</code>",
@@ -161,7 +161,7 @@ print(3 + 4)`,
     ],
     solution: `print("Hello, world!")
 print("My name is Kai")
-print("I will be job-ready in 8 weeks.")`
+print("I will write real code in 8 weeks.")`
   },
   bug: {
     brief: "The village crier's script crashes before it says anything. Find the bug and fix it.",

@@ -187,6 +187,7 @@ function localFiles(ui) {
     <div class="pbox">
       <h2 class="ptitle">Select a save file</h2>
       <p class="pnote">One file per player on this computer. Lock yours with a PIN so nobody else plays your save.</p>
+      ${legalNeeded() ? `<p class="pnote legal-links"><a href="#" data-open-legal="privacy">Privacy Policy</a> · <a href="#" data-open-legal="terms">Terms of Use</a></p>` : ""}
       <div class="files">${slots.map((s) => s.hero
         ? `<button class="file" data-slot="${s.n}">${fileCard(s.hero, "File " + s.n, `<span class="file-go">${s.locked ? `<span class="lock-ico">${ICON.lock}</span>` : ""}Play ▸</span>`)}</button>`
         : `<button class="file empty" data-new="${s.n}"><span class="file-plus">+</span><span class="file-meta"><span class="file-label">File ${s.n}</span><b>Empty</b><span>Start a new game</span></span></button>`).join("")}</div>
@@ -198,6 +199,7 @@ function localFiles(ui) {
     else enterSlot(n);
   }));
   $$("[data-new]", ui).forEach((b) => b.addEventListener("click", () => titleStep("create", { slot: +b.dataset.new })));
+  $$("[data-open-legal]", ui).forEach((x) => x.addEventListener("click", (e) => { e.preventDefault(); openLegal(x.dataset.openLegal); }));
   $("#back").addEventListener("click", () => titleStep("start"));
   const first = $(".file", ui); if (first) first.focus();
 }
@@ -213,8 +215,8 @@ function enterGame(hero) {
   recompute();
   save();
   bossHackMaybeSchedule(0.3);
-  go(hashRoute(location.hash) || { name: "map" }, { replace: true });   // after a refresh, back to the same screen
-  netStart().then((ok) => { if (ok && S.hero) { save(); render(); } });
+  go(hashRoute(location.hash) || { name: "hub" }, { replace: true });   // the main screen, or after a refresh the same screen as before
+  legalOnEnter();   // asks age/terms if missing, then goes online if allowed
 }
 
 function createHero(ui, opt) {
@@ -234,6 +236,7 @@ function createHero(ui, opt) {
           <div class="char-grid" id="chars">${SPRITES.map((s, i) => `<button class="char" data-pix="${i}" aria-label="${s.name}" title="${s.name}">${pixelSvg(i)}</button>`).join("")}</div>
           <span class="plabel">Background</span>
           <div class="swatches" id="cols">${HERO_COLORS.map((c, i) => `<button class="swatch" data-col="${i}" aria-label="Colour ${i + 1}" style="background:${c}"></button>`).join("")}</div>
+          ${legalNeeded() && !opt.cloud ? `<span class="plabel">How old are you?</span>${ageAgreeHtml("", false)}` : ""}
           ${opt.cloud ? "" : `<label class="plabel" for="cPin">PIN lock</label>
           <span class="pnote" style="font-size:12.5px">Optional. 4 digits so nobody else on this computer plays your file.</span>
           <input class="pinput pin" id="cPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">`}
@@ -252,6 +255,8 @@ function createHero(ui, opt) {
   $("#cName").addEventListener("input", drawPrev);
   $$(".char", ui).forEach((b) => b.addEventListener("click", () => { pick.pix = +b.dataset.pix; drawPrev(); }));
   $$(".swatch", ui).forEach((b) => b.addEventListener("click", () => { pick.color = +b.dataset.col; drawPrev(); }));
+  const legal = { age: "" };
+  if (legalNeeded() && !opt.cloud) bindAgeAgree(ui, legal);
   const pinEl = $("#cPin");
   if (pinEl) pinEl.addEventListener("input", () => { pinEl.value = pinEl.value.replace(/\D/g, "").slice(0, 4); });
   $("#cBack").addEventListener("click", () => titleStep("files"));
@@ -261,14 +266,19 @@ function createHero(ui, opt) {
     if (!name) { err.textContent = "Every hero needs a name."; $("#cName").focus(); return; }
     const pin = pinEl ? pinEl.value : "";
     if (pin && pin.length !== 4) { err.textContent = "A PIN needs exactly 4 digits, or leave it empty."; pinEl.focus(); return; }
+    if (legalNeeded() && !opt.cloud) {
+      if (!legal.age) { err.textContent = "Pick your age group."; return; }
+      if (!$("#agreeBox").checked) { err.textContent = "Tick the box to agree to the Terms and Privacy Policy."; return; }
+    }
     const hero = blankHero(name.slice(0, 16), pick.pix, pick.color);
+    if (legal.age) { hero.age = legal.age; hero.terms = { v: LEGAL_VERSION, at: today() }; }
     if (opt.cloud) { S.cloudHero = hero; enterGame(hero); setTimeout(openWelcome, 400); return; }
     S.slot = opt.slot;
     if (pin) lsSet(pinKey(opt.slot), await hashPin(opt.slot, pin));
     else lsSet(pinKey(opt.slot), null);
     lsSet(slotKey(opt.slot), hero);
     enterSlot(opt.slot);
-    setTimeout(openWelcome, 400);
+    setTimeout(() => (isMinor(hero) && legalNeeded() ? openParentOk(openWelcome) : openWelcome()), 400);
   });
 }
 

@@ -91,8 +91,8 @@ function cleanHero(d) {
   h.motto = typeof d.motto === "string" ? d.motto.slice(0, 40) : "";
   h.role = clampInt(d.role, 0, 5);
   for (const k of ["xp", "streak", "best", "stars", "done", "spent"]) h[k] = clampInt(d[k], 0, 1e7);
-  for (const k of ["last", "cur", "created"]) if (typeof d[k] === "string") h[k] = d[k].slice(0, 12);
-  for (const k of ["days", "lv", "cards", "home", "ext", "bh", "badges", "ai"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
+  for (const k of ["last", "cur", "created", "age"]) if (typeof d[k] === "string") h[k] = d[k].slice(0, 12);
+  for (const k of ["days", "lv", "cards", "home", "ext", "bh", "badges", "ai", "terms", "parent"]) if (d[k] && typeof d[k] === "object") h[k] = JSON.parse(JSON.stringify(d[k]));
   return h;
 }
 function clampInt(v, lo, hi) { v = Math.round(Number(v)); return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : lo; }
@@ -321,7 +321,7 @@ function confetti() {
 const routeHash = (r) => "#" + [r.name, r.id, r.stage].filter((x) => x != null && x !== "").join("/");
 function hashRoute(h) {
   const [name, id, stage] = String(h || "").replace(/^#\/?/, "").split("/").map(decodeURIComponent);
-  if (!name || !/^(map|world|level|review|guild|profile)$/.test(name)) return null;
+  if (!name || !/^(hub|map|world|level|review|guild|profile)$/.test(name)) return null;
   const r = { name };
   if (id) r.id = name === "world" ? +id : id;
   if (stage) r.stage = stage;
@@ -385,7 +385,8 @@ function render() {
   renderChatBtn();
   const r = S.route, v = $("#view");
   if (!S.hero) return renderTitle(v);
-  if (r.name === "map") renderHome(v);
+  if (r.name === "hub") renderHub(v);
+  else if (r.name === "map") renderHome(v);
   else if (r.name === "world") renderWorld(v, r.id);
   else if (r.name === "level") renderLevel(v, r.id, r.stage);
   else if (r.name === "review") renderReview(v);
@@ -394,6 +395,7 @@ function render() {
   else renderHome(v);
   fixSvgVars(v);
   bossHackBanner();
+  legalBanner();
   ttTrack();
 }
 /* Move CSS variables out of SVG presentation attributes into style, where every browser resolves them. */
@@ -416,10 +418,11 @@ function renderNav() {
   const tab = (n, icon, long, short, extra = "") => `<button data-nav="${n}" ${cur === n ? 'aria-current="page"' : ""}><span class="nav-ic">${icon}</span><span class="nav-tx" data-short="${short}">${long}</span>${extra}</button>`;
   const fb = netConfigured() && S.mode === "local";
   nav.innerHTML =
+    tab("hub", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>`, "Home", "Home") +
     tab("map", ICON.map, "Map", "Map") +
     tab("review", ICON.cards, "Memory Dungeon", "Dungeon", due ? `<span class="badge">${due}</span>` : "") +
     tab("guild", ICON.people, "Guild", "Guild") +
-    tab("profile", pixelSvg(S.hero.pix), "Profile", "Profile") +
+    tab("profile", pixelSvg(S.hero.pix), "Profile", "Profile").replace("<button ", '<button class="nav-pro" ') +
     `<button class="nav-extra" data-nav="guide">How to play</button>` +
     (fb ? `<button class="nav-extra" data-nav="feedback">Feedback</button>` : "") +
     `<button class="nav-more" data-nav="more" aria-label="More"><span class="nav-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></span><span class="nav-tx">More</span></button>`;
@@ -428,9 +431,11 @@ function renderNav() {
     if (n === "guide") openGuide();
     else if (n === "feedback") openFeedback();
     else if (n === "more") openModal(`<div class="more-sheet"><h2>More</h2>
+        <button class="btn more-pro" data-m="profile">${pixelSvg(S.hero.pix)} Profile</button>
         <button class="btn" data-m="guide">${ICON.help} How to play</button>
         ${fb ? `<button class="btn" data-m="feedback">${ICON.talk} Send feedback</button>` : ""}
-        <button class="btn ghost" data-close>Close</button></div>`, { onOpen: (bg) => $$("[data-m]", bg).forEach((x) => x.addEventListener("click", () => { closeModal(); x.dataset.m === "guide" ? openGuide() : openFeedback(); })) });
+        ${legalNeeded() ? `<button class="btn" data-m="legal">${ICON.book} Privacy &amp; Terms</button>` : ""}
+        <button class="btn ghost" data-close>Close</button></div>`, { onOpen: (bg) => $$("[data-m]", bg).forEach((x) => x.addEventListener("click", () => { closeModal(); ({ guide: openGuide, feedback: openFeedback, legal: () => openLegal("privacy"), profile: () => go({ name: "profile" }) })[x.dataset.m](); })) });
     else go({ name: n });
   }));
 }
@@ -503,7 +508,7 @@ function renderHome(v) {
         ${players().length < 2 ? `<p class="muted" style="font-size:13px;margin-top:10px">${netOn() ? "Playing solo for now. Open <b>Guild</b> to start one and share the code, or join your friends with theirs." : "Playing solo for now. Send friends the game's link so they can start their own quest."}</p>` : ""}
       </div>
       <div class="card side-card">
-        <div class="panel-h"><h2>Job-ready meter</h2></div>
+        <div class="panel-h"><h2>Skills meter</h2></div>
         <div class="ready-total"><b class="num">${ready}%</b><span class="muted">of the 8-week plan</span></div>
         <div class="skills">${skillScores().map((s) => `<div class="skill"><span>${s.name}</span><span class="pct num">${s.pct}%</span><span class="bar"><i style="width:${s.pct}%"></i></span></div>`).join("")}</div>
       </div>
@@ -1896,6 +1901,13 @@ function runDeck(dz, keys, counts) {
 /* ───────── Guild ───────── */
 function renderGuild(v) {
   if (netOn()) return renderNetGuild(v);
+  if (legalNeeded() && !onlineAllowed()) {   // online features are off: under 18 without a parent's OK, or terms not agreed
+    v.innerHTML = `<div class="wrap"><div class="guild"><div><p class="eyebrow">Play together</p><h1>Guild</h1></div>
+      <div class="card prose" style="padding:18px"><p>Guilds and chat are online features. ${isMinor() ? "Because you're under 18, a parent or guardian needs to say yes first. It takes a minute." : "Agree to the Terms to switch them on."}</p>
+      <button class="btn primary" id="gAsk">${isMinor() && S.hero.terms ? "Ask a parent" : "Review and agree"}</button></div></div></div>`;
+    $("#gAsk").addEventListener("click", () => (needsQuickCheck() ? openQuickCheck(() => legalOnEnter(render)) : openParentOk(render)));
+    return;
+  }
   const ps = players();
   v.innerHTML = `
   <div class="wrap"><div class="guild">
@@ -1984,7 +1996,7 @@ function openWelcome() {
     <h2 class="wl-title">Your adventure starts now, ${name}!</h2>
     <p>In 8 weeks you'll go from your very first <code>print()</code> to acing a coding interview, one island at a time. No experience needed: just curiosity and a little practice every day.</p>
     <ul class="wl-steps">
-      <li>${pixIcon("map")}<span><b>Follow the map.</b> Start on the glowing island in the bottom-left, Basics Village.</span></li>
+      <li>${pixIcon("map")}<span><b>Pick the Python cartridge,</b> then follow the map. Start on the glowing island in the bottom-left, Basics Village.</span></li>
       <li>${pixIcon("sword")}<span><b>Five stages per level:</b> Learn, Think, the Forge, Bug Hunt and Tavern Talk.</span></li>
       <li>${pixIcon("flame")}<span><b>Come back every day.</b> Keep your streak alive and earn XP, stars and ranks.</span></li>
       ${netConfigured() && S.mode === "local" ? `<li>${pixIcon("shield")}<span><b>Bring your friends.</b> Join their guild with a code, or start your own.</span></li>` : ""}
@@ -2040,6 +2052,6 @@ function loadScript(src) {
     .catch(() => toast("The Python engine could not load. Check your connection and reload."));
   const hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(() => ({ route: S.route }));
-  $("#brand").addEventListener("click", () => S.hero && go({ name: "map" }));
+  $("#brand").addEventListener("click", () => S.hero && go({ name: "hub" }));
   if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
 })();
