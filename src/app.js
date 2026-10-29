@@ -841,7 +841,16 @@ function createEditor(host, code, { onChange, id, lang = "python", readOnly = fa
     }
     gut.innerHTML = lines.map((_, i) => `<div class="${i + 1 === errLine ? "err" : ""}"${wrap && heights[i] ? ` style="height:${heights[i]}px"` : ""}>${i + 1}</div>`).join("");
   };
-  EDITOR_WRAP.addEventListener("change", paint);
+  // Re-measure whenever the code box changes width (rotating a phone, resizing a window), not just at
+  // the phone/desktop switch, or wrapped lines would drift away from their numbers.
+  let lastW = 0, sizeQueued = false;
+  if (window.ResizeObserver) new ResizeObserver(() => {
+    const w = mirror.clientWidth;
+    if (w === lastW || sizeQueued) return;
+    lastW = w; sizeQueued = true;
+    requestAnimationFrame(() => { sizeQueued = false; if (document.body.contains(ta)) paint(); });
+  }).observe($(".code-inner", host));
+  else EDITOR_WRAP.addEventListener("change", paint);
   const insert = (text) => {
     ta.focus();
     if (!document.execCommand || !document.execCommand("insertText", false, text)) {
@@ -1475,7 +1484,7 @@ function challengeStage(host, L, kind) {
           <button class="btn sm go" id="runBtn" title="Try your code and see what it prints. Nothing is scored.">${ICON.play} ${lang === "html" ? "Show" : "Run"}</button>
           <button class="btn sm primary" id="checkBtn" title="Grade your code against the tests. Passing opens the next step.">${ICON.check} Check</button></div>
         <p class="bench-help"><b>${ICON.play} ${lang === "html" ? "Show" : "Run"}</b> tries it, nothing is scored · <b>${ICON.check} Check</b> grades it and opens the next step</p>
-        <div class="ed-wrap"><div id="ed"></div>${lsGet(draftKey) || (isBug ? s.b : s.c && s.c.ok) ? "" : `<span class="type-cue" id="typeCue" aria-hidden="true">✎ ${isBug ? "Fix the code here" : "Write your code here"}</span>`}</div>
+        <div class="ed-wrap">${lsGet(draftKey) || (isBug ? s.b : s.c && s.c.ok) ? "" : `<span class="type-cue" id="typeCue" aria-hidden="true">✎ ${isBug ? "Fix the code below" : "Write your code below"}</span>`}<div id="ed"></div></div>
         <div class="console" id="con"></div>
         <div class="practice" id="practice">${practiceHtml(task)}</div>
       </div>

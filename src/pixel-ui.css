@@ -200,7 +200,7 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 .bench-help b { color: var(--code-ink); font-weight: 600; }
 .bench-help svg { width: 11px; height: 11px; vertical-align: -1px; }
 .ed-wrap { position: relative; }
-.type-cue { position: absolute; bottom: 14px; right: 12px; z-index: 2; pointer-events: none; font-size: 12px; font-weight: 600; color: var(--code-bg); background: var(--sun); padding: 3px 9px; border-radius: 8px; animation: cue-bob 1.6s ease-in-out infinite; }
+.type-cue { display: block; width: fit-content; margin: 8px 0 0 12px; pointer-events: none; font-size: 12px; font-weight: 600; color: var(--code-bg); background: var(--sun); padding: 3px 9px; border-radius: 8px; animation: cue-bob 1.6s ease-in-out infinite; }
 @keyframes cue-bob { 50% { transform: translateY(-3px); } }
 .continue.start-here { border-color: var(--sun); animation: start-glow 2.2s ease-in-out infinite; }
 @keyframes start-glow { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--sun) 30%, transparent), var(--shadow); } }
@@ -438,7 +438,8 @@ table.trace input.wrong { border-color: var(--danger); background: var(--danger-
 
 /* ───────── Boss Hack (glitch breach takeover, countdown banner, the fight) ───────── */
 body.bh-on { overflow: hidden; }
-body.bh-on > .topbar, body.bh-on #view, body.bh-on .bh-banner { filter: grayscale(.75) brightness(.45); transition: filter .8s; }
+/* The top bar's contents, not the bar: a filter on the bar would pin the phone tab bar (#nav) to it. */
+body.bh-on .topbar .wrap > *, body.bh-on #view, body.bh-on .bh-banner { filter: grayscale(.75) brightness(.45); transition: filter .8s; }
 .bh { position: fixed; inset: 0; z-index: 80; overflow: hidden; color: #f4f4f4;
   background: radial-gradient(ellipse at 50% 40%, rgb(60 0 10 / .15), rgb(8 0 4 / .78) 70%, rgb(0 0 0 / .92)); animation: bh-in .8s ease-out both; }
 @keyframes bh-in { from { opacity: 0; } }
@@ -455,7 +456,7 @@ body.bh-on > .topbar, body.bh-on #view, body.bh-on .bh-banner { filter: grayscal
 .bh-offer [hidden], .bh-btns[hidden] { display: none; }
 
 /* B · Glitch Breach */
-body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2) infinite; }
+body.bh-shake #view, body.bh-shake .topbar .wrap > :not(#nav) { animation: bh-shake .12s steps(2) infinite; }
 @keyframes bh-shake { 0% { transform: translate(3px, -2px); } 50% { transform: translate(-4px, 2px); } 100% { transform: translate(2px, 3px); } }
 .bh-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgb(255 255 255 / .04) 0 1px, transparent 1px 3px); pointer-events: none; }
 .bh-slice { position: absolute; left: 0; right: 0; backdrop-filter: hue-rotate(160deg) saturate(3) brightness(1.4); background: rgb(255 40 60 / .12); animation: bh-slice .3s steps(3) 5 both; }
@@ -533,6 +534,9 @@ body.bh-shake #view, body.bh-shake > .topbar { animation: bh-shake .12s steps(2)
   .step .v { font-size: 12.5px; }
   .step.done { background: var(--grass-soft); border-color: color-mix(in srgb, var(--grass) 50%, var(--line)); }
   .step.done .v { color: var(--grass); }
+  /* Home "Continue" card: the button gets its own row, so the level name has room */
+  .continue.trail-card { flex-wrap: wrap; }
+  .continue.trail-card > .btn { width: 100%; justify-content: center; }
 }
 
 /* ───────── Floating chat button + panel, Guild Master tag ───────── */
