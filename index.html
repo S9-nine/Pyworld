@@ -1143,6 +1143,59 @@ body.hs-on { overflow: hidden; }
 .legal-banner { background: var(--sun-soft); border-bottom: 1px solid color-mix(in srgb, var(--sun) 50%, var(--line)); }
 .legal-banner .wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 8px; font-size: 14px; flex-wrap: wrap; }
 
+/* ───────── Level-cleared card: results receipt, stamp, cheering hero ───────── */
+.fin { text-align: center; }
+.fin .fin-receipt, .fin .fin-marquee { justify-self: stretch; width: 100%; box-sizing: border-box; }
+/* The hero keeps celebrating: a happy bounce with twinkling sparks, and a jump-flip with "!!" when the stamp lands. */
+.fin-hero { position: relative; height: 80px; }
+.fin-hero .act { height: 80px; }
+.fin-hero .act-body { animation: fin-bounce 1s cubic-bezier(.3, .7, .4, 1) infinite !important; transform-box: fill-box; transform-origin: 50% 100%; will-change: transform; }
+.fin-hero.cheer .act-body { animation: fin-flip .75s cubic-bezier(.3, .7, .4, 1), fin-bounce 1s .75s cubic-bezier(.3, .7, .4, 1) infinite !important; transform-origin: 50% 60%; }
+@keyframes fin-bounce { 0%, 100% { transform: translateY(0) scale(1, 1); } 15% { transform: translateY(0) scale(1.12, .88); } 45% { transform: translateY(-4px) scale(.94, 1.08); } 70% { transform: translateY(0) scale(1.06, .94); } }
+@keyframes fin-flip { 0% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-7px) rotate(-180deg) scale(1.1); } 80% { transform: translateY(-2px) rotate(-360deg); } 100% { transform: translateY(0) rotate(-360deg); } }
+.fin-sparks { position: absolute; left: 50%; top: 0; width: 0; height: 0; }
+.fin-sparks i { position: absolute; width: 6px; height: 6px; background: #ffcd75; animation: fin-twinkle 1.6s ease-in-out infinite; }
+.fin-sparks i:nth-child(even) { background: #73eff7; width: 4px; height: 4px; }
+@keyframes fin-twinkle { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1); } }
+.fin-wow { position: absolute; left: calc(50% + 34px); top: -6px; font-family: var(--font-display); font-size: 26px; color: #ffcd75; text-shadow: 2px 2px 0 #b13e53; opacity: 0; }
+.fin-hero.cheer .fin-wow { animation: fin-wow 1.4s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes fin-wow { 0% { opacity: 0; transform: scale(0) rotate(-20deg); } 25% { opacity: 1; transform: scale(1.3) rotate(8deg); } 70% { opacity: 1; transform: scale(1) rotate(0); } 100% { opacity: 0; transform: translateY(-10px); } }
+/* The receipt prints line by line. */
+.fin-receipt { position: relative; text-align: left; background: #f4f4f4; color: #1a1c2c; font-family: var(--font-code); padding: 14px 16px 18px; border-radius: 4px; }
+.fin-receipt::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 12px; background: radial-gradient(circle at 6px 0, #f4f4f4 6px, transparent 6.5px) 0 0 / 12px 12px repeat-x; }
+.fin-r-head { margin: 0 0 8px; text-align: center; font-weight: 700; letter-spacing: .12em; font-size: 13px; }
+.fin-receipt ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.fin-receipt li { display: flex; gap: 6px; align-items: baseline; opacity: 0; animation: fin-print .35s cubic-bezier(.2, .8, .3, 1) both; }
+.fin-receipt li i { flex: 1; min-width: 12px; border-bottom: 2px dotted #94b0c2; transform: translateY(-3px); }
+.fin-receipt li b { font-weight: 700; text-align: right; }
+@keyframes fin-print { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+/* The stamp: drops from above, slams down with a little overshoot, ink splatters, and the card jolts. */
+.fin-stamp { position: absolute; left: calc(100% - 128px); top: calc(100% - 38px); z-index: 2; will-change: transform, opacity; font-family: var(--font-display); font-size: 34px; line-height: 1; letter-spacing: .04em; white-space: nowrap; color: #c0283b;
+  padding: 6px 14px 4px; border: 4px solid currentColor; border-radius: 6px; box-shadow: inset 0 0 0 3px #f4f4f4, inset 0 0 0 5px currentColor; background: rgb(244 244 244 / .25);
+  transform: translate(-50%, -50%) rotate(-12deg); opacity: 0; pointer-events: none; }
+.fin-stamp::after { content: ""; position: absolute; inset: -4px; border-radius: 6px; pointer-events: none; opacity: .55;
+  background: radial-gradient(circle at 20% 30%, #f4f4f4 0 1.2px, transparent 1.6px) 0 0 / 7px 6px, radial-gradient(circle at 70% 60%, #f4f4f4 0 1px, transparent 1.4px) 3px 2px / 9px 8px; }
+.fin-stamp.in { animation: fin-slam .5s cubic-bezier(.55, 0, .45, 1) forwards; }
+@keyframes fin-slam { 0% { opacity: 0; transform: translate(-50%, -150%) rotate(-24deg) scale(2.6); } 62% { opacity: 1; transform: translate(-50%, -50%) rotate(-10deg) scale(.88); } 80% { transform: translate(-50%, -50%) rotate(-13deg) scale(1.05); } 100% { opacity: .93; transform: translate(-50%, -50%) rotate(-12deg) scale(1); } }
+/* Ink splats sit beside the stamp (not inside it, where the ink texture would hide them). */
+.fin-splats { position: absolute; left: calc(100% - 128px); top: calc(100% - 38px); width: 0; height: 0; z-index: 2; pointer-events: none; }
+.fin-splats i { position: absolute; background: #c0283b; border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0); }
+.fin-splats.landed i { animation: fin-splat .35s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes fin-splat { to { opacity: .8; transform: translate(-50%, -50%) scale(1); } }
+.fin-receipt.thud { animation: fin-thud .38s cubic-bezier(.25, .8, .3, 1); }
+@keyframes fin-thud { 0% { transform: none; } 18% { transform: translateY(5px) scale(.985); } 45% { transform: translateY(-2px); } 70% { transform: translateY(1px); } 100% { transform: none; } }
+.fin-marquee { overflow: hidden; background: #0b0c16; border-radius: 8px; padding: 8px 0; box-shadow: inset 0 0 0 2px #333c57; }
+.fin-marquee span { display: inline-block; white-space: nowrap; padding-left: 100%; will-change: transform; font: 700 15px var(--font-display); letter-spacing: .08em; color: #ffcd75; text-shadow: 0 0 8px rgb(255 205 117 / .7); animation: fin-scroll 14s linear infinite; }
+@keyframes fin-scroll { to { transform: translateX(-100%); } }
+@media (max-width: 640px) { .fin-stamp { font-size: 28px; } }
+@media (prefers-reduced-motion: reduce) {
+  .fin-hero .act-body, .fin-hero.cheer .act-body, .fin-sparks i { animation: none !important; }
+  .fin-receipt li { animation: none; opacity: 1; }
+  .fin-stamp, .fin-stamp.in { animation: none; opacity: .92; }
+  .fin-splats i, .fin-receipt.thud { animation: none; }
+  .fin-marquee span { animation: none; padding-left: 0; white-space: normal; }
+}
+
 @media (max-width: 1000px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
   .creator-grid { grid-template-columns: minmax(0, 1fr); }
@@ -11030,8 +11083,8 @@ const EXPLAIN = {
   /* ── World 1 ── */
   "1-1": {
     keys: [
-      ["what the quotes do", /quote|string|text|\bstr\b|word|letters|characters/i],
-      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b|express|evaluat|comput|work(s|ed)? (it )?out|result|solve/i]
+      ["what the quotes do", /quote|string|text|\bstr\b|word|letters|characters|sentence|as it is|as written|exactly|literal|word for word|like a (sentence|word|label)/i],
+      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b|express|evaluat|comput|work(s|ed)? (it )?out|result|solve|operation|answer/i]
     ],
     model: "print(\"5 + 5\") shows 5 + 5 exactly as written, because the quotes make it a string of text. print(5 + 5) has no quotes, so Python does the maths first and shows 10."
   },
@@ -14343,6 +14396,25 @@ function typoFixes(words, L) {
   }
   return extra;
 }
+/* Everyday words players use for the same idea. Each one also counts as the plain word the key-idea
+   patterns look for ("numerical operations" → number, math), so a correct answer in other words still
+   ticks its idea. Learned from real answers that were right but got marked as missing an idea. */
+const EXPLAIN_SYNONYMS = [
+  [/^(numerical|numeric|numeral|numerals|digits?)$/, "number"],
+  [/^(operations?|calculations?|calculates?|calculated|arithmetic|maths|sums?)$/, "math"],
+  [/^(sentence|sentences|words|characters|letters|literal|literally)$/, "text"],
+  [/^(adds|adding|added|addition|total|totals)$/, "add"],
+  [/^(answer|answers|outcome|outcomes|output|outputs)$/, "result"],
+  [/^(saves|saving|saved|holds|holding|stores|storing|stored|remembers)$/, "store"],
+  [/^(repeats|repeating|repeated|loops|looping|again|iterates?|iterating)$/, "repeat"],
+  [/^(mistakes?|errors?|bugs?|crash|crashes|crashed|breaks?|broke)$/, "error"],
+  [/^(checks?|checking|tests?|testing|compares?|comparing)$/, "check"]
+];
+function explainSynonyms(words) {
+  const out = [];
+  for (const w of new Set(words)) for (const [re, plain] of EXPLAIN_SYNONYMS) if (re.test(w)) out.push(plain);
+  return out;
+}
 /* A hint names its idea, so repeating the hint's own words doesn't count: "quotes" alone can't tick
    "what the quotes do". Hint words that would tick the idea by themselves are removed from the
    answer (with their endings: quote, quotes, quoted) before that idea is matched. */
@@ -14356,7 +14428,7 @@ function withoutHint(text, hint, re) {
 function explainCheck(text, L) {
   const t = String(text || "").trim(), words = explainWords(t);
   const keys = L.explainKeys || [];
-  const fixes = typoFixes(words, L);
+  const fixes = typoFixes(words, L).concat(explainSynonyms(words));
   const tt = fixes.length ? t + " " + fixes.join(" ") : t;
   const hits = keys.map(([hint, re]) => re.test(withoutHint(tt, hint, re)));
   const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));
@@ -14721,11 +14793,12 @@ function go(route, { replace = false } = {}) {
   window.scrollTo({ top: 0 });
 }
 /* ───────── Time on task ─────────
-   How long each stage really takes: counted in 15-second ticks, only while the game is on screen and
+   How long each stage really takes: counted in 5-second ticks, only while the game is on screen and
    the player did something in the last 90 seconds. Logged when they leave the stage or the page. */
 const TT = { key: null, id: null, stage: null, ms: 0, input: Date.now() };
 function ttFlush(keepGoing = false) {
   if (TT.key && TT.ms >= 15000 && typeof netLog === "function") netLog("time", TT.id, TT.stage, stageDone(TT.id, TT.stage), { ms: TT.ms });
+  if (TT.key && S.hero && TT.ms) { const s = lv(TT.id); if (!s.d) s.tm = (s.tm | 0) + TT.ms; }   // the level's own clock, until it's cleared
   TT.ms = 0;
   if (!keepGoing) TT.key = null;
 }
@@ -14737,7 +14810,9 @@ function ttTrack() {
   if (key) Object.assign(TT, { key, id: r.id, stage: cur.dataset.stage, ms: 0, input: Date.now() });
 }
 ["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, () => { TT.input = Date.now(); }, { passive: true, capture: true }));
-setInterval(() => { if (TT.key && !document.hidden && Date.now() - TT.input < 90000) TT.ms += 15000; }, 15000);
+setInterval(() => { if (TT.key && !document.hidden && Date.now() - TT.input < 90000) TT.ms += 5000; }, 5000);
+/* How long a level took to clear (active time), including the stage that's open right now. */
+const levelTime = (id) => ((S.hero && lv(id).tm) | 0) + (TT.key && TT.id === id ? TT.ms : 0);
 document.addEventListener("visibilitychange", () => { if (document.hidden) ttFlush(true); });
 /* Learning traces for a future AI tutor: only for players who switched it on in Profile → Your data. */
 const aiOn = () => !!(S.hero && S.hero.ai && S.hero.ai.on);
@@ -14864,7 +14939,7 @@ function renderHome(v) {
         <div>
           <p class="eyebrow">${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].when)} · ${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].name)}</p>
           <h1>${greeting()}, ${esc(h.name)}.</h1>
-          <p>${brandNew ? "Welcome! Press <b>Start</b> below to begin your first level. Each level takes about 30–45 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
+          <p>${brandNew ? "Welcome! Press <b>Start</b> below to begin your first level. Each level takes about 10 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
         </div>
       </div>
       ${nx ? `<button class="card continue trail-card${brandNew ? " start-here" : ""}" id="contBtn">
@@ -14874,7 +14949,7 @@ function renderHome(v) {
       </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>Every world cleared!</b><br><span class="muted">You've finished the whole quest. Replay levels for 3 stars, and keep the Take it home quests going.</span></span></div>`}
       <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div>${miniMapHtml()}</div>
       <div class="card loop">
-        <div class="panel-h"><h2>Today's quest loop</h2><span class="muted" style="font-size:13px">about 3–4 hours</span></div>
+        <div class="panel-h"><h2>Today's quest loop</h2><span class="muted" style="font-size:13px">10 minutes counts</span></div>
         ${loopHtml(nx, due)}
       </div>
     </div>
@@ -15408,39 +15483,12 @@ function levelBar(id) {
   return `<div class="lvl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${STAGES.length}" aria-valuenow="${n}" aria-label="Level progress">
     <span class="lvl-bar-track"><i style="width:${pct}%"></i></span><span class="lvl-bar-txt">${n === STAGES.length ? "Level cleared" : `${n} of ${STAGES.length} steps`}</span></div>`;
 }
-/* The level-cleared moment: the hero jumps, stars pop in one by one, the XP counts up, the new skill is
-   named, and the world's progress bar fills. The best moment and the ending are what people remember. */
+/* The level-cleared moment (the results receipt in hub.js). The best moment and the ending are what
+   people remember, so it's worth making a fuss. */
 function celebrate(L) {
-  const s = lv(L.id), c = s.c || { s: 1 }, h = S.hero;
-  const idx = LEVELS.indexOf(L), nx = LEVELS[idx + 1];
-  const newWorld = nx && nx.world !== L.world ? WORLDS[nx.world - 1] : null;
-  const inWorld = LEVELS.filter((l) => l.world === L.world), cleared = inWorld.filter((l) => levelClear(l.id)).length;
-  const from = Math.round(((cleared - 1) / inWorld.length) * 100), to = Math.round((cleared / inWorld.length) * 100);
-  confetti();
-  openModal(`<div class="celebrate cel" style="display:grid;gap:14px">
-    <div class="cel-hero">${heroActorSvg(h.pix)}</div>
-    <p class="eyebrow">${L.boss ? "Boss defeated" : "Level cleared"}</p>
-    <h2>${esc(L.title)}</h2>
-    <div class="big-stars">${starsHtml(c.s)}</div>
-    ${s.x ? `<p class="cel-xp">+<b class="pixel" id="celXp">0</b> XP</p>` : ""}
-    <p class="cel-skill"><span>New skill unlocked</span><b>${esc(L.concept)}</b></p>
-    <div class="cel-world"><div class="cel-world-txt"><span>${esc(WORLDS[L.world - 1].name)}</span><span>${cleared} of ${inWorld.length} levels</span></div>
-      <span class="lvl-bar-track"><i id="celBar" style="width:${from}%"></i></span></div>
-    <p class="muted">${c.s === 3 ? "Three stars, no hints. That's real understanding." : "Replay the Forge without hints any time to raise your stars."} Its memory cards will show up in the Memory Dungeon tomorrow.</p>
-    ${L.boss ? `<p><b>World ${L.world} complete.</b> Do the <i>Take it home</i> quests on the World page too. That's where your portfolio grows.${newWorld ? ` <b>${esc(newWorld.name)}</b> is now open.` : ""}</p>` : ""}
-    <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">${newWorld ? "Enter " + esc(newWorld.name) : "Next: " + esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
-    { onOpen: (bg) => {
-      const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const bar = $("#celBar", bg); setTimeout(() => { bar.style.width = to + "%"; }, still ? 0 : 700);
-      const xpEl = $("#celXp", bg);
-      if (xpEl) {
-        const goal = s.x | 0, t0 = performance.now(), dur = still ? 0 : 900;
-        const step = (t) => { const k = dur ? Math.min(1, (t - t0) / dur) : 1; xpEl.textContent = Math.round(goal * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
-        setTimeout(() => requestAnimationFrame(step), still ? 0 : 500);
-      }
-      const n = $("#cNext", bg); if (n) n.addEventListener("click", () => { closeModal(); go({ name: "level", id: nx.id, stage: "learn" }); });
-      const w = $("#cWorld", bg); if (w) w.addEventListener("click", () => { closeModal(); go({ name: "world", id: L.world }); });
-    } });
+  lv(L.id).tm = levelTime(L.id);   // freeze the level's clock at the moment it's cleared
+  if (TT.key && TT.id === L.id) TT.ms = 0;
+  finishCard(L);
 }
 
 /* ───────── Learn as cards: read → guess → run → change it ─────────
@@ -16340,7 +16388,7 @@ function openGuide() {
         <li><b>Debug</b>: fix broken code, sometimes code an AI wrote.</li>
         <li><b>Explain</b>: put the idea into words, the way you will in interviews.</li>
       </ul>
-      <h3>The daily loop (3–4 hours)</h3>
+      <h3>The daily loop (10 minutes or more)</h3>
       <p>Start with the <b>Memory Dungeon</b> to review old topics, do the next level, then spend 30 minutes on Exercism or CS50P. Aim for ${DAILY_GOAL} XP a day and keep your streak alive.</p>
       <h3>Stars and hints</h3>
       <p>Clear the Forge with no hints for 3 stars. Each hint or Sage question costs a star, with a minimum of 1. You can replay any time.</p>
@@ -16788,7 +16836,9 @@ function netSession() {
 }
 function netLog(kind, level, stage, ok, detail) {
   if (!netOn()) return;
-  const row = { kind, level: level || null, stage: stage || null, ok: ok == null ? null : !!ok, detail: detail || null };
+  // detail.t: the moment it happened on the device. Events are sent in batches, and the database's own
+  // time ("at") is when the batch arrived, so timelines should sort by t.
+  const row = { kind, level: level || null, stage: stage || null, ok: ok == null ? null : !!ok, detail: Object.assign({}, detail, { t: new Date().toISOString() }) };
   if (!NET.noSession) row.session_id = netSession();
   if (NET.queue.length < 300) NET.queue.push(row);
   if (NET.queue.length >= 20) netFlushEvents();
@@ -17520,6 +17570,8 @@ function renderProfile(v) {
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+          <div class="dev-row dev-bh"><span><b>Level-cleared card</b><br><span class="muted">Replay the card for your latest cleared level.</span>
+            <span class="dev-bh-btns"><button class="btn sm" data-fin="1">Show it</button></span></span></div>
           <div class="dev-row dev-bh"><span><b>Sign-in sample</b><br><span class="muted">The planned sign-in screen (Google, email code, guest). Not wired up yet.</span>
             <span class="dev-bh-btns"><button class="btn sm ghost" data-hs="l">Sign-in screen</button></span></span></div>
           <div class="dev-row dev-bh"><span><b>Boss Hack</b><br><span class="muted">Test the surprise review event. "Now" uses any cleared levels except your newest.</span>
@@ -17635,6 +17687,7 @@ function renderProfile(v) {
     toast(aiBox.checked ? "Thank you! Your play now helps train the AI tutor." : "Switched off. Nothing more will be shared for the AI tutor.");
     $("#pAiAge", v).hidden = aiBox.checked;
   });
+  $$("[data-fin]", v).forEach((b) => b.addEventListener("click", () => finishCard([...LEVELS].reverse().find((l) => levelClear(l.id)) || LEVELS[0])));
   $$("[data-hs]", v).forEach((b) => b.addEventListener("click", () => signInSample()));
   $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
     const kind = b.dataset.bh;
@@ -18134,6 +18187,88 @@ function signInSample() {
   startScene($(".scene", o));
   $$("[data-open-legal]", o).forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openLegal(a.dataset.openLegal); }));
   $$(".hsl-me, .hsl-opt", o).forEach((b) => b.addEventListener("click", () => toast("Sample: sign-in isn't wired up yet.")));
+}
+
+/* ───────── Level-cleared card: the arcade results receipt ─────────
+   Clearing a level prints a receipt (time, stars, XP, hints, riddles, new skill, town progress), a
+   CLEARED stamp slams down, the hero cheers, and a line scrolls past in lights. The lines follow what
+   research on motivating feedback says works: praise the effort and the method, never "you're smart"
+   (Dweck's mindset studies); be specific to what this player just did, so it feels earned; and keep it
+   fresh and a little funny, so it never reads like a canned "Great job!". */
+const mmss = (ms) => { const s = Math.round(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+const timeQuip = (min) => min < 2.5 ? "Faster than 2-minute Maggi (which never takes 2 minutes)." : min < 6 ? "Done before the chai went cold."
+  : min < 12 ? "Shorter than one episode of your favourite show." : min < 25 ? "Less than a lunch break. Not bad at all." : "Slow and steady: that's how real developers work.";
+function finishFacts(L) {
+  const h = S.hero, s = lv(L.id), t = s.t || [], inWorld = LEVELS.filter((l) => l.world === L.world);
+  return { name: h.name, cleared: LEVELS.filter((l) => levelClear(l.id)).length, ms: levelTime(L.id), stars: (s.c && s.c.s) || 1, xp: s.x | 0,
+    hints: ((s.cm && s.cm.h) | 0) + ((s.bm && s.bm.h) | 0), think: t.length, firstTry: t.filter((x) => x === 1).length,
+    fails: (s.cm && s.cm.fails) | 0, streak: liveStreak(h), hour: new Date().getHours(), boss: !!L.boss,
+    world: WORLDS[L.world - 1].name, worldDone: inWorld.filter((l) => levelClear(l.id)).length, worldTotal: inWorld.length };
+}
+/* A line about what this player just did when there's something to say (most of the time), otherwise a
+   general one. The last 8 lines shown aren't repeated. */
+function finishLine(f) {
+  const min = f.ms / 60000, mine = [];
+  if (f.hints === 0) mine.push("Zero hints used. Your teacher would be suspicious.", "No hints. Not even one. Who raised you like this?");
+  if (f.think && f.firstTry === f.think) mine.push("Every riddle right on the first try. The Oracle is filing a complaint.");
+  if (f.fails >= 2) mine.push(`Failed ${f.fails} times, then passed. That's not luck, that's literally the whole job.`, "Broke it, fixed it, shipped it. Real developers do exactly this all day.");
+  else if (f.fails === 1) mine.push("One wrong try, then fixed. That's called debugging, and you just did it.");
+  if (f.ms && min < 6) mine.push(`${mmss(f.ms)}? Chill, speedrunner. The code isn't going anywhere.`);
+  if (min > 25) mine.push("You took your time. So does every senior developer; they just won't admit it.");
+  if (f.hour >= 23 || f.hour < 4) mine.push("Coding after 11pm? Certified developer behaviour.");
+  if (f.hour >= 4 && f.hour < 8) mine.push("Coding before breakfast? Respect. Now go eat something.");
+  if (f.streak >= 2) mine.push(`Day ${f.streak} in a row. Your screen time is finally doing something useful.`);
+  if (!f.boss && f.worldDone === f.worldTotal - 1) mine.push(`One town left in ${f.world}. The boss just heard you coming.`);
+  if (f.boss) mine.push(`${f.world}: cleared. The map just got bigger, and so did you.`);
+  const any = [
+    "Sharma ji's son is nervous now.",
+    "One more level and you can say \"I code\" at family functions.",
+    "Python didn't throw a single tantrum. Okay, maybe one.",
+    "Your brain just did a push-up.",
+    "This is the part of the movie where the training montage music starts.",
+    "Achievement unlocked: understanding something your cousin pretends to understand.",
+    "Chai break earned. Don't make it a three-hour one.",
+    "Somewhere, a keyboard is proud of you.",
+    "Most people only put this in their New Year's resolutions. You actually did it.",
+    "The bugs had a meeting about you. It didn't go well for them.",
+    `Future ${f.name} just high-fived present ${f.name}.`,
+    `${f.cleared} level${f.cleared === 1 ? "" : "s"} down. Your future self is taking notes.`
+  ];
+  const recent = lsGet("cq.finish.recent") || [];
+  const pick = (list) => { const fresh = list.filter((x) => !recent.includes(x)), pool = fresh.length ? fresh : list; return pool[Math.floor(Math.random() * pool.length)]; };
+  const line = mine.length && Math.random() < 0.7 ? pick(mine) : pick(any);
+  lsSet("cq.finish.recent", [line].concat(recent).slice(0, 8));
+  return line;
+}
+function finishCard(L) {
+  const f = finishFacts(L), line = finishLine(f), idx = LEVELS.indexOf(L), nx = LEVELS[idx + 1];
+  const newWorld = nx && nx.world !== L.world ? WORLDS[nx.world - 1] : null;
+  const rows = [["TIME", f.ms ? mmss(f.ms) : "--:--"], ["STARS", "★".repeat(f.stars) + "☆".repeat(3 - f.stars)], ["XP", "+" + f.xp], ["HINTS USED", f.hints]]
+    .concat(f.think ? [["FIRST-TRY RIDDLES", `${f.firstTry}/${f.think}`]] : [], [["NEW SKILL", L.concept], [f.world.toUpperCase(), `${f.worldDone}/${f.worldTotal} TOWNS`]]);
+  const splats = Array.from({ length: 9 }, (_, i) => { const a = (i / 9) * Math.PI * 2 + Math.random() * 0.5, r = 52 + Math.random() * 26, s = 4 + Math.floor(Math.random() * 7);
+    return `<i style="left:${Math.round(Math.cos(a) * r)}px;top:${Math.round(Math.sin(a) * r * 0.6)}px;width:${s}px;height:${s}px"></i>`; }).join("");
+  const sparks = [[-34, 6], [92, 0], [-24, 62], [84, 58], [30, -10]].map(([x, y], i) => `<i style="left:${x}px;top:${y}px;animation-delay:${i * 0.3}s"></i>`).join("");
+  confetti();
+  openModal(`<div class="celebrate cel fin" style="display:grid;gap:14px">
+    <div class="cel-hero fin-hero"><span class="fin-sparks">${sparks}</span>${heroActorSvg(S.hero.pix)}<b class="fin-wow">!!</b></div>
+    <p class="eyebrow">${L.boss ? "Boss defeated" : "Level cleared"}</p><h2>${esc(L.title)}</h2>
+    <div class="fin-receipt"><p class="fin-r-head">*** QUEST RESULTS ***</p>
+      <ul>${rows.map(([k, v], i) => `<li style="animation-delay:${(0.3 + i * 0.3).toFixed(2)}s"><span>${esc(k)}</span><i></i><b>${esc(String(v))}</b></li>`).join("")}</ul>
+      <span class="fin-splats">${splats}</span><span class="fin-stamp">${L.boss ? "BOSS DOWN!" : "CLEARED!"}</span></div>
+    <div class="fin-marquee"><span>${esc(line.toUpperCase())} ★ ${f.ms ? esc(timeQuip(f.ms / 60000).toUpperCase()) + " ★ " : ""}</span></div>
+    ${L.boss ? `<p><b>World ${L.world} complete.</b> Do the <i>Take it home</i> quests on the World page too. That's where your portfolio grows.${newWorld ? ` <b>${esc(newWorld.name)}</b> is now open.` : ""}</p>` : ""}
+    <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">${newWorld ? "Enter " + esc(newWorld.name) : "Next: " + esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
+    { onOpen: (bg) => {
+      // The stamp lands once the receipt has printed: the card jolts, ink splatters, the hero cheers.
+      setTimeout(() => {
+        const st = $(".fin-stamp", bg); if (!st) return;
+        const land = () => { $(".fin-receipt", bg).classList.add("thud"); $(".fin-hero", bg).classList.add("cheer"); $(".fin-splats", bg).classList.add("landed"); };
+        st.classList.add("in");
+        if (bhStill()) land(); else st.addEventListener("animationend", land, { once: true });
+      }, bhStill() ? 0 : 400 + rows.length * 300 + 250);
+      const n = $("#cNext", bg); if (n) n.addEventListener("click", () => { closeModal(); go({ name: "level", id: nx.id, stage: "learn" }); });
+      const w = $("#cWorld", bg); if (w) w.addEventListener("click", () => { closeModal(); go({ name: "world", id: L.world }); });
+    } });
 }
 
 </script>

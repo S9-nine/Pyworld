@@ -340,11 +340,12 @@ function go(route, { replace = false } = {}) {
   window.scrollTo({ top: 0 });
 }
 /* ───────── Time on task ─────────
-   How long each stage really takes: counted in 15-second ticks, only while the game is on screen and
+   How long each stage really takes: counted in 5-second ticks, only while the game is on screen and
    the player did something in the last 90 seconds. Logged when they leave the stage or the page. */
 const TT = { key: null, id: null, stage: null, ms: 0, input: Date.now() };
 function ttFlush(keepGoing = false) {
   if (TT.key && TT.ms >= 15000 && typeof netLog === "function") netLog("time", TT.id, TT.stage, stageDone(TT.id, TT.stage), { ms: TT.ms });
+  if (TT.key && S.hero && TT.ms) { const s = lv(TT.id); if (!s.d) s.tm = (s.tm | 0) + TT.ms; }   // the level's own clock, until it's cleared
   TT.ms = 0;
   if (!keepGoing) TT.key = null;
 }
@@ -356,7 +357,9 @@ function ttTrack() {
   if (key) Object.assign(TT, { key, id: r.id, stage: cur.dataset.stage, ms: 0, input: Date.now() });
 }
 ["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, () => { TT.input = Date.now(); }, { passive: true, capture: true }));
-setInterval(() => { if (TT.key && !document.hidden && Date.now() - TT.input < 90000) TT.ms += 15000; }, 15000);
+setInterval(() => { if (TT.key && !document.hidden && Date.now() - TT.input < 90000) TT.ms += 5000; }, 5000);
+/* How long a level took to clear (active time), including the stage that's open right now. */
+const levelTime = (id) => ((S.hero && lv(id).tm) | 0) + (TT.key && TT.id === id ? TT.ms : 0);
 document.addEventListener("visibilitychange", () => { if (document.hidden) ttFlush(true); });
 /* Learning traces for a future AI tutor: only for players who switched it on in Profile → Your data. */
 const aiOn = () => !!(S.hero && S.hero.ai && S.hero.ai.on);
@@ -483,7 +486,7 @@ function renderHome(v) {
         <div>
           <p class="eyebrow">${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].when)} · ${esc(WORLDS[(nx ? nx.world : WORLDS.length) - 1].name)}</p>
           <h1>${greeting()}, ${esc(h.name)}.</h1>
-          <p>${brandNew ? "Welcome! Press <b>Start</b> below to begin your first level. Each level takes about 30–45 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
+          <p>${brandNew ? "Welcome! Press <b>Start</b> below to begin your first level. Each level takes about 10 minutes." : due ? `You have ${due} memory card${due > 1 ? "s" : ""} to review. Warm up with those first, then carry on.` : "Pick up where you left off. Small steps every day beat one long weekend."}</p>
         </div>
       </div>
       ${nx ? `<button class="card continue trail-card${brandNew ? " start-here" : ""}" id="contBtn">
@@ -493,7 +496,7 @@ function renderHome(v) {
       </button>` : `<div class="card continue"><span class="lvl-badge">${ICON.crown}</span><span><b>Every world cleared!</b><br><span class="muted">You've finished the whole quest. Replay levels for 3 stars, and keep the Take it home quests going.</span></span></div>`}
       <div class="card map-card"><div class="map-scroll">${mapSvg()}</div><div class="map-legend">Click an island · tokens show where each player is</div>${miniMapHtml()}</div>
       <div class="card loop">
-        <div class="panel-h"><h2>Today's quest loop</h2><span class="muted" style="font-size:13px">about 3–4 hours</span></div>
+        <div class="panel-h"><h2>Today's quest loop</h2><span class="muted" style="font-size:13px">10 minutes counts</span></div>
         ${loopHtml(nx, due)}
       </div>
     </div>
@@ -1027,39 +1030,12 @@ function levelBar(id) {
   return `<div class="lvl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${STAGES.length}" aria-valuenow="${n}" aria-label="Level progress">
     <span class="lvl-bar-track"><i style="width:${pct}%"></i></span><span class="lvl-bar-txt">${n === STAGES.length ? "Level cleared" : `${n} of ${STAGES.length} steps`}</span></div>`;
 }
-/* The level-cleared moment: the hero jumps, stars pop in one by one, the XP counts up, the new skill is
-   named, and the world's progress bar fills. The best moment and the ending are what people remember. */
+/* The level-cleared moment (the results receipt in hub.js). The best moment and the ending are what
+   people remember, so it's worth making a fuss. */
 function celebrate(L) {
-  const s = lv(L.id), c = s.c || { s: 1 }, h = S.hero;
-  const idx = LEVELS.indexOf(L), nx = LEVELS[idx + 1];
-  const newWorld = nx && nx.world !== L.world ? WORLDS[nx.world - 1] : null;
-  const inWorld = LEVELS.filter((l) => l.world === L.world), cleared = inWorld.filter((l) => levelClear(l.id)).length;
-  const from = Math.round(((cleared - 1) / inWorld.length) * 100), to = Math.round((cleared / inWorld.length) * 100);
-  confetti();
-  openModal(`<div class="celebrate cel" style="display:grid;gap:14px">
-    <div class="cel-hero">${heroActorSvg(h.pix)}</div>
-    <p class="eyebrow">${L.boss ? "Boss defeated" : "Level cleared"}</p>
-    <h2>${esc(L.title)}</h2>
-    <div class="big-stars">${starsHtml(c.s)}</div>
-    ${s.x ? `<p class="cel-xp">+<b class="pixel" id="celXp">0</b> XP</p>` : ""}
-    <p class="cel-skill"><span>New skill unlocked</span><b>${esc(L.concept)}</b></p>
-    <div class="cel-world"><div class="cel-world-txt"><span>${esc(WORLDS[L.world - 1].name)}</span><span>${cleared} of ${inWorld.length} levels</span></div>
-      <span class="lvl-bar-track"><i id="celBar" style="width:${from}%"></i></span></div>
-    <p class="muted">${c.s === 3 ? "Three stars, no hints. That's real understanding." : "Replay the Forge without hints any time to raise your stars."} Its memory cards will show up in the Memory Dungeon tomorrow.</p>
-    ${L.boss ? `<p><b>World ${L.world} complete.</b> Do the <i>Take it home</i> quests on the World page too. That's where your portfolio grows.${newWorld ? ` <b>${esc(newWorld.name)}</b> is now open.` : ""}</p>` : ""}
-    <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">${newWorld ? "Enter " + esc(newWorld.name) : "Next: " + esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
-    { onOpen: (bg) => {
-      const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const bar = $("#celBar", bg); setTimeout(() => { bar.style.width = to + "%"; }, still ? 0 : 700);
-      const xpEl = $("#celXp", bg);
-      if (xpEl) {
-        const goal = s.x | 0, t0 = performance.now(), dur = still ? 0 : 900;
-        const step = (t) => { const k = dur ? Math.min(1, (t - t0) / dur) : 1; xpEl.textContent = Math.round(goal * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
-        setTimeout(() => requestAnimationFrame(step), still ? 0 : 500);
-      }
-      const n = $("#cNext", bg); if (n) n.addEventListener("click", () => { closeModal(); go({ name: "level", id: nx.id, stage: "learn" }); });
-      const w = $("#cWorld", bg); if (w) w.addEventListener("click", () => { closeModal(); go({ name: "world", id: L.world }); });
-    } });
+  lv(L.id).tm = levelTime(L.id);   // freeze the level's clock at the moment it's cleared
+  if (TT.key && TT.id === L.id) TT.ms = 0;
+  finishCard(L);
 }
 
 /* ───────── Learn as cards: read → guess → run → change it ─────────
@@ -1959,7 +1935,7 @@ function openGuide() {
         <li><b>Debug</b>: fix broken code, sometimes code an AI wrote.</li>
         <li><b>Explain</b>: put the idea into words, the way you will in interviews.</li>
       </ul>
-      <h3>The daily loop (3–4 hours)</h3>
+      <h3>The daily loop (10 minutes or more)</h3>
       <p>Start with the <b>Memory Dungeon</b> to review old topics, do the next level, then spend 30 minutes on Exercism or CS50P. Aim for ${DAILY_GOAL} XP a day and keep your streak alive.</p>
       <h3>Stars and hints</h3>
       <p>Clear the Forge with no hints for 3 stars. Each hint or Sage question costs a star, with a minimum of 1. You can replay any time.</p>

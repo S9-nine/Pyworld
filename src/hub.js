@@ -189,3 +189,85 @@ function signInSample() {
   $$("[data-open-legal]", o).forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openLegal(a.dataset.openLegal); }));
   $$(".hsl-me, .hsl-opt", o).forEach((b) => b.addEventListener("click", () => toast("Sample: sign-in isn't wired up yet.")));
 }
+
+/* ───────── Level-cleared card: the arcade results receipt ─────────
+   Clearing a level prints a receipt (time, stars, XP, hints, riddles, new skill, town progress), a
+   CLEARED stamp slams down, the hero cheers, and a line scrolls past in lights. The lines follow what
+   research on motivating feedback says works: praise the effort and the method, never "you're smart"
+   (Dweck's mindset studies); be specific to what this player just did, so it feels earned; and keep it
+   fresh and a little funny, so it never reads like a canned "Great job!". */
+const mmss = (ms) => { const s = Math.round(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+const timeQuip = (min) => min < 2.5 ? "Faster than 2-minute Maggi (which never takes 2 minutes)." : min < 6 ? "Done before the chai went cold."
+  : min < 12 ? "Shorter than one episode of your favourite show." : min < 25 ? "Less than a lunch break. Not bad at all." : "Slow and steady: that's how real developers work.";
+function finishFacts(L) {
+  const h = S.hero, s = lv(L.id), t = s.t || [], inWorld = LEVELS.filter((l) => l.world === L.world);
+  return { name: h.name, cleared: LEVELS.filter((l) => levelClear(l.id)).length, ms: levelTime(L.id), stars: (s.c && s.c.s) || 1, xp: s.x | 0,
+    hints: ((s.cm && s.cm.h) | 0) + ((s.bm && s.bm.h) | 0), think: t.length, firstTry: t.filter((x) => x === 1).length,
+    fails: (s.cm && s.cm.fails) | 0, streak: liveStreak(h), hour: new Date().getHours(), boss: !!L.boss,
+    world: WORLDS[L.world - 1].name, worldDone: inWorld.filter((l) => levelClear(l.id)).length, worldTotal: inWorld.length };
+}
+/* A line about what this player just did when there's something to say (most of the time), otherwise a
+   general one. The last 8 lines shown aren't repeated. */
+function finishLine(f) {
+  const min = f.ms / 60000, mine = [];
+  if (f.hints === 0) mine.push("Zero hints used. Your teacher would be suspicious.", "No hints. Not even one. Who raised you like this?");
+  if (f.think && f.firstTry === f.think) mine.push("Every riddle right on the first try. The Oracle is filing a complaint.");
+  if (f.fails >= 2) mine.push(`Failed ${f.fails} times, then passed. That's not luck, that's literally the whole job.`, "Broke it, fixed it, shipped it. Real developers do exactly this all day.");
+  else if (f.fails === 1) mine.push("One wrong try, then fixed. That's called debugging, and you just did it.");
+  if (f.ms && min < 6) mine.push(`${mmss(f.ms)}? Chill, speedrunner. The code isn't going anywhere.`);
+  if (min > 25) mine.push("You took your time. So does every senior developer; they just won't admit it.");
+  if (f.hour >= 23 || f.hour < 4) mine.push("Coding after 11pm? Certified developer behaviour.");
+  if (f.hour >= 4 && f.hour < 8) mine.push("Coding before breakfast? Respect. Now go eat something.");
+  if (f.streak >= 2) mine.push(`Day ${f.streak} in a row. Your screen time is finally doing something useful.`);
+  if (!f.boss && f.worldDone === f.worldTotal - 1) mine.push(`One town left in ${f.world}. The boss just heard you coming.`);
+  if (f.boss) mine.push(`${f.world}: cleared. The map just got bigger, and so did you.`);
+  const any = [
+    "Sharma ji's son is nervous now.",
+    "One more level and you can say \"I code\" at family functions.",
+    "Python didn't throw a single tantrum. Okay, maybe one.",
+    "Your brain just did a push-up.",
+    "This is the part of the movie where the training montage music starts.",
+    "Achievement unlocked: understanding something your cousin pretends to understand.",
+    "Chai break earned. Don't make it a three-hour one.",
+    "Somewhere, a keyboard is proud of you.",
+    "Most people only put this in their New Year's resolutions. You actually did it.",
+    "The bugs had a meeting about you. It didn't go well for them.",
+    `Future ${f.name} just high-fived present ${f.name}.`,
+    `${f.cleared} level${f.cleared === 1 ? "" : "s"} down. Your future self is taking notes.`
+  ];
+  const recent = lsGet("cq.finish.recent") || [];
+  const pick = (list) => { const fresh = list.filter((x) => !recent.includes(x)), pool = fresh.length ? fresh : list; return pool[Math.floor(Math.random() * pool.length)]; };
+  const line = mine.length && Math.random() < 0.7 ? pick(mine) : pick(any);
+  lsSet("cq.finish.recent", [line].concat(recent).slice(0, 8));
+  return line;
+}
+function finishCard(L) {
+  const f = finishFacts(L), line = finishLine(f), idx = LEVELS.indexOf(L), nx = LEVELS[idx + 1];
+  const newWorld = nx && nx.world !== L.world ? WORLDS[nx.world - 1] : null;
+  const rows = [["TIME", f.ms ? mmss(f.ms) : "--:--"], ["STARS", "★".repeat(f.stars) + "☆".repeat(3 - f.stars)], ["XP", "+" + f.xp], ["HINTS USED", f.hints]]
+    .concat(f.think ? [["FIRST-TRY RIDDLES", `${f.firstTry}/${f.think}`]] : [], [["NEW SKILL", L.concept], [f.world.toUpperCase(), `${f.worldDone}/${f.worldTotal} TOWNS`]]);
+  const splats = Array.from({ length: 9 }, (_, i) => { const a = (i / 9) * Math.PI * 2 + Math.random() * 0.5, r = 52 + Math.random() * 26, s = 4 + Math.floor(Math.random() * 7);
+    return `<i style="left:${Math.round(Math.cos(a) * r)}px;top:${Math.round(Math.sin(a) * r * 0.6)}px;width:${s}px;height:${s}px"></i>`; }).join("");
+  const sparks = [[-34, 6], [92, 0], [-24, 62], [84, 58], [30, -10]].map(([x, y], i) => `<i style="left:${x}px;top:${y}px;animation-delay:${i * 0.3}s"></i>`).join("");
+  confetti();
+  openModal(`<div class="celebrate cel fin" style="display:grid;gap:14px">
+    <div class="cel-hero fin-hero"><span class="fin-sparks">${sparks}</span>${heroActorSvg(S.hero.pix)}<b class="fin-wow">!!</b></div>
+    <p class="eyebrow">${L.boss ? "Boss defeated" : "Level cleared"}</p><h2>${esc(L.title)}</h2>
+    <div class="fin-receipt"><p class="fin-r-head">*** QUEST RESULTS ***</p>
+      <ul>${rows.map(([k, v], i) => `<li style="animation-delay:${(0.3 + i * 0.3).toFixed(2)}s"><span>${esc(k)}</span><i></i><b>${esc(String(v))}</b></li>`).join("")}</ul>
+      <span class="fin-splats">${splats}</span><span class="fin-stamp">${L.boss ? "BOSS DOWN!" : "CLEARED!"}</span></div>
+    <div class="fin-marquee"><span>${esc(line.toUpperCase())} ★ ${f.ms ? esc(timeQuip(f.ms / 60000).toUpperCase()) + " ★ " : ""}</span></div>
+    ${L.boss ? `<p><b>World ${L.world} complete.</b> Do the <i>Take it home</i> quests on the World page too. That's where your portfolio grows.${newWorld ? ` <b>${esc(newWorld.name)}</b> is now open.` : ""}</p>` : ""}
+    <div class="row" style="justify-content:center">${nx ? `<button class="btn primary" id="cNext">${newWorld ? "Enter " + esc(newWorld.name) : "Next: " + esc(nx.title)}</button>` : `<button class="btn primary" id="cWorld">Back to the world</button>`}<button class="btn" data-close>Stay here</button></div></div>`,
+    { onOpen: (bg) => {
+      // The stamp lands once the receipt has printed: the card jolts, ink splatters, the hero cheers.
+      setTimeout(() => {
+        const st = $(".fin-stamp", bg); if (!st) return;
+        const land = () => { $(".fin-receipt", bg).classList.add("thud"); $(".fin-hero", bg).classList.add("cheer"); $(".fin-splats", bg).classList.add("landed"); };
+        st.classList.add("in");
+        if (bhStill()) land(); else st.addEventListener("animationend", land, { once: true });
+      }, bhStill() ? 0 : 400 + rows.length * 300 + 250);
+      const n = $("#cNext", bg); if (n) n.addEventListener("click", () => { closeModal(); go({ name: "level", id: nx.id, stage: "learn" }); });
+      const w = $("#cWorld", bg); if (w) w.addEventListener("click", () => { closeModal(); go({ name: "world", id: L.world }); });
+    } });
+}

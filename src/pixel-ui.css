@@ -736,3 +736,56 @@ body.hs-on { overflow: hidden; }
 /* Age/Terms question for heroes made before it existed: a quiet banner, not a pop-up */
 .legal-banner { background: var(--sun-soft); border-bottom: 1px solid color-mix(in srgb, var(--sun) 50%, var(--line)); }
 .legal-banner .wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 8px; font-size: 14px; flex-wrap: wrap; }
+
+/* ───────── Level-cleared card: results receipt, stamp, cheering hero ───────── */
+.fin { text-align: center; }
+.fin .fin-receipt, .fin .fin-marquee { justify-self: stretch; width: 100%; box-sizing: border-box; }
+/* The hero keeps celebrating: a happy bounce with twinkling sparks, and a jump-flip with "!!" when the stamp lands. */
+.fin-hero { position: relative; height: 80px; }
+.fin-hero .act { height: 80px; }
+.fin-hero .act-body { animation: fin-bounce 1s cubic-bezier(.3, .7, .4, 1) infinite !important; transform-box: fill-box; transform-origin: 50% 100%; will-change: transform; }
+.fin-hero.cheer .act-body { animation: fin-flip .75s cubic-bezier(.3, .7, .4, 1), fin-bounce 1s .75s cubic-bezier(.3, .7, .4, 1) infinite !important; transform-origin: 50% 60%; }
+@keyframes fin-bounce { 0%, 100% { transform: translateY(0) scale(1, 1); } 15% { transform: translateY(0) scale(1.12, .88); } 45% { transform: translateY(-4px) scale(.94, 1.08); } 70% { transform: translateY(0) scale(1.06, .94); } }
+@keyframes fin-flip { 0% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-7px) rotate(-180deg) scale(1.1); } 80% { transform: translateY(-2px) rotate(-360deg); } 100% { transform: translateY(0) rotate(-360deg); } }
+.fin-sparks { position: absolute; left: 50%; top: 0; width: 0; height: 0; }
+.fin-sparks i { position: absolute; width: 6px; height: 6px; background: #ffcd75; animation: fin-twinkle 1.6s ease-in-out infinite; }
+.fin-sparks i:nth-child(even) { background: #73eff7; width: 4px; height: 4px; }
+@keyframes fin-twinkle { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1); } }
+.fin-wow { position: absolute; left: calc(50% + 34px); top: -6px; font-family: var(--font-display); font-size: 26px; color: #ffcd75; text-shadow: 2px 2px 0 #b13e53; opacity: 0; }
+.fin-hero.cheer .fin-wow { animation: fin-wow 1.4s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes fin-wow { 0% { opacity: 0; transform: scale(0) rotate(-20deg); } 25% { opacity: 1; transform: scale(1.3) rotate(8deg); } 70% { opacity: 1; transform: scale(1) rotate(0); } 100% { opacity: 0; transform: translateY(-10px); } }
+/* The receipt prints line by line. */
+.fin-receipt { position: relative; text-align: left; background: #f4f4f4; color: #1a1c2c; font-family: var(--font-code); padding: 14px 16px 18px; border-radius: 4px; }
+.fin-receipt::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 12px; background: radial-gradient(circle at 6px 0, #f4f4f4 6px, transparent 6.5px) 0 0 / 12px 12px repeat-x; }
+.fin-r-head { margin: 0 0 8px; text-align: center; font-weight: 700; letter-spacing: .12em; font-size: 13px; }
+.fin-receipt ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.fin-receipt li { display: flex; gap: 6px; align-items: baseline; opacity: 0; animation: fin-print .35s cubic-bezier(.2, .8, .3, 1) both; }
+.fin-receipt li i { flex: 1; min-width: 12px; border-bottom: 2px dotted #94b0c2; transform: translateY(-3px); }
+.fin-receipt li b { font-weight: 700; text-align: right; }
+@keyframes fin-print { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+/* The stamp: drops from above, slams down with a little overshoot, ink splatters, and the card jolts. */
+.fin-stamp { position: absolute; left: calc(100% - 128px); top: calc(100% - 38px); z-index: 2; will-change: transform, opacity; font-family: var(--font-display); font-size: 34px; line-height: 1; letter-spacing: .04em; white-space: nowrap; color: #c0283b;
+  padding: 6px 14px 4px; border: 4px solid currentColor; border-radius: 6px; box-shadow: inset 0 0 0 3px #f4f4f4, inset 0 0 0 5px currentColor; background: rgb(244 244 244 / .25);
+  transform: translate(-50%, -50%) rotate(-12deg); opacity: 0; pointer-events: none; }
+.fin-stamp::after { content: ""; position: absolute; inset: -4px; border-radius: 6px; pointer-events: none; opacity: .55;
+  background: radial-gradient(circle at 20% 30%, #f4f4f4 0 1.2px, transparent 1.6px) 0 0 / 7px 6px, radial-gradient(circle at 70% 60%, #f4f4f4 0 1px, transparent 1.4px) 3px 2px / 9px 8px; }
+.fin-stamp.in { animation: fin-slam .5s cubic-bezier(.55, 0, .45, 1) forwards; }
+@keyframes fin-slam { 0% { opacity: 0; transform: translate(-50%, -150%) rotate(-24deg) scale(2.6); } 62% { opacity: 1; transform: translate(-50%, -50%) rotate(-10deg) scale(.88); } 80% { transform: translate(-50%, -50%) rotate(-13deg) scale(1.05); } 100% { opacity: .93; transform: translate(-50%, -50%) rotate(-12deg) scale(1); } }
+/* Ink splats sit beside the stamp (not inside it, where the ink texture would hide them). */
+.fin-splats { position: absolute; left: calc(100% - 128px); top: calc(100% - 38px); width: 0; height: 0; z-index: 2; pointer-events: none; }
+.fin-splats i { position: absolute; background: #c0283b; border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0); }
+.fin-splats.landed i { animation: fin-splat .35s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes fin-splat { to { opacity: .8; transform: translate(-50%, -50%) scale(1); } }
+.fin-receipt.thud { animation: fin-thud .38s cubic-bezier(.25, .8, .3, 1); }
+@keyframes fin-thud { 0% { transform: none; } 18% { transform: translateY(5px) scale(.985); } 45% { transform: translateY(-2px); } 70% { transform: translateY(1px); } 100% { transform: none; } }
+.fin-marquee { overflow: hidden; background: #0b0c16; border-radius: 8px; padding: 8px 0; box-shadow: inset 0 0 0 2px #333c57; }
+.fin-marquee span { display: inline-block; white-space: nowrap; padding-left: 100%; will-change: transform; font: 700 15px var(--font-display); letter-spacing: .08em; color: #ffcd75; text-shadow: 0 0 8px rgb(255 205 117 / .7); animation: fin-scroll 14s linear infinite; }
+@keyframes fin-scroll { to { transform: translateX(-100%); } }
+@media (max-width: 640px) { .fin-stamp { font-size: 28px; } }
+@media (prefers-reduced-motion: reduce) {
+  .fin-hero .act-body, .fin-hero.cheer .act-body, .fin-sparks i { animation: none !important; }
+  .fin-receipt li { animation: none; opacity: 1; }
+  .fin-stamp, .fin-stamp.in { animation: none; opacity: .92; }
+  .fin-splats i, .fin-receipt.thud { animation: none; }
+  .fin-marquee span { animation: none; padding-left: 0; white-space: normal; }
+}

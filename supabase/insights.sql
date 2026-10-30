@@ -57,3 +57,11 @@ from profiles;
 select level, at, detail->>'text' as answer, detail->>'got' as ideas_found, detail->>'need' as ideas_needed
 from events where kind = 'explain_dispute'
 order by at desc limit 50;
+
+-- Each player's timeline in the order things happened. Events arrive in batches, so the database time
+-- ("at") is shared by a whole batch; detail ->> 't' is the exact moment on the player's device.
+select coalesce(p.nickname, '?') as player, coalesce((e.detail ->> 't')::timestamptz, e.at) as happened,
+       e.level, e.stage, e.kind, e.ok, round((e.detail ->> 'ms')::numeric / 1000) as seconds
+from events e left join profiles p on p.id = e.user_id
+where e.at > now() - interval '7 days'
+order by player, happened;

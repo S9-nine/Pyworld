@@ -7,8 +7,8 @@ const EXPLAIN = {
   /* ── World 1 ── */
   "1-1": {
     keys: [
-      ["what the quotes do", /quote|string|text|\bstr\b|word|letters|characters/i],
-      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b|express|evaluat|comput|work(s|ed)? (it )?out|result|solve/i]
+      ["what the quotes do", /quote|string|text|\bstr\b|word|letters|characters|sentence|as it is|as written|exactly|literal|word for word|like a (sentence|word|label)/i],
+      ["what Python does when there are no quotes", /math|calculat|add|sum|plus|number|integer|\bint\b|\b10\b|express|evaluat|comput|work(s|ed)? (it )?out|result|solve|operation|answer/i]
     ],
     model: "print(\"5 + 5\") shows 5 + 5 exactly as written, because the quotes make it a string of text. print(5 + 5) has no quotes, so Python does the maths first and shows 10."
   },

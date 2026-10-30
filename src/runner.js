@@ -679,6 +679,25 @@ function typoFixes(words, L) {
   }
   return extra;
 }
+/* Everyday words players use for the same idea. Each one also counts as the plain word the key-idea
+   patterns look for ("numerical operations" → number, math), so a correct answer in other words still
+   ticks its idea. Learned from real answers that were right but got marked as missing an idea. */
+const EXPLAIN_SYNONYMS = [
+  [/^(numerical|numeric|numeral|numerals|digits?)$/, "number"],
+  [/^(operations?|calculations?|calculates?|calculated|arithmetic|maths|sums?)$/, "math"],
+  [/^(sentence|sentences|words|characters|letters|literal|literally)$/, "text"],
+  [/^(adds|adding|added|addition|total|totals)$/, "add"],
+  [/^(answer|answers|outcome|outcomes|output|outputs)$/, "result"],
+  [/^(saves|saving|saved|holds|holding|stores|storing|stored|remembers)$/, "store"],
+  [/^(repeats|repeating|repeated|loops|looping|again|iterates?|iterating)$/, "repeat"],
+  [/^(mistakes?|errors?|bugs?|crash|crashes|crashed|breaks?|broke)$/, "error"],
+  [/^(checks?|checking|tests?|testing|compares?|comparing)$/, "check"]
+];
+function explainSynonyms(words) {
+  const out = [];
+  for (const w of new Set(words)) for (const [re, plain] of EXPLAIN_SYNONYMS) if (re.test(w)) out.push(plain);
+  return out;
+}
 /* A hint names its idea, so repeating the hint's own words doesn't count: "quotes" alone can't tick
    "what the quotes do". Hint words that would tick the idea by themselves are removed from the
    answer (with their endings: quote, quotes, quoted) before that idea is matched. */
@@ -692,7 +711,7 @@ function withoutHint(text, hint, re) {
 function explainCheck(text, L) {
   const t = String(text || "").trim(), words = explainWords(t);
   const keys = L.explainKeys || [];
-  const fixes = typoFixes(words, L);
+  const fixes = typoFixes(words, L).concat(explainSynonyms(words));
   const tt = fixes.length ? t + " " + fixes.join(" ") : t;
   const hits = keys.map(([hint, re]) => re.test(withoutHint(tt, hint, re)));
   const need = L.explainNeed || Math.max(1, Math.ceil(keys.length * 0.6));

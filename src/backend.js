@@ -115,7 +115,9 @@ function netSession() {
 }
 function netLog(kind, level, stage, ok, detail) {
   if (!netOn()) return;
-  const row = { kind, level: level || null, stage: stage || null, ok: ok == null ? null : !!ok, detail: detail || null };
+  // detail.t: the moment it happened on the device. Events are sent in batches, and the database's own
+  // time ("at") is when the batch arrived, so timelines should sort by t.
+  const row = { kind, level: level || null, stage: stage || null, ok: ok == null ? null : !!ok, detail: Object.assign({}, detail, { t: new Date().toISOString() }) };
   if (!NET.noSession) row.session_id = netSession();
   if (NET.queue.length < 300) NET.queue.push(row);
   if (NET.queue.length >= 20) netFlushEvents();

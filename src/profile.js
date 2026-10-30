@@ -68,6 +68,8 @@ function renderProfile(v) {
         <details class="dev-opts"><summary><span class="dev-tag">DEV</span> Try new designs</summary>
           <p class="muted">Designs we're testing. They only change this browser, and you can switch back any time.</p>
           ${DEV_SWITCHES.map(([k, name, what]) => `<label class="dev-row"><input type="checkbox" data-feat="${k}" ${FEATURES[k] ? "checked" : ""}><span><b>${name}</b><br><span class="muted">${what}</span></span></label>`).join("")}
+          <div class="dev-row dev-bh"><span><b>Level-cleared card</b><br><span class="muted">Replay the card for your latest cleared level.</span>
+            <span class="dev-bh-btns"><button class="btn sm" data-fin="1">Show it</button></span></span></div>
           <div class="dev-row dev-bh"><span><b>Sign-in sample</b><br><span class="muted">The planned sign-in screen (Google, email code, guest). Not wired up yet.</span>
             <span class="dev-bh-btns"><button class="btn sm ghost" data-hs="l">Sign-in screen</button></span></span></div>
           <div class="dev-row dev-bh"><span><b>Boss Hack</b><br><span class="muted">Test the surprise review event. "Now" uses any cleared levels except your newest.</span>
@@ -183,6 +185,7 @@ function renderProfile(v) {
     toast(aiBox.checked ? "Thank you! Your play now helps train the AI tutor." : "Switched off. Nothing more will be shared for the AI tutor.");
     $("#pAiAge", v).hidden = aiBox.checked;
   });
+  $$("[data-fin]", v).forEach((b) => b.addEventListener("click", () => finishCard([...LEVELS].reverse().find((l) => levelClear(l.id)) || LEVELS[0])));
   $$("[data-hs]", v).forEach((b) => b.addEventListener("click", () => signInSample()));
   $$("[data-bh]", v).forEach((b) => b.addEventListener("click", () => {
     const kind = b.dataset.bh;
